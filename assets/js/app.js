@@ -135,12 +135,42 @@ async function _displayFile(name, content) {
     ? renderMarkdown(content)
     : renderText(content);
 
+  _attachCopyButtons(readerBody);
+
   welcomeEl.hidden = true;
   readerEl.hidden = false;
 
   // 捲回頂部
   readerEl.scrollIntoView({ block: 'start' });
   document.getElementById('content-area').scrollTop = 0;
+}
+
+/* ──────────────────── 複製按鈕 ──────────────────── */
+
+function _attachCopyButtons(container) {
+  container.querySelectorAll('pre').forEach(pre => {
+    const code = pre.querySelector('code');
+    if (!code) return;
+
+    const btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = '複製';
+    btn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(code.textContent);
+        btn.textContent = '已複製';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = '複製';
+          btn.classList.remove('copied');
+        }, 1500);
+      } catch {
+        btn.textContent = '失敗';
+        setTimeout(() => { btn.textContent = '複製'; }, 1500);
+      }
+    });
+    pre.appendChild(btn);
+  });
 }
 
 /* ──────────────────── Toast 通知 ──────────────────── */

@@ -24,8 +24,11 @@ html, body { height: 100%; }
   --code-border:       #d0d7de;
   --header-bg:         #ffffff;
   --header-border:     #d0d7de;
-  --blockquote-border: #d0d7de;
-  --blockquote-bg:     #f6f8fa;
+  --blockquote-border: #0969da;
+  --blockquote-bg:     #eff6ff;
+  --heading-h1:        #0969da;
+  --heading-h2:        #0550ae;
+  --inline-code-color: #c2185b;
   --tree-hover:        #eaeef2;
   --tree-active:       #dae4f0;
   --tree-active-text:  #0969da;
@@ -54,8 +57,11 @@ html, body { height: 100%; }
   --code-border:       #30363d;
   --header-bg:         #161b22;
   --header-border:     #30363d;
-  --blockquote-border: #3d444d;
-  --blockquote-bg:     #161b22;
+  --blockquote-border: #58a6ff;
+  --blockquote-bg:     #0c1e35;
+  --heading-h1:        #79c0ff;
+  --heading-h2:        #58a6ff;
+  --inline-code-color: #f47067;
   --tree-hover:        #21262d;
   --tree-active:       #1c3148;
   --tree-active-text:  #58a6ff;
@@ -378,8 +384,8 @@ button {
   color: var(--text);
 }
 
-#reader-body h1 { font-size: 2em; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-#reader-body h2 { font-size: 1.5em; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+#reader-body h1 { font-size: 2em; color: var(--heading-h1); border-bottom: 2px solid var(--heading-h1); padding-bottom: 10px; opacity: 0.9; }
+#reader-body h2 { font-size: 1.5em; color: var(--heading-h2); border-bottom: 1px solid var(--border); padding-bottom: 8px; }
 #reader-body h3 { font-size: 1.25em; }
 #reader-body h4 { font-size: 1em; }
 #reader-body h5 { font-size: 0.875em; }
@@ -408,7 +414,8 @@ button {
   font-family: var(--font-mono);
   font-size: 0.875em;
   padding: 0.2em 0.45em;
-  color: var(--text);
+  color: var(--inline-code-color);
+  font-weight: 500;
 }
 
 /* Code blocks */
@@ -418,17 +425,39 @@ button {
   border-radius: var(--radius);
   overflow-x: auto;
   margin-bottom: 16px;
+  position: relative;
 }
 
 #reader-body pre code {
   background: transparent;
   border: none;
-  padding: 16px;
+  padding: 20px 24px;
   font-family: var(--font-mono);
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.7;
   display: block;
 }
+
+/* Copy button */
+.copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-family: var(--font-sans);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s;
+  line-height: 18px;
+}
+#reader-body pre:hover .copy-btn { opacity: 1; }
+.copy-btn:hover { background: var(--tree-hover); color: var(--text); }
+.copy-btn.copied { color: #1a7f37; border-color: #1a7f37; }
 
 /* highlight.js overrides */
 .hljs {
