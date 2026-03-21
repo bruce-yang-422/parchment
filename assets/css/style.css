@@ -419,13 +419,17 @@ button {
 }
 
 /* Code blocks */
+.code-wrapper {
+  position: relative;
+  margin-bottom: 16px;
+}
+
 #reader-body pre {
   background: var(--code-bg);
   border: 1px solid var(--code-border);
   border-radius: var(--radius);
   overflow-x: auto;
-  margin-bottom: 16px;
-  position: relative;
+  margin-bottom: 0;
 }
 
 #reader-body pre code {
@@ -443,8 +447,8 @@ button {
   position: absolute;
   top: 8px;
   right: 8px;
-  padding: 3px 10px;
-  font-size: 11px;
+  padding: 4px 10px;
+  font-size: 13px;
   font-family: var(--font-sans);
   background: var(--surface);
   border: 1px solid var(--border);

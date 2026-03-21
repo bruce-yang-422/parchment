@@ -152,6 +152,12 @@ function _attachCopyButtons(container) {
     const code = pre.querySelector('code');
     if (!code) return;
 
+    // Wrap pre in a div so the button sits outside pre's overflow context
+    const wrapper = document.createElement('div');
+    wrapper.className = 'code-wrapper';
+    pre.parentNode.insertBefore(wrapper, pre);
+    wrapper.appendChild(pre);
+
     const btn = document.createElement('button');
     btn.className = 'copy-btn';
     btn.textContent = '複製';
@@ -169,7 +175,7 @@ function _attachCopyButtons(container) {
         setTimeout(() => { btn.textContent = '複製'; }, 1500);
       }
     });
-    pre.appendChild(btn);
+    wrapper.appendChild(btn);
   });
 }
 
