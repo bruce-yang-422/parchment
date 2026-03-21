@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-TW" data-theme="system">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parchment — MD &amp; TXT Reader</title>
+  <link rel="stylesheet" href="style.css">
+  <link id="hljs-light" rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+  <link id="hljs-dark" rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"
+    disabled>
+</head>
+<body>
+  <header id="header">
+    <div class="header-left">
+      <span class="app-name">Parchment</span>
+    </div>
+    <div class="header-right">
+      <button id="btn-theme" class="btn-icon" title="切換主題">System</button>
+      <button id="btn-open-dir" class="btn-secondary">開啟資料夾</button>
+      <button id="btn-open-file" class="btn-primary">開啟檔案</button>
+    </div>
+  </header>
+
+  <main id="main" class="single-mode">
+    <aside id="sidebar" hidden>
+      <div id="tree-header">
+        <span id="tree-root-name"></span>
+      </div>
+      <div id="tree-container"></div>
+    </aside>
+
+    <section id="content-area">
+      <div id="welcome">
+        <div class="welcome-inner">
+          <div class="welcome-logo">P</div>
+          <h1>Parchment</h1>
+          <p class="welcome-sub">本機 Markdown &amp; TXT 唯讀瀏覽器</p>
+          <p class="welcome-hint">開啟檔案或資料夾，或將 .md / .txt 拖放至此</p>
+          <div class="welcome-actions">
+            <button id="welcome-btn-dir" class="btn-secondary">開啟資料夾</button>
+            <button id="welcome-btn-file" class="btn-primary">開啟檔案</button>
+          </div>
+        </div>
+      </div>
+
+      <article id="reader" hidden>
+        <div id="reader-header">
+          <span id="current-filename"></span>
+        </div>
+        <div id="reader-body"></div>
+      </article>
+
+      <div id="folder-placeholder" hidden>
+        <p>從左側選擇檔案以開始閱讀</p>
+      </div>
+    </section>
+  </main>
+
+  <div id="drag-overlay" hidden>
+    <div class="drag-inner">
+      <p class="drag-icon">+</p>
+      <p>放開以開啟檔案</p>
+      <p class="drag-hint">.md / .txt</p>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+  <!-- CDN Libraries (UMD globals: window.DOMPurify, window.hljs, window.marked) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.8/purify.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
