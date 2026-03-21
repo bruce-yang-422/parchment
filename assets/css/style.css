@@ -459,7 +459,7 @@ button {
   transition: opacity 0.15s, background 0.15s;
   line-height: 18px;
 }
-#reader-body pre:hover .copy-btn { opacity: 1; }
+.code-wrapper:hover .copy-btn { opacity: 1; }
 .copy-btn:hover { background: var(--tree-hover); color: var(--text); }
 .copy-btn.copied { color: #1a7f37; border-color: #1a7f37; }
 
