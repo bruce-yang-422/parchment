@@ -137,8 +137,10 @@
 | 樣式 | CSS（原生 Custom Properties） | 主題切換無需 JS 框架 |
 | 邏輯 | Vanilla JavaScript（ES Module） | 無框架依賴，易維護 |
 | Markdown 渲染 | **marked.js v12** | 輕量（~50KB）、快速、支援 GFM |
-| 語法高亮 | **highlight.js** | 搭配 marked，渲染程式碼區塊 |
-| 安全過濾 | **DOMPurify** | 防止 Markdown XSS（`<script>` 注入） |
+| 語法高亮 | **highlight.js v11** | 搭配 marked，渲染程式碼區塊 |
+| 安全過濾 | **DOMPurify v3** | 防止 Markdown XSS（`<script>` 注入） |
+| 字型 | **Noto Sans TC**（Google Fonts） | 思源黑體 Web 版本 |
+| 最近開啟 | **IndexedDB** | 儲存 FileSystemHandle，跨頁面恢復存取 |
 | 建置工具 | **Vite**（可選） | 本地開發 HMR、打包壓縮 |
 
 > **為何不用框架（React/Vue）？**
@@ -170,7 +172,7 @@ FileSystemDirectoryHandle.entries()  → 列出目錄內容
 
 **重要特性：**
 * 僅提供讀取（`read`）權限，本工具不請求 `readwrite`，徹底避免寫入
-* 每次重新開啟頁面需重新授權（無持久化存取）
+* ~~每次重新開啟頁面需重新授權（無持久化存取）~~ → 已透過 IndexedDB 儲存 handle，重新整理後可一鍵恢復（仍需使用者點擊確認授權）
 * Safari / Firefox 不支援 `showDirectoryPicker`，需偵測並顯示提示
 
 ### Drag & Drop API
@@ -201,13 +203,17 @@ drop     → 取得 DataTransferItem，再轉為 FileSystemFileHandle 或 File
 
 ```
 parchment/
-├── index.html          ← 主頁（單一 HTML 入口）
-├── style.css           ← 全域樣式 + 主題 CSS 變數
-├── app.js              ← 主邏輯（ES Module）
-│   ├── fileLoader.js   ← File System Access API 封裝
-│   ├── renderer.js     ← Markdown 渲染 + highlight 整合
-│   ├── tree.js         ← 資料夾樹狀結構 UI
-│   └── theme.js        ← 主題切換邏輯
+├── index.html              ← 主頁（單一 HTML 入口）
+├── assets/
+│   ├── css/
+│   │   └── style.css       ← 全域樣式 + 主題 CSS 變數
+│   └── js/
+│       ├── app.js          ← 主邏輯（ES Module）
+│       ├── fileLoader.js   ← File System Access API 封裝
+│       ├── renderer.js     ← Markdown 渲染 + highlight 整合
+│       ├── tree.js         ← 資料夾樹狀結構 UI
+│       ├── theme.js        ← 主題切換邏輯
+│       └── recentFiles.js  ← 最近開啟紀錄（IndexedDB）
 └── README.md
 ```
 
@@ -427,13 +433,14 @@ jobs:
 
 # 十、實作分階段計畫（Milestones）
 
-| 階段 | 目標 | 預估工時 |
-|------|------|---------|
-| **Phase 1** | 單檔模式 + Markdown 渲染 + 基本樣式 | 2–3 hr |
-| **Phase 2** | 資料夾模式 + 樹狀結構 UI | 3–4 hr |
-| **Phase 3** | 主題切換 + 拖放支援 + 瀏覽器降級 | 2 hr |
-| **Phase 4** | UI 精修（RWD、字體、間距） + GitHub Pages 部署 | 2 hr |
-| **Phase 5**（選填） | 搜尋、TOC、鍵盤導覽 | 依需求 |
+| 階段 | 目標 | 狀態 |
+|------|------|------|
+| **Phase 1** | 單檔模式 + Markdown 渲染 + 基本樣式 | ✅ 完成 |
+| **Phase 2** | 資料夾模式 + 樹狀結構 UI | ✅ 完成 |
+| **Phase 3** | 主題切換 + 拖放支援 + 瀏覽器降級 | ✅ 完成 |
+| **Phase 4** | UI 精修（字體 Noto Sans TC、配色、間距）+ 部署 | ✅ 完成 |
+| **Phase 4+** | 最近開啟（IndexedDB）+ 程式碼複製按鈕 | ✅ 完成 |
+| **Phase 5**（選填） | 全文搜尋、TOC、閱讀位置記錄 | 待實作 |
 
 ---
 
@@ -470,7 +477,7 @@ jobs:
 
 * 全文搜尋（Ctrl+F 跨檔案）
 * 文章目錄（TOC 側欄）
-* 最近開啟紀錄（IndexedDB）
+* ~~最近開啟紀錄（IndexedDB）~~ ✅ 已實作
 * 閱讀位置記錄
 * 列印 / 匯出 PDF
 
