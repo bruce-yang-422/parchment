@@ -4,14 +4,16 @@
  */
 
 import { initTheme, cycleTheme }           from './theme.js';
-import { openFile, openDirectory, isSupportedFile } from './fileLoader.js';
+import { openFile, openDirectory, openFileFromHandle, openDirectoryFromHandle, isSupportedFile } from './fileLoader.js';
 import { setupRenderer, renderMarkdown, renderText } from './renderer.js';
 import { renderTree, clearTree }           from './tree.js';
+import { saveRecent, getRecents, removeRecent } from './recentFiles.js';
 
 /* ──────────────────── 初始化 ──────────────────── */
 
 setupRenderer();
 initTheme();
+_refreshRecents();
 
 /* ──────────────────── DOM 參照 ──────────────────── */
 
@@ -36,9 +38,10 @@ document.getElementById('welcome-btn-dir').addEventListener('click', handleOpenD
 
 async function handleOpenFile() {
   try {
-    const { name, content } = await openFile();
+    const { name, content, handle } = await openFile();
     await _displayFile(name, content);
     _enterSingleMode();
+    if (handle) saveRecent('file', handle).then(_refreshRecents).catch(() => {});
   } catch (err) {
     if (err.name !== 'AbortError') _showToast(err.message, 'error');
   }
@@ -46,8 +49,9 @@ async function handleOpenFile() {
 
 async function handleOpenDir() {
   try {
-    const { rootName, entries } = await openDirectory();
+    const { rootName, entries, handle } = await openDirectory();
     _enterFolderMode(rootName, entries);
+    if (handle) saveRecent('dir', handle).then(_refreshRecents).catch(() => {});
   } catch (err) {
     if (err.name !== 'AbortError') _showToast(err.message, 'error');
   }
@@ -177,6 +181,64 @@ function _attachCopyButtons(container) {
     });
     wrapper.appendChild(btn);
   });
+}
+
+/* ──────────────────── 最近開啟 ──────────────────── */
+
+async function _refreshRecents() {
+  const items = await getRecents().catch(() => []);
+  _renderRecents(items);
+}
+
+function _renderRecents(items) {
+  const section = document.getElementById('recent-section');
+  const list    = document.getElementById('recent-list');
+  if (!section || !list) return;
+
+  if (!items.length) { section.hidden = true; return; }
+
+  section.hidden = false;
+  list.innerHTML = '';
+
+  for (const item of items) {
+    const li  = document.createElement('li');
+    const btn = document.createElement('button');
+    btn.className = 'recent-item';
+
+    const icon = item.type === 'dir' ? '📂' : (/\.md$/i.test(item.handle.name) ? '📄' : '📝');
+    btn.innerHTML =
+      `<span class="recent-icon">${icon}</span>` +
+      `<span class="recent-name">${_esc(item.handle.name)}</span>` +
+      `<span class="recent-type">${item.type === 'dir' ? '資料夾' : '檔案'}</span>`;
+
+    btn.addEventListener('click', () => _openRecent(item));
+    li.appendChild(btn);
+    list.appendChild(li);
+  }
+}
+
+async function _openRecent(item) {
+  try {
+    if (item.type === 'file') {
+      const { name, content } = await openFileFromHandle(item.handle);
+      await _displayFile(name, content);
+      _enterSingleMode();
+    } else {
+      const { rootName, entries } = await openDirectoryFromHandle(item.handle);
+      _enterFolderMode(rootName, entries);
+    }
+    saveRecent(item.type, item.handle).catch(() => {}); // 更新 timestamp
+  } catch (err) {
+    if (err.name === 'NotAllowedError') {
+      _showToast('存取被拒絕，請重新從「開啟」按鈕選擇。', 'error');
+    } else if (err.name !== 'AbortError') {
+      _showToast(err.message, 'error');
+    }
+  }
+}
+
+function _esc(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 /* ──────────────────── Toast 通知 ──────────────────── */

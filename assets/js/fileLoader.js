@@ -32,7 +32,7 @@ async function _openFileWithFSA() {
     multiple: false,
   });
   const file = await handle.getFile();
-  return { name: file.name, content: await file.text() };
+  return { name: file.name, content: await file.text(), handle };
 }
 
 function _openFileWithInput() {
@@ -72,9 +72,9 @@ export async function openDirectory() {
 }
 
 async function _openDirWithFSA() {
-  const dirHandle = await window.showDirectoryPicker({ mode: 'read' });
-  const entries = await _buildTree(dirHandle);
-  return { rootName: dirHandle.name, entries };
+  const handle = await window.showDirectoryPicker({ mode: 'read' });
+  const entries = await _buildTree(handle);
+  return { rootName: handle.name, entries, handle };
 }
 
 /**
@@ -156,6 +156,34 @@ function _buildTreeFromFiles(files) {
   }
 
   return _sortTree(root);
+}
+
+/* ──────────────────── 最近開啟：從已有 handle 重新開啟 ──────────────────── */
+
+/**
+ * 使用已儲存的 FileSystemFileHandle 重新開啟檔案
+ * 若無權限會向使用者請求授權
+ */
+export async function openFileFromHandle(handle) {
+  await _ensureReadPermission(handle);
+  const file = await handle.getFile();
+  return { name: file.name, content: await file.text() };
+}
+
+/**
+ * 使用已儲存的 FileSystemDirectoryHandle 重新開啟資料夾
+ */
+export async function openDirectoryFromHandle(handle) {
+  await _ensureReadPermission(handle);
+  const entries = await _buildTree(handle);
+  return { rootName: handle.name, entries };
+}
+
+async function _ensureReadPermission(handle) {
+  if ((await handle.queryPermission({ mode: 'read' })) === 'granted') return;
+  const result = await handle.requestPermission({ mode: 'read' });
+  if (result !== 'granted')
+    throw new DOMException('Permission denied', 'NotAllowedError');
 }
 
 /* ──────────────────── Helpers ──────────────────── */
