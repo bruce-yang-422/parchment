@@ -7,6 +7,9 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
 
+/* Ensure [hidden] always wins over any display rule */
+[hidden] { display: none !important; }
+
 /* === LIGHT THEME VARIABLES === */
 :root {
   --bg:                #ffffff;
