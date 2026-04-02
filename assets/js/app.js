@@ -26,6 +26,9 @@ const readerBody      = document.getElementById('reader-body');
 const currentFilename = document.getElementById('current-filename');
 const folderPlaceholder = document.getElementById('folder-placeholder');
 const dragOverlay     = document.getElementById('drag-overlay');
+const lightboxEl      = document.getElementById('image-lightbox');
+const lightboxImage   = document.getElementById('lightbox-image');
+const lightboxClose   = document.getElementById('lightbox-close');
 
 /* ──────────────────── 按鈕事件 ──────────────────── */
 
@@ -35,6 +38,18 @@ document.getElementById('btn-open-file').addEventListener('click', handleOpenFil
 document.getElementById('btn-open-dir').addEventListener('click', handleOpenDir);
 document.getElementById('welcome-btn-file').addEventListener('click', handleOpenFile);
 document.getElementById('welcome-btn-dir').addEventListener('click', handleOpenDir);
+if (lightboxClose) {
+  lightboxClose.addEventListener('click', _closeImageLightbox);
+}
+if (lightboxEl) {
+  lightboxEl.addEventListener('click', (e) => {
+    if (e.target === lightboxEl) _closeImageLightbox();
+  });
+}
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && lightboxEl && !lightboxEl.hidden) _closeImageLightbox();
+});
+window.addEventListener('resize', () => _refreshImageOverflow(readerBody));
 
 async function handleOpenFile() {
   try {
@@ -139,6 +154,33 @@ async function _displayFile(name, content) {
     ? renderMarkdown(content)
     : renderText(content);
 
+  // ── Mermaid 渲染 ──────────────────────────────────────────────────
+  // 直接交給 mermaid.run 處理 DOM 節點，兼容性比手動 render SVG 更穩。
+  const mermaidNodes = [...readerBody.querySelectorAll('.mermaid')];
+
+  if (window.mermaid && mermaidNodes.length) {
+    for (const node of mermaidNodes) {
+      const source = node.textContent.trim();
+      if (!source) continue;
+      const normalizedSource = _normalizeMermaidSource(source);
+
+      try {
+        const svg = await _renderMermaidSource(normalizedSource);
+        const wrapper = document.createElement('div');
+        wrapper.className = 'mermaid';
+        wrapper.innerHTML = svg;
+        _prepareMermaidDiagram(wrapper);
+        node.replaceWith(wrapper);
+      } catch (err) {
+        console.warn('Mermaid 首次渲染失敗：', err);
+        if (node.isConnected) {
+          node.replaceWith(_createMermaidFallback(normalizedSource, err));
+        }
+      }
+    }
+  }
+
+  _enhanceImages(readerBody);
   _attachCopyButtons(readerBody);
 
   welcomeEl.hidden = true;
@@ -181,6 +223,191 @@ function _attachCopyButtons(container) {
     });
     wrapper.appendChild(btn);
   });
+}
+
+function _createMermaidFallback(source, err) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'mermaid-fallback';
+
+  const error = document.createElement('div');
+  error.className = 'mermaid-error';
+  const message = err && typeof err.message === 'string'
+    ? err.message
+    : '未知錯誤';
+  error.textContent = `Mermaid 圖表目前無法渲染，以下保留原始碼。\n錯誤：${message}`;
+
+  const pre = document.createElement('pre');
+  const code = document.createElement('code');
+  code.className = 'hljs language-plaintext';
+  code.textContent = source;
+  pre.appendChild(code);
+
+  wrapper.append(error, pre);
+  return wrapper;
+}
+
+async function _retryMermaidRender(source, err) {
+  if (!window.mermaid) return { error: err };
+
+  const variants = _buildMermaidRetryVariants(source, err);
+  let lastError = err;
+
+  for (const variant of variants) {
+    const renderId = `mm-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    try {
+      const result = await window.mermaid.render(renderId, variant);
+      const svg = typeof result === 'string' ? result : result?.svg;
+      if (svg) return { svg };
+      lastError = new Error('Mermaid fallback 未產生 SVG 輸出');
+    } catch (retryErr) {
+      lastError = retryErr;
+    } finally {
+      document.getElementById('d' + renderId)?.remove();
+      document.getElementById(renderId)?.remove();
+    }
+  }
+
+  return { error: lastError };
+}
+
+function _buildMermaidRetryVariants(source, err) {
+  const variants = [];
+  const message = err && typeof err.message === 'string' ? err.message : '';
+  const isFlowchart = /^\s*(%%\{.*\}%%\s*)?(flowchart|graph)\b/m.test(source);
+
+  if (!isFlowchart) {
+    variants.push(source);
+    return variants;
+  }
+
+  variants.push(_withMermaidInit(source, {
+    flowchart: {
+      htmlLabels: true,
+      defaultRenderer: 'elk',
+      curve: 'linear',
+      useMaxWidth: true,
+    },
+  }));
+
+  variants.push(_withMermaidInit(source, {
+    flowchart: {
+      htmlLabels: true,
+      curve: 'linear',
+      useMaxWidth: true,
+    },
+  }));
+
+  // Layout bug workaround for complex flowcharts with labels/curves.
+  if (/suitable point for the given distance/i.test(message)) {
+    variants.push(_withMermaidInit(source, {
+      flowchart: {
+        htmlLabels: true,
+        defaultRenderer: 'elk',
+        curve: 'basis',
+        useMaxWidth: true,
+      },
+    }));
+  }
+
+  return variants;
+}
+
+function _withMermaidInit(source, config) {
+  const init = `%%{init: ${JSON.stringify(config)}}%%`;
+  return `${init}\n${source}`;
+}
+
+async function _renderMermaidSource(source) {
+  const firstError = new Error('Mermaid 未開始渲染');
+  const result = await _retryMermaidRender(source, firstError);
+  if (result?.svg) return result.svg;
+  throw result?.error ?? firstError;
+}
+
+function _normalizeMermaidSource(source) {
+  return source.replace(/\\n/g, '<br/>');
+}
+
+function _prepareMermaidDiagram(wrapper) {
+  const svg = wrapper.querySelector('svg');
+  if (!svg) return;
+
+  const viewBox = svg.viewBox?.baseVal;
+  const widthAttr = Number.parseFloat(svg.getAttribute('width') || '');
+  const heightAttr = Number.parseFloat(svg.getAttribute('height') || '');
+  const intrinsicWidth = viewBox?.width || widthAttr;
+  const intrinsicHeight = viewBox?.height || heightAttr;
+
+  if (intrinsicWidth) {
+    svg.style.width = `${Math.ceil(intrinsicWidth)}px`;
+    svg.style.maxWidth = 'none';
+  }
+
+  if (intrinsicHeight) {
+    svg.style.height = `${Math.ceil(intrinsicHeight)}px`;
+  } else {
+    svg.style.height = 'auto';
+  }
+}
+
+function _enhanceImages(container) {
+  container.querySelectorAll('img').forEach(img => {
+    if (img.closest('#image-lightbox')) return;
+
+    if (!img.parentElement?.classList.contains('image-scroll-inner')) {
+      const frame = document.createElement('div');
+      frame.className = 'image-scroll-frame';
+
+      const inner = document.createElement('div');
+      inner.className = 'image-scroll-inner';
+
+      img.parentNode.insertBefore(frame, img);
+      frame.appendChild(inner);
+      inner.appendChild(img);
+    }
+
+    img.classList.add('image-zoomable');
+    if (!img.dataset.zoomBound) {
+      img.addEventListener('click', () => _openImageLightbox(img));
+      img.dataset.zoomBound = 'true';
+    }
+
+    if (img.complete) {
+      _syncImageOverflowState(img);
+    } else {
+      img.addEventListener('load', () => _syncImageOverflowState(img), { once: true });
+    }
+  });
+}
+
+function _refreshImageOverflow(container) {
+  container.querySelectorAll('img.image-zoomable').forEach(_syncImageOverflowState);
+}
+
+function _syncImageOverflowState(img) {
+  const inner = img.parentElement;
+  const frame = inner?.parentElement;
+  if (!frame) return;
+
+  const naturalWidth = img.naturalWidth || img.width;
+  const frameWidth = frame.clientWidth;
+  img.classList.toggle('is-overflowing', naturalWidth > frameWidth + 8);
+}
+
+function _openImageLightbox(img) {
+  if (!lightboxEl || !lightboxImage) return;
+  lightboxImage.src = img.currentSrc || img.src;
+  lightboxImage.alt = img.alt || '';
+  lightboxEl.hidden = false;
+  document.body.style.overflow = 'hidden';
+}
+
+function _closeImageLightbox() {
+  if (!lightboxEl || !lightboxImage) return;
+  lightboxEl.hidden = true;
+  lightboxImage.removeAttribute('src');
+  lightboxImage.alt = '';
+  document.body.style.overflow = '';
 }
 
 /* ──────────────────── 最近開啟 ──────────────────── */

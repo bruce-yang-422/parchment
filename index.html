@@ -81,12 +81,35 @@
     </div>
   </div>
 
+  <div id="image-lightbox" hidden>
+    <button id="lightbox-close" class="btn-icon" type="button" aria-label="關閉圖片預覽">關閉</button>
+    <img id="lightbox-image" alt="">
+  </div>
+
   <div id="toast-container"></div>
 
   <!-- CDN Libraries (UMD globals: window.DOMPurify, window.hljs, window.marked) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.8/purify.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+  <script>
+    (function () {
+      const nativeBtoa = window.btoa.bind(window);
+      window.btoa = function patchedBtoa(value) {
+        try {
+          return nativeBtoa(value);
+        } catch (err) {
+          if (!(err instanceof DOMException)) throw err;
+
+          const bytes = new TextEncoder().encode(String(value));
+          let binary = '';
+          for (const byte of bytes) binary += String.fromCharCode(byte);
+          return nativeBtoa(binary);
+        }
+      };
+    })();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.min.js"></script>
 
   <script type="module" src="assets/js/app.js"></script>
 </body>

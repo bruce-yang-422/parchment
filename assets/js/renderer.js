@@ -11,6 +11,19 @@ export function setupRenderer() {
   if (_ready) return;
   _ready = true;
 
+  if (window.mermaid) {
+    window.mermaid.initialize({
+      startOnLoad: false,
+      theme: 'neutral',
+      xyChart: {
+        yAxis: {
+          showTitle: false,
+          labelPadding: 10,
+        },
+      },
+    });
+  }
+
   window.marked.use({
     gfm: true,
     breaks: false,
@@ -23,6 +36,10 @@ export function setupRenderer() {
       code(tokenOrCode, maybeLanguage) {
         const text = _isObj(tokenOrCode) ? (tokenOrCode.text ?? '') : (tokenOrCode ?? '');
         const lang = _isObj(tokenOrCode) ? tokenOrCode.lang : maybeLanguage;
+
+        if (lang === 'mermaid') {
+          return `<div class="mermaid">${_escapeHtml(text)}</div>\n`;
+        }
 
         const validLang = lang && window.hljs.getLanguage(lang) ? lang : 'plaintext';
         let highlighted;
