@@ -4,15 +4,17 @@
 
 let _onFileSelect = null;
 let _activeBtn = null;
+let _pathButtons = new Map();
 
 /**
  * 渲染資料夾樹
  * @param {TreeEntry[]} entries
- * @param {function(name: string, content: string): Promise<void>} onFileSelect
+ * @param {function(entry: TreeEntry, content: string): Promise<void>} onFileSelect
  */
 export function renderTree(entries, onFileSelect) {
   _onFileSelect = onFileSelect;
   _activeBtn = null;
+  _pathButtons = new Map();
 
   const container = document.getElementById('tree-container');
   container.innerHTML = '';
@@ -24,6 +26,17 @@ export function clearTree() {
   const container = document.getElementById('tree-container');
   if (container) container.innerHTML = '';
   _activeBtn = null;
+  _pathButtons.clear();
+}
+
+/** 讓從文章相對連結開啟的文件也能同步反白資料夾樹。 */
+export function setActiveTreePath(path) {
+  const btn = _pathButtons.get(path.join('/').toLocaleLowerCase());
+  if (!btn) return;
+  if (_activeBtn) _activeBtn.classList.remove('active');
+  btn.classList.add('active');
+  btn.scrollIntoView({ block: 'nearest' });
+  _activeBtn = btn;
 }
 
 /* ──────────────────── 建立 DOM 樹 ──────────────────── */
@@ -73,6 +86,7 @@ function _makeFileItem(entry) {
 
   const btn = document.createElement('button');
   btn.className = 'tree-file-btn';
+  _pathButtons.set(entry.path.join('/').toLocaleLowerCase(), btn);
   const icon = /\.md$/i.test(entry.name) ? '📄' : '📝';
   btn.innerHTML =
     `<span class="tree-icon" aria-hidden="true">${icon}</span>` +
@@ -88,7 +102,7 @@ function _makeFileItem(entry) {
     try {
       const file = await entry.handle.getFile();
       const content = await file.text();
-      await _onFileSelect(entry.name, content);
+      await _onFileSelect(entry, content);
     } catch (err) {
       console.error('Failed to read file:', err);
     }

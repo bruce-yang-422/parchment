@@ -1,5 +1,7 @@
 # Markdown / TXT 唯讀閱讀器 — 完整概念備忘錄（含實作規劃）
 
+> **文件狀態：原始規劃備忘錄。** 目前實作已改用本地 vendored 的 markdown-it 擴充引擎，並完成相對資源、雙側欄 TOC、閱讀位置、KaTeX／Mermaid／Graphviz、註腳／Emoji／Alert 與檔案熱更新。現況與使用方式以 [README.md](README.md) 為準。
+
 ---
 
 # 一、目的（Purpose）

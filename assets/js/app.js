@@ -4,10 +4,11 @@
  */
 
 import { initTheme, cycleTheme }           from './theme.js';
-import { openFile, openDirectory, openFileFromHandle, openDirectoryFromHandle, isSupportedFile } from './fileLoader.js';
+import { openFile, openDirectory, openFileFromHandle, openDirectoryFromHandle, isSupportedFile, normalizeRelativePath } from './fileLoader.js';
 import { setupRenderer, renderMarkdown, renderText } from './renderer.js';
-import { renderTree, clearTree }           from './tree.js';
+import { renderTree, clearTree, setActiveTreePath } from './tree.js';
 import { saveRecent, getRecents, removeRecent } from './recentFiles.js';
+import { renderTOC, clearTOC, scrollToHash } from './toc.js';
 
 /* ──────────────────── 初始化 ──────────────────── */
 
@@ -29,6 +30,22 @@ const dragOverlay     = document.getElementById('drag-overlay');
 const lightboxEl      = document.getElementById('image-lightbox');
 const lightboxImage   = document.getElementById('lightbox-image');
 const lightboxClose   = document.getElementById('lightbox-close');
+const contentArea     = document.getElementById('content-area');
+const tocSidebar      = document.getElementById('toc-sidebar');
+const tocContainer    = document.getElementById('toc-container');
+const hotReloadStatus = document.getElementById('hot-reload-status');
+
+let _folderContext = null;
+let _currentDocument = null;
+let _hotReloadTimer = null;
+let _saveScrollTimer = null;
+let _objectUrls = [];
+
+contentArea.addEventListener('scroll', () => {
+  clearTimeout(_saveScrollTimer);
+  _saveScrollTimer = setTimeout(_saveReadingPosition, 160);
+}, { passive: true });
+window.addEventListener('beforeunload', _saveReadingPosition);
 
 /* ──────────────────── 按鈕事件 ──────────────────── */
 
@@ -53,10 +70,10 @@ window.addEventListener('resize', () => _refreshImageOverflow(readerBody));
 
 async function handleOpenFile() {
   try {
-    const { name, content, handle } = await openFile();
-    await _displayFile(name, content);
+    const document = await openFile();
+    await _displayFile(document);
     _enterSingleMode();
-    if (handle) saveRecent('file', handle).then(_refreshRecents).catch(() => {});
+    if (document.handle) saveRecent('file', document.handle).then(_refreshRecents).catch(() => {});
   } catch (err) {
     if (err.name !== 'AbortError') _showToast(err.message, 'error');
   }
@@ -64,8 +81,9 @@ async function handleOpenFile() {
 
 async function handleOpenDir() {
   try {
-    const { rootName, entries, handle } = await openDirectory();
-    _enterFolderMode(rootName, entries);
+    const directory = await openDirectory();
+    _enterFolderMode(directory);
+    const { handle } = directory;
     if (handle) saveRecent('dir', handle).then(_refreshRecents).catch(() => {});
   } catch (err) {
     if (err.name !== 'AbortError') _showToast(err.message, 'error');
@@ -107,7 +125,7 @@ dragOverlay.addEventListener('drop', async (e) => {
 
   try {
     const content = await file.text();
-    await _displayFile(file.name, content);
+    await _displayFile({ name: file.name, content, path: [file.name] });
     _enterSingleMode();
   } catch (err) {
     _showToast(`無法讀取檔案：${err.message}`, 'error');
@@ -117,13 +135,20 @@ dragOverlay.addEventListener('drop', async (e) => {
 /* ──────────────────── 模式切換 ──────────────────── */
 
 function _enterSingleMode() {
+  _folderContext = null;
   mainEl.className = 'single-mode';
   sidebarEl.hidden = true;
   folderPlaceholder.hidden = true;
   clearTree();
 }
 
-function _enterFolderMode(rootName, entries) {
+function _enterFolderMode(directory) {
+  _saveReadingPosition();
+  _currentDocument = null;
+  if (lightboxEl && !lightboxEl.hidden) _closeImageLightbox();
+  _revokeObjectUrls();
+  const { rootName, entries, getFileByPath } = directory;
+  _folderContext = { rootName, entries, getFileByPath };
   mainEl.className = 'folder-mode';
   sidebarEl.hidden = false;
   treeRootName.textContent = rootName;
@@ -132,16 +157,25 @@ function _enterFolderMode(rootName, entries) {
   welcomeEl.hidden = true;
   readerEl.hidden = true;
   folderPlaceholder.hidden = false;
+  clearTOC(tocSidebar, tocContainer);
+  _stopHotReload();
 
-  renderTree(entries, async (name, content) => {
-    await _displayFile(name, content);
+  renderTree(entries, async (entry, content) => {
+    await _displayFile({ ...entry, content, folder: _folderContext });
     folderPlaceholder.hidden = true;
   });
 }
 
 /* ──────────────────── 內容顯示 ──────────────────── */
 
-async function _displayFile(name, content) {
+async function _displayFile(document, options = {}) {
+  const { name, content } = document;
+  const previousTop = contentArea.scrollTop;
+  if (!options.hotReload) _saveReadingPosition();
+  _currentDocument = document;
+  if (lightboxEl && !lightboxEl.hidden) _closeImageLightbox();
+  _revokeObjectUrls();
+
   // 大檔案警告（> 5 MB）
   if (content.length > 5 * 1024 * 1024) {
     _showToast(`檔案較大（${_formatSize(content.length)}），渲染可能較慢。`, 'info');
@@ -153,6 +187,11 @@ async function _displayFile(name, content) {
   readerBody.innerHTML = isMarkdown
     ? renderMarkdown(content)
     : renderText(content);
+
+  if (isMarkdown) {
+    await _resolveRelativeImages(readerBody, document);
+    _wireDocumentLinks(readerBody, document);
+  }
 
   // ── Mermaid 渲染 ──────────────────────────────────────────────────
   // 直接交給 mermaid.run 處理 DOM 節點，兼容性比手動 render SVG 更穩。
@@ -168,7 +207,7 @@ async function _displayFile(name, content) {
         const svg = await _renderMermaidSource(normalizedSource);
         const wrapper = document.createElement('div');
         wrapper.className = 'mermaid';
-        wrapper.innerHTML = svg;
+        wrapper.appendChild(_sanitizeDiagramSvg(svg));
         _prepareMermaidDiagram(wrapper);
         node.replaceWith(wrapper);
       } catch (err) {
@@ -180,15 +219,25 @@ async function _displayFile(name, content) {
     }
   }
 
+  await _renderGraphvizDiagrams(readerBody);
+
   _enhanceImages(readerBody);
   _attachCopyButtons(readerBody);
 
   welcomeEl.hidden = true;
   readerEl.hidden = false;
 
-  // 捲回頂部
-  readerEl.scrollIntoView({ block: 'start' });
-  document.getElementById('content-area').scrollTop = 0;
+  renderTOC(readerBody, tocSidebar, tocContainer, contentArea);
+  _startHotReload(document);
+
+  if (options.hotReload) {
+    contentArea.scrollTop = previousTop;
+  } else if (options.hash && scrollToHash(options.hash, contentArea)) {
+    history.replaceState(null, '', options.hash);
+  } else {
+    if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+    _restoreReadingPosition(document);
+  }
 }
 
 /* ──────────────────── 複製按鈕 ──────────────────── */
@@ -410,6 +459,237 @@ function _closeImageLightbox() {
   document.body.style.overflow = '';
 }
 
+/* ──────────────────── 本機相對路徑 ──────────────────── */
+
+async function _resolveRelativeImages(container, document) {
+  const images = [...container.querySelectorAll('img[src]')];
+  await Promise.all(images.map(async img => {
+    const source = img.getAttribute('src');
+    if (!_isRelativeReference(source)) return;
+
+    if (!document.folder?.getFileByPath) {
+      img.classList.add('local-resource-unavailable');
+      img.title = '請用「開啟資料夾」授權後，才能載入本機相對圖片。';
+      return;
+    }
+
+    try {
+      const path = _resolvePath(document.path, source);
+      const file = await document.folder.getFileByPath(path);
+      const objectUrl = URL.createObjectURL(file);
+      _objectUrls.push(objectUrl);
+      img.src = objectUrl;
+    } catch (err) {
+      img.classList.add('local-resource-unavailable');
+      img.title = `找不到相對圖片：${source}`;
+      console.warn('無法載入相對圖片：', source, err);
+    }
+  }));
+}
+
+function _wireDocumentLinks(container, document) {
+  container.querySelectorAll('a[href]').forEach(anchor => {
+    const href = anchor.getAttribute('href');
+    if (!href) return;
+
+    if (href.startsWith('#')) {
+      anchor.addEventListener('click', event => {
+        if (scrollToHash(href, contentArea)) event.preventDefault();
+      });
+      return;
+    }
+
+    if (!_isRelativeReference(href)) {
+      if (/^https?:/i.test(href)) {
+        anchor.target = '_blank';
+        anchor.rel = 'noopener noreferrer';
+      }
+      return;
+    }
+
+    const { pathname, hash } = _splitReference(href);
+    if (!isSupportedFile(pathname)) return;
+    anchor.addEventListener('click', async event => {
+      event.preventDefault();
+      if (!document.folder?.getFileByPath) {
+        _showToast('請用「開啟資料夾」授權後，再開啟相對文件連結。', 'error');
+        return;
+      }
+      try {
+        const path = _resolvePath(document.path, pathname);
+        const file = await document.folder.getFileByPath(path);
+        const entry = _findEntryByPath(document.folder.entries, path);
+        await _displayFile({
+          name: file.name,
+          content: await file.text(),
+          path,
+          handle: entry?.handle,
+          folder: document.folder,
+        }, { hash });
+        setActiveTreePath(path);
+      } catch (err) {
+        _showToast(`無法開啟連結：${href}`, 'error');
+        console.warn('Relative document navigation failed:', err);
+      }
+    });
+  });
+}
+
+function _resolvePath(currentPath, reference) {
+  const { pathname } = _splitReference(reference);
+  const referenceParts = pathname.split('/').map(part => {
+    try { return decodeURIComponent(part); } catch { return part; }
+  });
+  return normalizeRelativePath([...currentPath.slice(0, -1), ...referenceParts]);
+}
+
+function _splitReference(reference) {
+  const hashIndex = reference.indexOf('#');
+  const withoutHash = hashIndex >= 0 ? reference.slice(0, hashIndex) : reference;
+  const queryIndex = withoutHash.indexOf('?');
+  return {
+    pathname: queryIndex >= 0 ? withoutHash.slice(0, queryIndex) : withoutHash,
+    hash: hashIndex >= 0 ? reference.slice(hashIndex) : '',
+  };
+}
+
+function _isRelativeReference(value) {
+  return Boolean(value)
+    && !value.startsWith('#')
+    && !value.startsWith('/')
+    && !value.startsWith('//')
+    && !/^[a-z][a-z\d+.-]*:/i.test(value);
+}
+
+function _findEntryByPath(entries, path) {
+  const target = path.join('/').toLocaleLowerCase();
+  for (const entry of entries) {
+    if (entry.type === 'file' && entry.path.join('/').toLocaleLowerCase() === target) return entry;
+    if (entry.type === 'dir') {
+      const found = _findEntryByPath(entry.children, path);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+function _revokeObjectUrls() {
+  for (const url of _objectUrls) URL.revokeObjectURL(url);
+  _objectUrls = [];
+}
+
+/* ──────────────────── Graphviz ──────────────────── */
+
+async function _renderGraphvizDiagrams(container) {
+  const nodes = [...container.querySelectorAll('.graphviz')];
+  if (!nodes.length) return;
+
+  if (!window.ParchmentViz) {
+    nodes.forEach(node => node.replaceWith(_createDiagramFallback('Graphviz', node.textContent, new Error('Graphviz 引擎未載入'))));
+    return;
+  }
+
+  const viz = await window.ParchmentViz.instance();
+  for (const node of nodes) {
+    const source = node.textContent.trim();
+    try {
+      const svg = viz.renderSVGElement(source);
+      const wrapper = document.createElement('div');
+      wrapper.className = 'graphviz diagram-scroll';
+      wrapper.appendChild(_sanitizeDiagramSvg(svg.outerHTML));
+      node.replaceWith(wrapper);
+    } catch (err) {
+      node.replaceWith(_createDiagramFallback('Graphviz', source, err));
+    }
+  }
+}
+
+function _createDiagramFallback(name, source, err) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'diagram-fallback';
+  const message = document.createElement('div');
+  message.className = 'mermaid-error';
+  message.textContent = `${name} 圖表無法渲染：${err?.message || '未知錯誤'}`;
+  const pre = document.createElement('pre');
+  const code = document.createElement('code');
+  code.className = 'hljs language-plaintext';
+  code.textContent = source;
+  pre.appendChild(code);
+  wrapper.append(message, pre);
+  return wrapper;
+}
+
+function _sanitizeDiagramSvg(svg) {
+  return window.DOMPurify.sanitize(svg, {
+    USE_PROFILES: { html: true, svg: true, svgFilters: true },
+    RETURN_DOM_FRAGMENT: true,
+  });
+}
+
+/* ──────────────────── 閱讀位置與熱更新 ──────────────────── */
+
+function _readingKey(document = _currentDocument) {
+  if (!document) return null;
+  const root = document.folder?.rootName || 'single';
+  return `parchment:position:${root}/${document.path?.join('/') || document.name}`;
+}
+
+function _saveReadingPosition() {
+  const key = _readingKey();
+  if (!key || readerEl.hidden) return;
+  const max = Math.max(0, contentArea.scrollHeight - contentArea.clientHeight);
+  localStorage.setItem(key, JSON.stringify({
+    top: contentArea.scrollTop,
+    ratio: max ? contentArea.scrollTop / max : 0,
+    updatedAt: Date.now(),
+  }));
+}
+
+function _restoreReadingPosition(document) {
+  const key = _readingKey(document);
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(key)); } catch { /* ignore */ }
+  requestAnimationFrame(() => {
+    const max = Math.max(0, contentArea.scrollHeight - contentArea.clientHeight);
+    contentArea.scrollTop = saved
+      ? Math.min(saved.top ?? saved.ratio * max, max)
+      : 0;
+  });
+}
+
+function _startHotReload(document) {
+  _stopHotReload();
+  const handle = document.handle;
+  if (!handle?.getFile || typeof handle.queryPermission !== 'function') return;
+
+  let signature = null;
+  hotReloadStatus.hidden = false;
+  _hotReloadTimer = setInterval(async () => {
+    if (_currentDocument !== document) return;
+    try {
+      const file = await handle.getFile();
+      const nextSignature = `${file.lastModified}:${file.size}`;
+      if (signature === null) {
+        signature = nextSignature;
+      } else if (signature !== nextSignature) {
+        signature = nextSignature;
+        const updated = { ...document, content: await file.text() };
+        await _displayFile(updated, { hotReload: true });
+        _showToast(`${file.name} 已自動更新`);
+      }
+    } catch (err) {
+      console.warn('Hot reload stopped:', err);
+      _stopHotReload();
+    }
+  }, 1000);
+}
+
+function _stopHotReload() {
+  clearInterval(_hotReloadTimer);
+  _hotReloadTimer = null;
+  if (hotReloadStatus) hotReloadStatus.hidden = true;
+}
+
 /* ──────────────────── 最近開啟 ──────────────────── */
 
 async function _refreshRecents() {
@@ -447,12 +727,12 @@ function _renderRecents(items) {
 async function _openRecent(item) {
   try {
     if (item.type === 'file') {
-      const { name, content } = await openFileFromHandle(item.handle);
-      await _displayFile(name, content);
+      const document = await openFileFromHandle(item.handle);
+      await _displayFile(document);
       _enterSingleMode();
     } else {
-      const { rootName, entries } = await openDirectoryFromHandle(item.handle);
-      _enterFolderMode(rootName, entries);
+      const directory = await openDirectoryFromHandle(item.handle);
+      _enterFolderMode(directory);
     }
     saveRecent(item.type, item.handle).catch(() => {}); // 更新 timestamp
   } catch (err) {

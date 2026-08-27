@@ -1,12 +1,13 @@
 /**
  * renderer.js — Markdown / TXT 渲染模組
- * 依賴全域變數：window.marked, window.hljs, window.DOMPurify
- * （由 index.html 的 CDN <script> 標籤載入）
+ * 依賴本機 vendor 全域：window.ParchmentMarkdown, window.hljs, window.DOMPurify
+ * （由 index.html 的本機 <script> 標籤載入）
  */
 
 let _ready = false;
+let _markdown = null;
 
-/** 初始化 marked，整合 highlight.js 語法高亮 */
+/** 初始化 markdown-it 與完整語法插件，整合 highlight.js。 */
 export function setupRenderer() {
   if (_ready) return;
   _ready = true;
@@ -24,35 +25,31 @@ export function setupRenderer() {
     });
   }
 
-  window.marked.use({
-    gfm: true,
-    breaks: false,
-    renderer: {
-      /**
-       * 程式碼區塊渲染
-       * marked v12 傳入 token 物件 { text, lang }
-       * 相容舊版（傳入 string）
-       */
-      code(tokenOrCode, maybeLanguage) {
-        const text = _isObj(tokenOrCode) ? (tokenOrCode.text ?? '') : (tokenOrCode ?? '');
-        const lang = _isObj(tokenOrCode) ? tokenOrCode.lang : maybeLanguage;
-
-        if (lang === 'mermaid') {
-          return `<div class="mermaid">${_escapeHtml(text)}</div>\n`;
-        }
-
-        const validLang = lang && window.hljs.getLanguage(lang) ? lang : 'plaintext';
-        let highlighted;
-        try {
-          highlighted = window.hljs.highlight(text, { language: validLang }).value;
-        } catch {
-          highlighted = _escapeHtml(text);
-        }
-
-        return `<pre><code class="hljs language-${validLang}">${highlighted}</code></pre>\n`;
-      },
+  _markdown = window.ParchmentMarkdown.create({
+    highlight(code, language) {
+      const validLang = language && window.hljs.getLanguage(language)
+        ? language
+        : 'plaintext';
+      try {
+        return window.hljs.highlight(code, { language: validLang }).value;
+      } catch {
+        return _escapeHtml(code);
+      }
     },
   });
+
+  const defaultFence = _markdown.renderer.rules.fence.bind(_markdown.renderer.rules);
+  _markdown.renderer.rules.fence = (tokens, index, options, env, self) => {
+    const token = tokens[index];
+    const language = token.info.trim().split(/\s+/)[0].toLowerCase();
+    if (language === 'mermaid') {
+      return `<div class="mermaid" data-source="diagram">${_escapeHtml(token.content)}</div>\n`;
+    }
+    if (language === 'dot' || language === 'graphviz') {
+      return `<div class="graphviz" data-source="diagram">${_escapeHtml(token.content)}</div>\n`;
+    }
+    return defaultFence(tokens, index, options, env, self);
+  };
 }
 
 /**
@@ -61,10 +58,10 @@ export function setupRenderer() {
  * @returns {string} 安全的 HTML 字串
  */
 export function renderMarkdown(content) {
-  const rawHtml = window.marked.parse(content);
+  const rawHtml = _markdown.render(content);
   return window.DOMPurify.sanitize(rawHtml, {
-    USE_PROFILES: { html: true },
-    ADD_ATTR: ['class'],   // 保留 hljs class
+    USE_PROFILES: { html: true, svg: true, svgFilters: true, mathMl: true },
+    ADD_ATTR: ['class', 'target'],
   });
 }
 
@@ -78,10 +75,6 @@ export function renderText(content) {
 }
 
 /* ──────────────────── Helpers ──────────────────── */
-
-function _isObj(v) {
-  return typeof v === 'object' && v !== null;
-}
 
 function _escapeHtml(str) {
   return String(str)

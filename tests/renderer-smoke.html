@@ -1,0 +1,63 @@
+<!doctype html>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../assets/vendor/katex/katex.min.css">
+<script src="../assets/vendor/dompurify.min.js"></script>
+<script src="../assets/vendor/highlight.min.js"></script>
+<script src="../assets/vendor/markdown-engine.min.js"></script>
+<script src="../assets/vendor/mermaid.min.js"></script>
+<script src="../assets/vendor/graphviz.min.js"></script>
+<main id="result"></main>
+<script type="module">
+  import { setupRenderer, renderMarkdown } from '../assets/js/renderer.js';
+
+  const sample = String.raw`# Smoke Test
+
+Emoji: :rocket: :+1:
+
+Inline math $E=mc^2$.
+
+$$\int_0^1 x^2 dx$$
+
+Footnote.[^one]
+
+[^one]: Footnote body.
+
+> [!NOTE]
+> Alert body.
+
+~~~mermaid
+flowchart LR
+  A --> B
+~~~
+
+~~~dot
+digraph { A -> B }
+~~~
+
+<img src=x onerror="document.body.dataset.xss='failed'">`;
+
+  try {
+    setupRenderer();
+    const result = document.getElementById('result');
+    result.innerHTML = renderMarkdown(sample);
+
+    const required = ['.katex', '.footnote-item', '.markdown-alert', '.mermaid', '.graphviz'];
+    const missing = required.filter(selector => !result.querySelector(selector));
+    if (result.innerHTML.includes('onerror=')) missing.push('XSS sanitizer');
+    if (result.textContent.includes(':rocket:')) missing.push('emoji');
+
+    const mermaidSource = result.querySelector('.mermaid').textContent;
+    window.mermaid.initialize({ startOnLoad: false });
+    const mermaidResult = await window.mermaid.render('smoke-mermaid', mermaidSource);
+    if (!mermaidResult.svg.includes('<svg')) missing.push('Mermaid SVG');
+
+    const dotSource = result.querySelector('.graphviz').textContent;
+    const viz = await window.ParchmentViz.instance();
+    const graphvizSvg = viz.renderSVGElement(dotSource);
+    if (graphvizSvg.tagName.toLowerCase() !== 'svg') missing.push('Graphviz SVG');
+
+    document.body.dataset.status = missing.length ? `failed:${missing.join(',')}` : 'passed';
+  } catch (error) {
+    document.body.dataset.status = `error:${error.message}`;
+  }
+</script>

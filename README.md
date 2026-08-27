@@ -1,7 +1,13 @@
 # 🟤 Parchment
 
 > 本機 Markdown & TXT 唯讀瀏覽器，看得到、改不了。
-> A calm, read-only viewer for local Markdown & TXT files. Open files in your browser — safely.
+> A calm, local-first, read-only viewer for Markdown & TXT files — open them straight in your browser, safely.
+
+---
+
+## 🚀 線上使用 Live Demo
+
+👉 **[https://bruce-yang-422.github.io/parchment](https://bruce-yang-422.github.io/parchment)**
 
 ---
 
@@ -13,16 +19,15 @@
 - 🕘 **最近開啟** — 自動記錄最近 8 筆，重新整理後一鍵恢復
 - 🎨 **Markdown 渲染** — 支援 GFM（標題、清單、表格、語法高亮程式碼區塊）
 - 📋 **一鍵複製** — 程式碼區塊 hover 顯示複製按鈕
+- 🧭 **雙側欄導覽** — 左側瀏覽資料夾，右側顯示目前文章目錄並追蹤閱讀章節
+- 🔗 **本機相對連結** — 資料夾模式支援相對圖片與 Markdown / TXT 文件跳轉
+- 📐 **完整語法** — KaTeX、Mermaid、Graphviz、註腳、Emoji、Alert、上下標、定義清單等
+- 🔄 **熱更新** — 本機 Markdown 變更後自動重新渲染並保留閱讀位置
+- 🔖 **閱讀進度** — 分別記錄每份文件的捲動位置
 - 🌙 **三種主題** — 淺色 / 深色 / 跟隨系統
 - 🔒 **完全唯讀** — 無任何寫入或儲存行為，從設計上消除誤修改風險
 - 🏠 **本地處理** — 所有檔案在瀏覽器本機讀取，不上傳、不儲存、不同步
-- 🚀 **免安裝** — 純靜態網頁，開啟即用
-
----
-
-## 🚀 線上使用 Live Demo
-
-👉 [https://bruce-yang-422.github.io/parchment](https://bruce-yang-422.github.io/parchment)
+- 📦 **免安裝且可離線** — 純靜態網頁，所有執行期套件與字型皆已隨專案提供
 
 ---
 
@@ -42,10 +47,17 @@
 - 重新整理後點擊項目，瀏覽器會再次詢問授權，確認後立即恢復
 
 ### 支援格式
+
 | 格式 | 顯示方式 |
 |------|--------|
 | `.md` | Markdown 格式化渲染（含語法高亮） |
 | `.txt` | 純文字原樣顯示 |
+
+> 本機相對圖片與跨文件連結需要資料夾讀取權限，因此請使用「開啟資料夾」。瀏覽器的單檔選擇器不會提供父資料夾權限。
+
+### 擴充 Markdown 語法
+
+支援 GFM、語法高亮、工作清單、註腳、Emoji（例如 `:rocket:`）、上下標、插入與標記、縮寫、定義清單、GitHub Alert、KaTeX，以及 `mermaid`、`dot`／`graphviz` fenced code block。
 
 ---
 
@@ -59,12 +71,14 @@
 | Safari | ✅ | ⚠️ 降級為檔案選取 | ⚠️ 僅單檔 |
 
 > 資料夾模式與最近開啟依賴 [File System Access API](https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API)，Firefox / Safari 尚未完整支援，將自動降級。
+>
+> 檔案熱更新需要持續讀取 FileSystemHandle，目前以 Chrome / Edge 的原生選檔流程支援最完整。
 
 ---
 
 ## 🛠️ 本地開發 Local Development
 
-不需要任何建置工具，直接啟動本機伺服器即可：
+一般開發與使用不需要 build，直接啟動本機伺服器即可：
 
 ```bash
 # 方法一：Node.js
@@ -75,6 +89,14 @@ python -m http.server 8080
 ```
 
 開啟瀏覽器前往 `http://localhost:8080`
+
+若升級第三方套件，重新產生已提交的離線資產並跑測試：
+
+```bash
+npm ci
+npm run vendor
+npm test
+```
 
 ---
 
@@ -98,12 +120,14 @@ https://<your-username>.github.io/parchment
 | 項目 | 技術 |
 |------|------|
 | 核心語言 | HTML5 / CSS3 / Vanilla JavaScript（ES Module） |
-| Markdown 渲染 | [marked.js](https://marked.js.org/) v12 |
+| Markdown 渲染 | markdown-it + 語法插件 |
 | 語法高亮 | [highlight.js](https://highlightjs.org/) v11 |
 | 安全過濾 | [DOMPurify](https://github.com/cure53/DOMPurify) v3 |
-| 字型 | [Noto Sans TC](https://fonts.google.com/noto/specimen/Noto+Sans+TC)（Google Fonts） |
+| 數學公式 | KaTeX（含本機字型） |
+| 圖表 | Mermaid / Graphviz（`@viz-js/viz`） |
 | 檔案存取 | File System Access API |
 | 最近開啟 | IndexedDB |
+| 閱讀位置 | localStorage |
 | 部署 | GitHub Pages |
 
 ---
@@ -127,15 +151,19 @@ https://<your-username>.github.io/parchment
 - [x] 拖放支援
 - [x] 最近開啟紀錄（IndexedDB）
 - [x] 程式碼區塊複製按鈕
+- [x] 本機相對圖片與文件連結
+- [x] 文章目錄（TOC）
+- [x] 閱讀位置記錄
+- [x] KaTeX / Mermaid / Graphviz / 註腳 / Emoji / Alert
+- [x] Markdown 檔案熱更新
+- [x] 第三方套件本地化（完全離線）
 - [ ] 全文搜尋（跨檔案）
-- [ ] 文章目錄（TOC）
-- [ ] 閱讀位置記錄
 
 ---
 
 ## 📄 授權 License
 
-[MIT License](LICENSE)
+[MIT License](LICENSE). Bundled dependency notices are listed in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
 
 ---
 

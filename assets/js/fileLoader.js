@@ -32,7 +32,13 @@ async function _openFileWithFSA() {
     multiple: false,
   });
   const file = await handle.getFile();
-  return { name: file.name, content: await file.text(), handle };
+  return {
+    name: file.name,
+    content: await file.text(),
+    handle,
+    path: [file.name],
+    getFileByPath: null,
+  };
 }
 
 function _openFileWithInput() {
@@ -48,7 +54,7 @@ function _openFileWithInput() {
         reject(new Error(`不支援的格式：${file.name}。請使用 .md 或 .txt 檔案。`));
         return;
       }
-      resolve({ name: file.name, content: await file.text() });
+      resolve({ name: file.name, content: await file.text(), path: [file.name] });
     });
 
     input.addEventListener('cancel', () =>
@@ -74,7 +80,12 @@ export async function openDirectory() {
 async function _openDirWithFSA() {
   const handle = await window.showDirectoryPicker({ mode: 'read' });
   const entries = await _buildTree(handle);
-  return { rootName: handle.name, entries, handle };
+  return {
+    rootName: handle.name,
+    entries,
+    handle,
+    getFileByPath: path => _getFileFromDirectory(handle, path),
+  };
 }
 
 /**
@@ -82,15 +93,16 @@ async function _openDirWithFSA() {
  * @param {FileSystemDirectoryHandle} dirHandle
  * @returns {Promise<TreeEntry[]>}
  */
-async function _buildTree(dirHandle) {
+async function _buildTree(dirHandle, parentPath = []) {
   const entries = [];
 
   for await (const [name, handle] of dirHandle.entries()) {
     if (handle.kind === 'directory') {
-      const children = await _buildTree(handle);
-      entries.push({ type: 'dir', name, children });
+      const path = [...parentPath, name];
+      const children = await _buildTree(handle, path);
+      entries.push({ type: 'dir', name, path, children });
     } else if (isSupportedFile(name)) {
-      entries.push({ type: 'file', name, handle });
+      entries.push({ type: 'file', name, path: [...parentPath, name], handle });
     }
   }
 
@@ -118,7 +130,19 @@ function _openDirWithInput() {
 
       const rootName = files[0].webkitRelativePath.split('/')[0] || '資料夾';
       const entries = _buildTreeFromFiles(supported);
-      resolve({ rootName, entries });
+      const fileMap = new Map(files.map(file => [
+        _pathKey(file.webkitRelativePath.split('/').slice(1)),
+        file,
+      ]));
+      resolve({
+        rootName,
+        entries,
+        getFileByPath: async path => {
+          const file = fileMap.get(_pathKey(path));
+          if (!file) throw new DOMException('File not found', 'NotFoundError');
+          return file;
+        },
+      });
     });
 
     input.addEventListener('cancel', () =>
@@ -150,6 +174,7 @@ function _buildTreeFromFiles(files) {
     current.push({
       type: 'file',
       name: file.name,
+      path: parts.slice(1),
       // Wrap File as fake handle to match FSA interface
       handle: { getFile: async () => file },
     });
@@ -167,7 +192,13 @@ function _buildTreeFromFiles(files) {
 export async function openFileFromHandle(handle) {
   await _ensureReadPermission(handle);
   const file = await handle.getFile();
-  return { name: file.name, content: await file.text() };
+  return {
+    name: file.name,
+    content: await file.text(),
+    handle,
+    path: [file.name],
+    getFileByPath: null,
+  };
 }
 
 /**
@@ -176,7 +207,42 @@ export async function openFileFromHandle(handle) {
 export async function openDirectoryFromHandle(handle) {
   await _ensureReadPermission(handle);
   const entries = await _buildTree(handle);
-  return { rootName: handle.name, entries };
+  return {
+    rootName: handle.name,
+    entries,
+    handle,
+    getFileByPath: path => _getFileFromDirectory(handle, path),
+  };
+}
+
+/** 由根目錄 handle 讀取正規化後的相對路徑。 */
+async function _getFileFromDirectory(rootHandle, path) {
+  const parts = normalizeRelativePath(path);
+  if (!parts.length) throw new DOMException('Invalid path', 'NotFoundError');
+
+  let directory = rootHandle;
+  for (const part of parts.slice(0, -1)) {
+    directory = await directory.getDirectoryHandle(part);
+  }
+  const fileHandle = await directory.getFileHandle(parts.at(-1));
+  return fileHandle.getFile();
+}
+
+/** 將字串或片段陣列正規化，並阻止路徑逃出已授權根目錄。 */
+export function normalizeRelativePath(path) {
+  const input = Array.isArray(path) ? path : String(path).split('/');
+  const output = [];
+  for (const rawPart of input) {
+    const part = String(rawPart).trim();
+    if (!part || part === '.') continue;
+    if (part === '..') {
+      if (!output.length) throw new DOMException('Path leaves selected folder', 'SecurityError');
+      output.pop();
+    } else {
+      output.push(part);
+    }
+  }
+  return output;
 }
 
 async function _ensureReadPermission(handle) {
@@ -201,4 +267,8 @@ function _sortTree(entries) {
     if (e.type === 'dir') _sortTree(e.children);
   }
   return entries;
+}
+
+function _pathKey(path) {
+  return normalizeRelativePath(path).join('/').toLocaleLowerCase();
 }
