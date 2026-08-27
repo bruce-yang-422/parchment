@@ -17,6 +17,7 @@ assert.match(index, /id="pwa-install-action"/);
 assert.match(index, /id="pwa-install-later"/);
 assert.match(index, /id="pwa-install-decline"/);
 assert.match(index, /class="welcome-logo-image" src="image\/parchment-logo-transparent\.png"/);
+assert.match(index, /onload="this\.previousElementSibling\.hidden = true"/);
 assert.match(index, /onerror="this\.hidden = true"/);
 assert.match(pwaScript, /beforeinstallprompt/);
 assert.match(pwaScript, /加入主畫面/);
