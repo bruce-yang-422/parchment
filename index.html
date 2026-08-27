@@ -32,7 +32,7 @@
       <span class="app-name">Parchment</span>
     </div>
     <div class="header-right">
-      <button id="btn-install-pwa" class="btn-secondary" hidden>安裝應用程式</button>
+      <button id="btn-install-pwa" class="btn-secondary" type="button" hidden>安裝 App</button>
       <button id="btn-theme" class="btn-icon" title="切換主題">System</button>
       <button id="btn-open-dir" class="btn-secondary">開啟資料夾</button>
       <button id="btn-open-file" class="btn-primary">開啟檔案</button>
@@ -50,7 +50,11 @@
     <section id="content-area">
       <div id="welcome">
         <div class="welcome-inner">
-          <div class="welcome-logo">P</div>
+          <div class="welcome-logo" aria-label="Parchment">
+            <span class="welcome-logo-fallback" aria-hidden="true">P</span>
+            <img class="welcome-logo-image" src="image/parchment-logo-transparent.png" alt="" width="80" height="80"
+              onerror="this.hidden = true">
+          </div>
           <h1>Parchment</h1>
           <p class="welcome-sub">本機 Markdown &amp; TXT 唯讀瀏覽器</p>
           <p class="welcome-hint">開啟檔案或資料夾，或將 .md / .txt 拖放至此</p>
@@ -58,6 +62,18 @@
             <button id="welcome-btn-dir" class="btn-secondary">開啟資料夾</button>
             <button id="welcome-btn-file" class="btn-primary">開啟檔案</button>
           </div>
+          <section id="pwa-install-card" class="pwa-install-card" aria-labelledby="pwa-install-title" hidden>
+            <img class="pwa-install-icon" src="icons/pwa-icon-192x192.png" alt="" width="48" height="48">
+            <div class="pwa-install-copy">
+              <strong id="pwa-install-title">安裝 Parchment App</strong>
+              <p id="pwa-install-message">離線開啟，像一般應用程式一樣使用。</p>
+            </div>
+            <div class="pwa-install-actions">
+              <button id="pwa-install-action" class="btn-primary" type="button">安裝 App</button>
+              <button id="pwa-install-later" class="btn-secondary" type="button">稍後安裝</button>
+              <button id="pwa-install-decline" class="pwa-install-text-button" type="button">不安裝</button>
+            </div>
+          </section>
           <div id="recent-section" hidden>
             <div class="recent-divider"></div>
             <p class="recent-label">最近開啟</p>
@@ -69,7 +85,10 @@
       <article id="reader" hidden>
         <div id="reader-header">
           <span id="current-filename"></span>
-          <span id="hot-reload-status" hidden>自動更新</span>
+          <div class="reader-statuses">
+            <span id="todo-local-status" title="勾選只儲存在此瀏覽器，不會修改 Markdown 文件" hidden>TODO 本機狀態</span>
+            <span id="hot-reload-status" hidden>自動更新</span>
+          </div>
         </div>
         <div id="reader-body"></div>
       </article>

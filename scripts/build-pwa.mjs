@@ -9,6 +9,7 @@ const required = [
   'assets/favicon.ico',
   'icons/pwa-icon-192x192.png',
   'icons/pwa-icon-512x512.png',
+  'image/parchment-logo-transparent.png',
 ];
 
 const discovered = [

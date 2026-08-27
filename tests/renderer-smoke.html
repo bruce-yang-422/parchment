@@ -9,6 +9,7 @@
 <main id="result"></main>
 <script type="module">
   import { setupRenderer, renderMarkdown } from '../assets/js/renderer.js';
+  import { taskDocumentKey, wireTaskCheckboxes } from '../assets/js/taskState.js';
 
   const sample = String.raw`# Smoke Test
 
@@ -25,6 +26,9 @@ Footnote.[^one]
 > [!NOTE]
 > Alert body.
 
+- [ ] Pending task
+- [x] Completed task
+
 ~~~mermaid
 flowchart LR
   A --> B
@@ -40,9 +44,18 @@ digraph { A -> B }
     setupRenderer();
     const result = document.getElementById('result');
     result.innerHTML = renderMarkdown(sample);
+    const taskDocument = { name: 'renderer-smoke.md' };
+    const taskCount = wireTaskCheckboxes(result, taskDocument);
 
-    const required = ['.katex', '.footnote-item', '.markdown-alert', '.mermaid', '.graphviz'];
+    const required = ['.katex', '.footnote-item', '.markdown-alert', '.mermaid', '.graphviz', '.local-task-checkbox'];
     const missing = required.filter(selector => !result.querySelector(selector));
+    if (taskCount !== 2) missing.push('interactive task count');
+    if (result.querySelector('.local-task-checkbox')?.disabled) missing.push('interactive task disabled');
+    const firstTask = result.querySelector('.local-task-checkbox');
+    firstTask?.click();
+    const savedTasks = JSON.parse(localStorage.getItem(taskDocumentKey(taskDocument)) || '{}');
+    if (savedTasks[firstTask?.dataset.taskIdentity] !== true) missing.push('interactive task persistence');
+    localStorage.removeItem(taskDocumentKey(taskDocument));
     if (result.innerHTML.includes('onerror=')) missing.push('XSS sanitizer');
     if (result.textContent.includes(':rocket:')) missing.push('emoji');
 

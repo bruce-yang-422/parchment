@@ -10,6 +10,7 @@ import { renderTree, clearTree, setActiveTreePath } from './tree.js';
 import { saveRecent, getRecents, removeRecent } from './recentFiles.js';
 import { renderTOC, clearTOC, scrollToHash } from './toc.js';
 import { initPWA } from './pwa.js';
+import { wireTaskCheckboxes } from './taskState.js';
 
 /* ──────────────────── 初始化 ──────────────────── */
 
@@ -35,6 +36,7 @@ const contentArea     = document.getElementById('content-area');
 const tocSidebar      = document.getElementById('toc-sidebar');
 const tocContainer    = document.getElementById('toc-container');
 const hotReloadStatus = document.getElementById('hot-reload-status');
+const todoLocalStatus = document.getElementById('todo-local-status');
 
 let _folderContext = null;
 let _currentDocument = null;
@@ -206,6 +208,18 @@ async function _displayFile(document, options = {}) {
   readerBody.innerHTML = isMarkdown
     ? renderMarkdown(content)
     : renderText(content);
+
+  let taskStorageWarningShown = false;
+  const taskCount = isMarkdown
+    ? wireTaskCheckboxes(readerBody, document, {
+      onStorageError: () => {
+        if (taskStorageWarningShown) return;
+        taskStorageWarningShown = true;
+        _showToast('無法保存 TODO 檢核狀態；本次勾選不會保留。', 'error');
+      },
+    })
+    : 0;
+  if (todoLocalStatus) todoLocalStatus.hidden = taskCount === 0;
 
   if (isMarkdown) {
     await _resolveRelativeImages(readerBody, document);
