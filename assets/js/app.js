@@ -9,6 +9,7 @@ import { setupRenderer, renderMarkdown, renderText } from './renderer.js';
 import { renderTree, clearTree, setActiveTreePath } from './tree.js';
 import { saveRecent, getRecents, removeRecent } from './recentFiles.js';
 import { renderTOC, clearTOC, scrollToHash } from './toc.js';
+import { initPWA } from './pwa.js';
 
 /* ──────────────────── 初始化 ──────────────────── */
 
@@ -40,6 +41,8 @@ let _currentDocument = null;
 let _hotReloadTimer = null;
 let _saveScrollTimer = null;
 let _objectUrls = [];
+
+initPWA({ onFileLaunch: _openFileFromLaunchQueue });
 
 contentArea.addEventListener('scroll', () => {
   clearTimeout(_saveScrollTimer);
@@ -164,6 +167,22 @@ function _enterFolderMode(directory) {
     await _displayFile({ ...entry, content, folder: _folderContext });
     folderPlaceholder.hidden = true;
   });
+}
+
+async function _openFileFromLaunchQueue(handle) {
+  const file = await handle.getFile();
+  if (!isSupportedFile(file.name)) {
+    _showToast(`不支援的格式：${file.name}。請使用 .md 或 .txt 檔案。`, 'error');
+    return;
+  }
+  await _displayFile({
+    name: file.name,
+    content: await file.text(),
+    handle,
+    path: [file.name],
+  });
+  _enterSingleMode();
+  saveRecent('file', handle).then(_refreshRecents).catch(() => {});
 }
 
 /* ──────────────────── 內容顯示 ──────────────────── */

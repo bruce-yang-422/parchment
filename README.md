@@ -28,6 +28,7 @@
 - 🔒 **完全唯讀** — 無任何寫入或儲存行為，從設計上消除誤修改風險
 - 🏠 **本地處理** — 所有檔案在瀏覽器本機讀取，不上傳、不儲存、不同步
 - 📦 **免安裝且可離線** — 純靜態網頁，所有執行期套件與字型皆已隨專案提供
+- 📲 **PWA 應用程式** — 可安裝到桌面／主畫面，安裝後可離線啟動
 
 ---
 
@@ -74,6 +75,14 @@
 >
 > 檔案熱更新需要持續讀取 FileSystemHandle，目前以 Chrome / Edge 的原生選檔流程支援最完整。
 
+### 安裝為 PWA
+
+1. 使用 HTTPS 的線上版本，或從 `localhost` 開啟本機版本。
+2. 支援的瀏覽器會在標題列顯示「安裝應用程式」；也可使用瀏覽器網址列或選單中的安裝功能。
+3. 首次載入完成後，應用程式介面、Markdown 引擎、圖表引擎與 KaTeX 字型皆可離線使用。
+
+安裝後的 Chromium 桌面版也可將 Parchment 登錄為 `.md`、`.txt` 的開啟方式；實際可用性依作業系統與瀏覽器支援而定。
+
 ---
 
 ## 🛠️ 本地開發 Local Development
@@ -97,6 +106,8 @@ npm ci
 npm run vendor
 npm test
 ```
+
+`npm run vendor` 會連帶更新 PWA 快取；若只修改 HTML、CSS、JavaScript 或圖示，可單獨執行 `npm run pwa`。它會依目前執行期資產內容產生帶雜湊版本的 `service-worker.js`。
 
 ---
 
@@ -128,6 +139,7 @@ https://<your-username>.github.io/parchment
 | 檔案存取 | File System Access API |
 | 最近開啟 | IndexedDB |
 | 閱讀位置 | localStorage |
+| PWA | Web App Manifest + Service Worker 預快取 |
 | 部署 | GitHub Pages |
 
 ---
@@ -157,6 +169,7 @@ https://<your-username>.github.io/parchment
 - [x] KaTeX / Mermaid / Graphviz / 註腳 / Emoji / Alert
 - [x] Markdown 檔案熱更新
 - [x] 第三方套件本地化（完全離線）
+- [x] PWA 安裝、離線啟動與桌面檔案處理
 - [ ] 全文搜尋（跨檔案）
 
 ---

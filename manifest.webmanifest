@@ -1,0 +1,38 @@
+{
+  "id": "./",
+  "name": "Parchment — 本機 Markdown & TXT 閱讀器",
+  "short_name": "Parchment",
+  "description": "隱私優先、完全唯讀的本機 Markdown 與 TXT 閱讀器。",
+  "lang": "zh-TW",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f6efe6",
+  "theme_color": "#5b2f18",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "icons/pwa-icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/pwa-icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "./",
+      "accept": {
+        "text/markdown": [".md"],
+        "text/plain": [".txt"]
+      }
+    }
+  ]
+}

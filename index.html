@@ -7,10 +7,17 @@
   <meta name="description" content="Parchment 是一款純本機的 Markdown 與 TXT 唯讀瀏覽器，無需上傳，隱私優先，支援資料夾樹狀瀏覽與深色模式。">
   <meta name="keywords" content="Markdown reader, TXT reader, local file viewer, offline markdown, 本機閱讀器, Markdown 瀏覽器">
   <meta name="author" content="Bruce Yang">
+  <meta name="theme-color" content="#5b2f18">
+  <meta name="application-name" content="Parchment">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Parchment">
   <meta property="og:title" content="Parchment — 本機 Markdown & TXT 閱讀器">
   <meta property="og:description" content="純本機的 Markdown 與 TXT 唯讀瀏覽器，無需上傳，隱私優先，支援資料夾樹狀瀏覽與深色模式。">
   <meta property="og:type" content="website">
   <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+  <link rel="apple-touch-icon" href="icons/pwa-icon-192x192.png">
+  <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="stylesheet" href="assets/vendor/katex/katex.min.css">
   <link id="hljs-light" rel="stylesheet"
@@ -25,6 +32,7 @@
       <span class="app-name">Parchment</span>
     </div>
     <div class="header-right">
+      <button id="btn-install-pwa" class="btn-secondary" hidden>安裝應用程式</button>
       <button id="btn-theme" class="btn-icon" title="切換主題">System</button>
       <button id="btn-open-dir" class="btn-secondary">開啟資料夾</button>
       <button id="btn-open-file" class="btn-primary">開啟檔案</button>

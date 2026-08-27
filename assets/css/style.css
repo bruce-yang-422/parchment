@@ -191,6 +191,11 @@ button {
   overflow: hidden;
 }
 
+#btn-install-pwa {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 #toc-sidebar[hidden] { display: none; }
 
 #toc-header {
@@ -921,6 +926,7 @@ button {
   #reader { padding: 0 20px 60px; }
   .header-right { gap: 4px; }
   #btn-open-dir { display: none; }
+  #btn-install-pwa { padding-inline: 9px; }
 }
 
 @media (max-width: 1050px) {
