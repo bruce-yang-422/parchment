@@ -1,0 +1,6 @@
+/*! Generated from src/styles/tailwind.css by npm run css. */
+@import "./shell.css";
+@import "./reader.css";
+
+@tailwind base;
+@tailwind utilities;

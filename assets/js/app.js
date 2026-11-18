@@ -11,11 +11,13 @@ import { saveRecent, getRecents, removeRecent } from './recentFiles.js';
 import { renderTOC, clearTOC, scrollToHash } from './toc.js';
 import { initPWA } from './pwa.js';
 import { wireTaskCheckboxes } from './taskState.js';
+import { initReaderFont } from './readerFont.js';
 
 /* ──────────────────── 初始化 ──────────────────── */
 
 setupRenderer();
 initTheme();
+initReaderFont();
 _refreshRecents();
 
 /* ──────────────────── DOM 參照 ──────────────────── */
@@ -141,7 +143,7 @@ dragOverlay.addEventListener('drop', async (e) => {
 
 function _enterSingleMode() {
   _folderContext = null;
-  mainEl.className = 'single-mode';
+  mainEl.classList.replace('folder-mode', 'single-mode');
   sidebarEl.hidden = true;
   folderPlaceholder.hidden = true;
   clearTree();
@@ -154,7 +156,7 @@ function _enterFolderMode(directory) {
   _revokeObjectUrls();
   const { rootName, entries, getFileByPath } = directory;
   _folderContext = { rootName, entries, getFileByPath };
-  mainEl.className = 'folder-mode';
+  mainEl.classList.replace('single-mode', 'folder-mode');
   sidebarEl.hidden = false;
   treeRootName.textContent = rootName;
 

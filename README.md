@@ -1,234 +1,90 @@
-<p align="center">
-  <img src="image/parchment-logo-transparent.png" alt="Parchment logo" width="180">
-</p>
-
 # Parchment
 
-> 本機 Markdown & TXT 唯讀瀏覽器，看得到、改不了。
-> A calm, local-first, read-only viewer for Markdown & TXT files — open them straight in your browser, safely.
+<img src="image/parchment-logo-transparent.png" alt="Parchment 標誌" width="120">
 
----
+Parchment 是在瀏覽器中運作的本機 Markdown 與純文字閱讀器。使用者可以唯讀開啟 `.md` 和 `.txt` 文件，也可以選取資料夾，以樹狀目錄瀏覽筆記並開啟文件中的相對圖片與連結。
 
-## 🚀 線上使用 Live Demo
+[線上使用 Parchment](https://bruce-yang-422.github.io/parchment/)
 
-👉 **[https://bruce-yang-422.github.io/parchment](https://bruce-yang-422.github.io/parchment)**
+## 功能
 
-建議第一次使用時選擇「**開啟資料夾**」，才能完整支援相對圖片、跨文件連結與資料夾樹狀導覽。
+- **檔案與資料夾瀏覽**。支援選取及拖放單一檔案。資料夾模式提供檔案樹、相對圖片及跨文件連結。
+- **Markdown 閱讀**。支援表格、語法高亮、程式碼複製、文章目錄、註腳、表情符號、提示區塊、KaTeX 公式和 Graphviz 圖表。主閱讀介面的 Mermaid 區塊目前會顯示備援原始碼。
+- **閱讀進度與工作清單**。記住個別文件的捲動位置，並在瀏覽器中保存 Markdown 工作清單的勾選狀態。
+- **主題與字型**。以圖示切換跟隨系統、淺色與深色。閱讀字型可選「預設字型」、「微軟正黑體」、「新細明體」和「標楷體」。裝置缺少所選字型時，瀏覽器會使用可用的替代字型。
+- **安裝與離線啟動**。在支援的瀏覽器上安裝為 PWA，首次完成快取後即可離線啟動。
 
----
+## 使用方式
 
-## ✨ 特色 Features
+1. 選擇 **開啟檔案**，或將 `.md` 或 `.txt` 檔案拖入頁面。
+2. 若文件包含相對圖片或跨文件連結，選擇 **開啟資料夾**，再從左側檔案樹選取文件。
+3. 使用標題列的字型選單和主題按鈕調整閱讀外觀。
 
-- 📂 **資料夾模式** — 選擇本機資料夾，以樹狀結構瀏覽所有 `.md` / `.txt` 檔案
-- 📄 **單檔模式** — 直接開啟單一檔案，立即顯示內容
-- 🖱️ **拖放支援** — 拖曳檔案到頁面即可閱讀
-- 🕘 **最近開啟** — 自動記錄最近 8 筆，重新整理後一鍵恢復
-- 🎨 **Markdown 渲染** — 支援 GFM（標題、清單、表格、語法高亮程式碼區塊）
-- 📋 **一鍵複製** — 程式碼區塊 hover 顯示複製按鈕
-- 🧭 **雙側欄導覽** — 左側瀏覽資料夾，右側顯示目前文章目錄並追蹤閱讀章節
-- 🔗 **本機相對連結** — 資料夾模式支援相對圖片與 Markdown / TXT 文件跳轉
-- 📐 **完整語法** — KaTeX、Mermaid、Graphviz、註腳、Emoji、Alert、上下標、定義清單等
-- 🔄 **熱更新** — 本機 Markdown 變更後自動重新渲染並保留閱讀位置
-- 🔖 **閱讀進度** — 分別記錄每份文件的捲動位置
-- ✅ **唯讀 TODO 檢核** — 可勾選工作清單並在本機保留狀態，不修改 Markdown 原檔
-- 🌙 **羊皮紙風格主題** — 現代化暖色介面，支援淺色 / 深色 / 跟隨系統
-- 🔒 **來源檔案完全唯讀** — 不寫回 Markdown / TXT，從設計上消除誤修改風險
-- 🏠 **本地處理** — 所有檔案在瀏覽器本機讀取，不上傳、不進行雲端儲存或同步
-- 📦 **本地依賴且可離線** — 所有執行期套件與字型皆隨專案提供，沒有 CDN 相依
-- 📲 **PWA 應用程式** — 首次載入後可安裝到桌面／主畫面，之後可離線啟動
+Markdown 以格式化版面顯示，TXT 則保留純文字與換行。「預設字型」會以系統無襯線字型呈現 Markdown，並以等寬字型呈現 TXT。Markdown 中的程式碼維持等寬字型。
 
----
+### 瀏覽器支援
 
-## 📖 使用方式 Usage
+| 功能 | 所需瀏覽器能力 |
+| --- | --- |
+| 單檔開啟 | 優先使用 `showOpenFilePicker()`，亦可使用一般檔案選擇器。 |
+| 資料夾瀏覽 | 優先使用 `showDirectoryPicker()`，亦可使用支援 `webkitdirectory` 的資料夾選擇器建立檔案樹。 |
+| 最近開啟與自動更新 | 透過原生選擇器或作業系統取得檔案控制代碼（`FileSystemHandle`）。網站最多顯示八筆近期紀錄，重新開啟時會視需要請求讀取授權。 |
+| PWA 安裝與離線使用 | 透過 HTTPS 或 `localhost` 使用。安裝介面依瀏覽器而異，離線啟動需要 Service Worker。 |
 
-### 開啟資料夾
-1. 點擊「**開啟資料夾**」按鈕
-2. 選擇本機資料夾並授權瀏覽器讀取
-3. 左欄顯示樹狀結構，點擊檔案即可閱讀
+### 安裝為應用程式
 
-### 開啟單一檔案
-1. 點擊「**開啟檔案**」按鈕，或將檔案**拖放**至頁面
-2. 內容立即顯示於主閱讀區
+支援原生安裝提示時，可點選標題列的 **安裝 App**。在 iPhone 或 iPad 上，可從瀏覽器的分享選單選擇 **加入主畫面**。支援 File Handling API 的桌面瀏覽器可將已安裝的 Parchment 設為 `.md` 或 `.txt` 的開啟方式。
 
-### 最近開啟
-- 開啟過的檔案與資料夾自動記錄於首頁
-- 重新整理後點擊項目，瀏覽器會再次詢問授權，確認後立即恢復
+## 本機開發
 
-### 已安裝的桌面應用程式
+專案包含已編譯的網站資產，可用任何靜態 HTTP 伺服器預覽。以下範例使用 Git 和 Python 3。
 
-- 在支援 File Handling API 的 Chromium 桌面版中，可將 Parchment 登錄為 `.md`、`.txt` 的開啟方式。
-- 從作業系統開啟文件時，Parchment 仍只取得該文件的唯讀 handle；若文件包含相對圖片，請改用「開啟資料夾」授權父資料夾。
-
-### 支援格式
-
-| 格式 | 顯示方式 |
-|------|--------|
-| `.md` | Markdown 格式化渲染（含語法高亮） |
-| `.txt` | 純文字原樣顯示 |
-
-> 本機相對圖片與跨文件連結需要資料夾讀取權限，因此請使用「開啟資料夾」。瀏覽器的單檔選擇器不會提供父資料夾權限。
-
-### 擴充 Markdown 語法
-
-支援 GFM、語法高亮、工作清單、註腳、Emoji（例如 `:rocket:`）、上下標、插入與標記、縮寫、定義清單、GitHub Alert、KaTeX，以及 `mermaid`、`dot`／`graphviz` fenced code block。
-
-工作清單的 checkbox 可以直接勾選；檢核狀態只保存在目前瀏覽器的 `localStorage`，不會將 `- [ ]` 寫回 Markdown。文件熱更新或重新開啟後，會依文件路徑、任務文字指紋與重複項目順序恢復狀態。
-
----
-
-## 🌐 瀏覽器支援 Browser Support
-
-| 瀏覽器 | 單檔模式 | 資料夾模式 | 最近開啟 |
-|--------|---------|----------|---------|
-| Chrome 86+ | ✅ | ✅ | ✅ |
-| Edge 86+ | ✅ | ✅ | ✅ |
-| Firefox | ✅ | ⚠️ 降級為檔案選取 | ⚠️ 僅單檔 |
-| Safari | ✅ | ⚠️ 降級為檔案選取 | ⚠️ 僅單檔 |
-
-> 資料夾模式與最近開啟依賴 [File System Access API](https://developer.mozilla.org/en-US/docs/Web/API/File_System_Access_API)，Firefox / Safari 尚未完整支援，將自動降級。
->
-> 檔案熱更新需要持續讀取 FileSystemHandle，目前以 Chrome / Edge 的原生選檔流程支援最完整。
-
-### 安裝為 PWA
-
-1. 使用 HTTPS 的線上版本，或從 `localhost` 開啟本機版本。
-2. 支援的瀏覽器會在首頁顯示「安裝 Parchment App」提示卡，標題列也會出現「安裝 App」按鈕；iPhone／iPad 則會提示從分享選單「加入主畫面」。
-3. 首次載入完成後，應用程式介面、Markdown 引擎、圖表引擎與 KaTeX 字型皆可離線使用。
-
-提示卡可選擇「稍後安裝」或「不安裝」；前者會在 12 小時後再次提醒，後者則會暫停提醒 60 天。暫停期間仍可使用標題列的「安裝 App」按鈕主動安裝。
-
-安裝後的 Chromium 桌面版也可將 Parchment 登錄為 `.md`、`.txt` 的開啟方式；實際可用性依作業系統與瀏覽器支援而定。
-
-> Service Worker 只預快取應用程式本身，不會複製或快取你開啟的 Markdown／TXT 內容。離線重新開啟本機文件時，仍需瀏覽器保有該 FileSystemHandle 的讀取權限。
-
----
-
-## 🛠️ 本地開發 Local Development
-
-一般開發與使用不需要 build，直接啟動本機伺服器即可：
-
-```bash
-# 方法一：Node.js
-npx serve .
-
-# 方法二：Python
+```sh
+git clone https://github.com/bruce-yang-422/parchment.git
+cd parchment
 python -m http.server 8080
 ```
 
-開啟瀏覽器前往 `http://localhost:8080`
+在瀏覽器開啟 [本機預覽](http://localhost:8080/)。
 
-### 常用指令
+### 建置與測試
 
-```shell
-npm ci
-npm test
+開發與建置使用 Node.js 和 npm，建議採用 Node.js 22。先執行 `npm ci` 安裝鎖定的套件版本。
 
-# 修改 HTML、CSS、JavaScript 或 PWA 圖示後
-npm run pwa
+| 指令 | 用途 |
+| --- | --- |
+| `npm test` | 檢查 JavaScript 語法，執行相對路徑、工作清單狀態與 PWA 測試。 |
+| `npm run css` | 將 Tailwind CSS 3.4 編譯至 `assets/css/style.css`。 |
+| `npm run pwa` | 編譯樣式並產生 `service-worker.js`，依網站資產內容更新離線快取版本。 |
+| `npm run vendor` | 重建本機第三方套件，再執行 `npm run pwa`。 |
 
-# 升級第三方套件後，重建 vendor 並連帶更新 PWA 快取
-npm run vendor
-```
+啟動本機伺服器後，可另外開啟 [渲染測試頁](http://localhost:8080/tests/renderer-smoke.html)，在瀏覽器內驗證 Markdown、圖表引擎和工作清單。
 
-`npm run vendor` 會連帶更新 PWA 快取；若只修改 HTML、CSS、JavaScript 或圖示，可單獨執行 `npm run pwa`。它會依目前執行期資產內容產生帶雜湊版本的 `service-worker.js`。
+### 專案結構
 
----
+| 路徑 | 內容 |
+| --- | --- |
+| `index.html` | 網站入口與 Tailwind 版面類別。 |
+| `src/styles/` | 主題、閱讀器及共用元件的樣式原始碼。 |
+| `assets/js/` | 以原生 JavaScript 實作的檔案讀取、渲染與閱讀介面。 |
+| `assets/vendor/` | 本機提供的 markdown-it、highlight.js、DOMPurify、KaTeX 和圖表引擎。 |
+| `manifest.webmanifest` | PWA 安裝資訊與檔案類型宣告。 |
+| `scripts/`、`tests/` | 產生網站資產和驗證功能的腳本。 |
 
-## 📦 部署 Deployment
+架構、瀏覽器 API 與開發規劃詳見 [概念備忘錄](md-reader-concept-memo.md)。
 
-### GitHub Pages（推薦）
+## 部署至 GitHub Pages
 
-1. Fork 或 clone 此 repository
-2. 前往 `Settings → Pages`
-3. Source 設為 `main` branch、`/ (root)`
-4. 若有修改執行期資產，先執行 `npm run pwa` 並提交產生的 `service-worker.js`
-5. 儲存後稍等片刻，即可透過以下網址存取：
+1. 修改供瀏覽器使用的檔案後，執行 `npm run pwa`。若更新第三方套件，執行 `npm run vendor`。
+2. 提交網站變更及產生的 `assets/css/style.css`、`service-worker.js`。若重建了第三方套件，同一批提交也包含 `assets/vendor/` 的變更。
+3. 在儲存庫的 **Settings → Pages** 選擇 **Deploy from a branch**，以 `main` 分支的 `/ (root)` 作為發布來源。
 
-```
-https://<your-username>.github.io/parchment
-```
+## 隱私與資料儲存
 
----
+- 文件內容在瀏覽器本機讀取與渲染，來源檔案以唯讀方式開啟。
+- IndexedDB 保存最近開啟的控制代碼與其名稱、類型及時間。`localStorage` 保存閱讀位置、偏好、安裝提醒時間與工作清單的任務指紋及勾選狀態。
+- Service Worker 快取網站資產以供離線使用。文件若引用外部圖片等資源，瀏覽器可能向文件指定的網址送出請求。
 
-## 🔧 技術棧 Tech Stack
+## 授權
 
-| 項目 | 技術 |
-|------|------|
-| 核心語言 | HTML5 / CSS3 / Vanilla JavaScript（ES Module） |
-| Markdown 渲染 | markdown-it + 語法插件 |
-| 語法高亮 | [highlight.js](https://highlightjs.org/) v11 |
-| 安全過濾 | [DOMPurify](https://github.com/cure53/DOMPurify) v3 |
-| 數學公式 | KaTeX（含本機字型） |
-| 圖表 | Mermaid / Graphviz（`@viz-js/viz`） |
-| 檔案存取 | File System Access API |
-| 最近開啟 | IndexedDB |
-| 閱讀位置 | localStorage |
-| TODO 檢核狀態 | localStorage（文件識別、任務文字指紋與勾選值） |
-| PWA | Web App Manifest + Service Worker 預快取 |
-| 部署 | GitHub Pages |
-
----
-
-## 🗂️ 專案結構 Project Structure
-
-```text
-parchment/
-├── index.html                 # 應用程式入口
-├── manifest.webmanifest       # PWA 名稱、圖示與檔案處理宣告
-├── service-worker.js          # 自動產生的離線預快取
-├── assets/
-│   ├── css/style.css          # 版面與主題
-│   ├── js/                    # 閱讀器、檔案、TOC、TODO、PWA 等模組
-│   └── vendor/                # 本地化的 Markdown／圖表／安全套件
-├── icons/                     # 192px／512px PWA 圖示
-├── image/                     # 品牌圖像
-├── scripts/                   # vendor 與 PWA 建置腳本
-└── tests/                     # 路徑、TODO、渲染與 PWA 測試
-```
-
----
-
-## 🔒 隱私聲明 Privacy
-
-- ✅ 所有檔案讀取皆在**使用者瀏覽器本機**執行
-- ✅ 不上傳任何檔案至伺服器
-- ✅ 不收集任何使用者資料
-- ✅ 無任何後端服務
-- ✅ IndexedDB 僅儲存檔案名稱與系統 handle，不儲存任何檔案內容
-- ✅ 閱讀位置只儲存在瀏覽器 localStorage
-- ✅ TODO 只儲存任務文字指紋與勾選狀態，不儲存任務原文，也不修改來源文件
-
-> 若文件本身引用 `https://` 圖片、字型或其他遠端資源，瀏覽器仍可能向該網址發出請求。需要完全斷網閱讀時，請使用本機相對資源並透過資料夾模式開啟。
-
----
-
-## 📋 開發路線圖 Roadmap
-
-- [x] 單檔模式
-- [x] 資料夾樹狀瀏覽
-- [x] Markdown 渲染（GFM + 語法高亮）
-- [x] 主題切換（淺色 / 深色 / 系統）
-- [x] 拖放支援
-- [x] 最近開啟紀錄（IndexedDB）
-- [x] 程式碼區塊複製按鈕
-- [x] 本機相對圖片與文件連結
-- [x] 文章目錄（TOC）
-- [x] 閱讀位置記錄
-- [x] 唯讀 TODO 檢核與本機狀態保存
-- [x] KaTeX / Mermaid / Graphviz / 註腳 / Emoji / Alert
-- [x] Markdown 檔案熱更新
-- [x] 第三方套件本地化（完全離線）
-- [x] PWA 安裝、離線啟動與桌面檔案處理
-- [ ] 全文搜尋（跨檔案）
-
----
-
-## 📄 授權 License
-
-[MIT License](LICENSE). Bundled dependency notices are listed in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
-
----
-
-<p align="center">
-  Made with ☕ · 看得到、改不了
-</p>
+Parchment 採用 [MIT 授權](LICENSE)。隨附套件及授權資訊列於 [第三方套件授權](THIRD_PARTY_LICENSES.md)。

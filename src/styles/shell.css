@@ -1,0 +1,379 @@
+/* === RESET === */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+
+/* Ensure [hidden] always wins over any display rule */
+[hidden] { display: none !important; }
+
+/* === LIGHT THEME VARIABLES === */
+:root {
+  --bg:                #fffdf9;
+  --surface:           #f8f2e8;
+  --sidebar-bg:        #f6efe4;
+  --border:            #ddcdb8;
+  --text:              #33251c;
+  --text-muted:        #756351;
+  --accent:            #7b3f20;
+  --accent-hover:      #603018;
+  --accent-contrast:   #fffaf3;
+  --link:              #854621;
+  --code-bg:           #f6efe5;
+  --code-border:       #d9c6ae;
+  --header-bg:         #fffaf2;
+  --header-border:     #e1d2bd;
+  --blockquote-border: #b47a3c;
+  --blockquote-bg:     #fff7e9;
+  --heading-h1:        #5d2e18;
+  --heading-h2:        #7a4526;
+  --inline-code-color: #984331;
+  --tree-hover:        #efe5d7;
+  --tree-active:       #e7d4bc;
+  --tree-active-text:  #65351f;
+  --btn-secondary-bg:  #f8f2e8;
+  --btn-secondary-border: #d7c5ad;
+  --btn-secondary-text: #3d2b20;
+  --success:           #39734d;
+  --mark-bg:           #f5dda0;
+  --alert-note:        #8b6238;
+  --alert-tip:         #4e7958;
+  --alert-important:   #8b5f78;
+  --alert-warning:     #a66a18;
+  --alert-caution:     #a8473d;
+  --drag-bg:           rgba(123, 63, 32, 0.13);
+  --lightbox-bg:       rgba(34, 24, 17, 0.86);
+  --welcome-glow:      rgba(214, 164, 93, 0.1);
+  --error-bg:          #fff2ed;
+  --error-border:      #bd5348;
+  --error-text:        #963b33;
+  --shadow-sm:         0 2px 8px rgba(71, 45, 25, 0.1);
+  --shadow-lg:         0 24px 64px rgba(52, 34, 21, 0.3);
+  --font-mono:         'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  --font-sans:         -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft JhengHei', 'PingFang TC', Helvetica, Arial, sans-serif;
+  --font-serif:        Georgia, 'Noto Serif TC', 'Songti TC', 'PMingLiU', 'MingLiU', serif;
+  --font-kai:          'DFKai-SB', '標楷體', 'BiauKai', 'Kaiti TC', 'STKaiti', 'KaiTi', var(--font-serif);
+  --radius:            6px;
+  --header-h:          52px;
+  --sidebar-w:         260px;
+}
+
+/* === DARK THEME VARIABLES === */
+:root.dark {
+  --bg:                #17120f;
+  --surface:           #241b15;
+  --sidebar-bg:        #211812;
+  --border:            #4c392b;
+  --text:              #f2e5d3;
+  --text-muted:        #b6a189;
+  --accent:            #995126;
+  --accent-hover:      #7d3f1d;
+  --accent-contrast:   #fff8ed;
+  --link:              #e2a467;
+  --code-bg:           #201711;
+  --code-border:       #4a3527;
+  --header-bg:         #1d1611;
+  --header-border:     #443226;
+  --blockquote-border: #c18a4b;
+  --blockquote-bg:     #2b2016;
+  --heading-h1:        #f0bc7f;
+  --heading-h2:        #dfa064;
+  --inline-code-color: #f0a087;
+  --tree-hover:        #30241b;
+  --tree-active:       #443020;
+  --tree-active-text:  #f0b474;
+  --btn-secondary-bg:  #2d221a;
+  --btn-secondary-border: #57402f;
+  --btn-secondary-text: #f2e5d3;
+  --success:           #76b58a;
+  --mark-bg:           #6a5522;
+  --alert-note:        #c69a68;
+  --alert-tip:         #79b58c;
+  --alert-important:   #c58ba9;
+  --alert-warning:     #dda64f;
+  --alert-caution:     #dc766c;
+  --drag-bg:           rgba(205, 139, 72, 0.15);
+  --lightbox-bg:       rgba(12, 8, 6, 0.9);
+  --welcome-glow:      rgba(174, 102, 45, 0.12);
+  --error-bg:          #3b1d19;
+  --error-border:      #d06b60;
+  --error-text:        #f19a91;
+  --shadow-sm:         0 2px 8px rgba(0, 0, 0, 0.38);
+  --shadow-lg:         0 24px 64px rgba(0, 0, 0, 0.6);
+}
+
+/* === BUTTONS === */
+button {
+  @apply cursor-pointer whitespace-nowrap px-3.5 py-[5px] text-[13px] font-medium leading-5;
+  font-family: var(--font-sans);
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-color: var(--accent);
+}
+.btn-primary:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+
+.btn-secondary {
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  border-color: var(--btn-secondary-border);
+}
+.btn-secondary:hover {
+  background: var(--tree-hover);
+}
+
+.btn-icon {
+  @apply bg-transparent px-2.5 text-xs leading-5;
+  color: var(--text-muted);
+  border-color: var(--border);
+}
+.btn-icon:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* === DOCUMENT TOC === */
+.toc-link {
+  @apply block w-full truncate rounded-none bg-transparent text-left text-xs font-normal leading-[1.45];
+  padding: 5px 12px 5px calc(12px + var(--toc-indent, 0px));
+  border: 0;
+  border-left: 2px solid transparent;
+  color: var(--text-muted);
+}
+
+.toc-link:hover { background: var(--tree-hover); color: var(--text); }
+.toc-link.active {
+  @apply font-medium;
+  border-left-color: var(--accent);
+  background: var(--tree-active);
+  color: var(--tree-active-text);
+}
+
+/* === TREE === */
+.tree-list {
+  @apply m-0 list-none p-0;
+}
+
+.tree-nested {
+  @apply ml-2 pl-3;
+  border-left: 1px solid var(--border);
+}
+
+.tree-nested.collapsed { @apply hidden; }
+
+.tree-dir,
+.tree-file {
+  @apply m-0;
+}
+
+.tree-toggle,
+.tree-file-btn {
+  @apply flex w-full cursor-pointer items-center gap-[5px] truncate rounded-none px-3 py-1 text-left text-[13px] leading-normal;
+  background: none;
+  border: none;
+  color: var(--text);
+}
+
+.tree-toggle:hover,
+.tree-file-btn:hover {
+  background: var(--tree-hover);
+}
+
+.tree-file-btn.active {
+  @apply font-medium;
+  background: var(--tree-active);
+  color: var(--tree-active-text);
+}
+
+.tree-arrow {
+  @apply shrink-0 text-[10px];
+  color: var(--text-muted);
+  transition: transform 0.15s;
+}
+
+.tree-icon {
+  @apply shrink-0 text-[13px];
+}
+
+.tree-label {
+  @apply truncate;
+}
+
+/* === WELCOME === */
+.welcome-logo-image {
+  @apply absolute inset-0 h-full w-full object-contain;
+}
+
+.pwa-install-card {
+  @apply mt-6 grid w-full grid-cols-[52px_minmax(0,1fr)] items-center gap-x-3.5 gap-y-3 rounded-[14px] p-[18px] text-left;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.pwa-install-icon {
+  @apply h-[52px] w-[52px] rounded-[13px];
+  grid-row: 1 / span 2;
+}
+
+.pwa-install-copy {
+  @apply min-w-0;
+}
+
+.pwa-install-copy strong {
+  @apply block text-[14px] leading-[1.4];
+}
+
+.pwa-install-copy p {
+  @apply mt-0.5 text-xs leading-[1.45];
+  color: var(--text-muted);
+}
+
+.pwa-install-actions {
+  @apply flex items-center gap-2;
+  grid-column: 2;
+}
+
+.pwa-install-actions button {
+  @apply px-[11px] py-[5px];
+}
+
+.pwa-install-text-button {
+  border-color: transparent;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.pwa-install-text-button:hover {
+  color: var(--text);
+  background: var(--tree-hover);
+}
+
+/* === RECENT FILES === */
+.recent-item {
+  @apply flex w-full cursor-pointer items-center gap-[7px] px-2 py-[5px] text-left text-[13px];
+  border-radius: var(--radius);
+  background: none;
+  border: none;
+  font-family: var(--font-sans);
+  color: var(--text);
+}
+
+.recent-item:hover { background: var(--tree-hover); }
+
+.recent-icon { @apply shrink-0 text-[13px]; }
+
+.recent-name {
+  @apply flex-1 truncate;
+}
+
+.recent-type {
+  @apply shrink-0 text-[11px];
+  color: var(--text-muted);
+}
+
+.welcome-actions button {
+  @apply px-5 py-2 text-[14px];
+}
+
+/* === DRAG OVERLAY === */
+#drag-overlay {
+  @apply fixed inset-0 z-[200] flex items-center justify-center;
+  background: var(--drag-bg);
+  backdrop-filter: blur(2px);
+  border: 3px dashed var(--accent);
+}
+
+#image-lightbox {
+  @apply fixed inset-0 z-[250] flex items-center justify-center p-8;
+  background: var(--lightbox-bg);
+  backdrop-filter: blur(6px);
+}
+
+#lightbox-close {
+  @apply absolute right-5 top-5 z-[1] min-w-[64px];
+}
+
+#lightbox-image {
+  @apply h-auto max-h-[88vh] w-auto max-w-[min(92vw,1800px)];
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  background: var(--surface);
+}
+
+.drag-inner {
+  @apply pointer-events-none text-center;
+}
+
+.drag-icon {
+  @apply mb-3 text-[48px] font-light leading-none;
+  color: var(--accent);
+}
+
+.drag-inner p {
+  @apply mb-1 text-[20px] font-semibold;
+  color: var(--accent);
+}
+
+.drag-hint {
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  color: var(--text-muted) !important;
+  font-family: var(--font-mono);
+}
+
+/* === TOAST === */
+
+.toast {
+  @apply max-w-[320px] px-4 py-2.5 text-[13px];
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+  animation: toast-in 0.2s ease;
+}
+
+.toast.toast-error {
+  background: var(--error-bg);
+  border-color: var(--error-border);
+  color: var(--error-text);
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* === SCROLLBAR === */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* === RESPONSIVE === */
+@screen mobile {
+  .pwa-install-card {
+  @apply grid-cols-[44px_minmax(0,1fr)] gap-x-3 gap-y-2.5 p-4;
+  }
+
+  .pwa-install-icon {
+  @apply h-11 w-11 rounded-[11px];
+    grid-row: 1;
+  }
+
+  .pwa-install-actions {
+  @apply col-span-full grid grid-cols-3 gap-1.5;
+  }
+
+  .pwa-install-actions button {
+  @apply w-full text-[12px];
+    padding-inline: 5px;
+  }
+}

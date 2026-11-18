@@ -1,0 +1,239 @@
+/* Markdown and TXT elements are generated at runtime. */
+:root[data-reader-font='sans'] { --reader-font: 'Microsoft JhengHei', '微軟正黑體', var(--font-sans); }
+:root[data-reader-font='serif'] { --reader-font: 'PMingLiU', '新細明體', var(--font-serif); }
+:root[data-reader-font='kai'] { --reader-font: var(--font-kai); }
+
+#reader-body {
+  @apply text-[15px] leading-[1.75];
+  color: var(--text);
+  font-family: var(--reader-font, var(--font-sans));
+  word-break: break-word;
+}
+
+#reader-body h1,
+#reader-body h2,
+#reader-body h3,
+#reader-body h4,
+#reader-body h5,
+#reader-body h6 {
+  @apply mt-7 mb-3 font-semibold leading-tight;
+  color: var(--text);
+}
+
+#reader-body h1 {
+  @apply text-[2em] pb-2.5 opacity-90;
+  color: var(--heading-h1);
+  border-bottom: 2px solid var(--heading-h1);
+}
+
+#reader-body h2 {
+  @apply text-[1.5em] pb-2;
+  color: var(--heading-h2);
+  border-bottom: 1px solid var(--border);
+}
+
+#reader-body h3 { @apply text-[1.25em]; }
+#reader-body h4 { @apply text-[1em]; }
+#reader-body h5 { @apply text-[0.875em]; }
+#reader-body h6 {
+  @apply text-[0.85em];
+  color: var(--text-muted);
+}
+
+#reader-body p { @apply mb-4; }
+
+#reader-body a {
+  @apply no-underline hover:underline;
+  color: var(--link);
+}
+
+#reader-body strong { @apply font-semibold; }
+#reader-body em { @apply italic; }
+#reader-body mark {
+  @apply px-[0.15em];
+  background: var(--mark-bg);
+  color: var(--text);
+}
+#reader-body ins { @apply decoration-2; }
+
+#reader-body dl { @apply mt-0 mx-0 mb-4; }
+#reader-body dt { @apply mt-3 font-semibold; }
+#reader-body dd { @apply ml-6; }
+#reader-body .task-list-item { @apply list-none; }
+#reader-body .task-list-item-checkbox {
+  @apply w-4 h-4 cursor-pointer align-[-2px];
+  margin: 0 0.55em 0 -1.4em;
+  accent-color: var(--accent);
+}
+#reader-body .task-list-item > label { @apply cursor-pointer; }
+#reader-body .task-list-item-checkbox:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+#reader-body .footnotes,
+#reader-body .footnote-list {
+  @apply mt-9 pt-[18px] text-[0.9em];
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+}
+#reader-body .footnote-backref { @apply ml-[0.3em]; }
+
+#reader-body .markdown-alert {
+  @apply mt-0 mx-0 mb-4 py-2.5 px-4;
+  border-left: 4px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--surface);
+}
+#reader-body .markdown-alert-title {
+  @apply mb-1.5 font-semibold;
+  color: var(--accent);
+}
+#reader-body .markdown-alert-note { border-left-color: var(--alert-note); }
+#reader-body .markdown-alert-tip { border-left-color: var(--alert-tip); }
+#reader-body .markdown-alert-important { border-left-color: var(--alert-important); }
+#reader-body .markdown-alert-warning { border-left-color: var(--alert-warning); }
+#reader-body .markdown-alert-caution { border-left-color: var(--alert-caution); }
+
+/* Inline code and fenced blocks retain the monospace face. */
+#reader-body :not(pre) > code {
+  @apply rounded text-[0.875em] font-medium;
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  font-family: var(--font-mono);
+  padding: 0.2em 0.45em;
+  color: var(--inline-code-color);
+}
+
+.code-wrapper { @apply relative mb-4; }
+
+#reader-body pre {
+  @apply mb-0 overflow-x-auto;
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: var(--radius);
+}
+
+#reader-body pre code {
+  @apply block bg-transparent py-5 px-6 text-[13px] leading-[1.7];
+  border: none;
+  font-family: var(--font-mono);
+}
+
+.copy-btn {
+  @apply absolute top-2 right-2 py-1 px-2.5 text-[13px] rounded cursor-pointer opacity-0 leading-[18px];
+  font-family: var(--font-sans);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  transition: opacity 0.15s, background 0.15s;
+}
+.code-wrapper:hover .copy-btn { @apply opacity-100; }
+.copy-btn:hover { background: var(--tree-hover); color: var(--text); }
+.copy-btn.copied { color: var(--success); border-color: var(--success); }
+
+.hljs {
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+#reader-body blockquote {
+  @apply mt-0 mx-0 mb-4 py-2 px-4;
+  border-left: 4px solid var(--blockquote-border);
+  background: var(--blockquote-bg);
+  color: var(--text-muted);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+#reader-body blockquote p:last-child { @apply mb-0; }
+
+#reader-body ul,
+#reader-body ol {
+  @apply mb-4 pl-6;
+}
+
+#reader-body li { @apply mb-1; }
+
+#reader-body li > ul,
+#reader-body li > ol {
+  @apply mt-1 mb-0;
+}
+
+#reader-body table { @apply block w-full mb-4 overflow-x-auto border-collapse; }
+
+#reader-body th,
+#reader-body td {
+  @apply py-2 px-3 text-left;
+  border: 1px solid var(--border);
+}
+
+#reader-body th {
+  @apply text-[14px] font-semibold;
+  background: var(--surface);
+}
+
+#reader-body tr:nth-child(even) td { background: var(--surface); }
+
+#reader-body hr {
+  @apply my-6 mx-0;
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
+#hot-reload-status {
+  @apply text-[11px] whitespace-nowrap;
+  color: var(--success);
+}
+#hot-reload-status::before {
+  @apply inline-block w-[7px] h-[7px] mr-[5px] rounded-full bg-current;
+  content: '';
+}
+
+#reader-body .image-scroll-frame { @apply my-5 mx-0 overflow-x-auto overflow-y-hidden; }
+#reader-body .image-scroll-inner { @apply w-fit min-w-full; }
+
+#reader-body img {
+  @apply block max-w-full;
+  border-radius: var(--radius);
+}
+
+#reader-body img.image-zoomable { @apply cursor-zoom-in; }
+#reader-body img.image-zoomable.is-overflowing { @apply max-w-none; }
+
+#reader-body img.local-resource-unavailable {
+  @apply min-w-[220px] min-h-[72px];
+  border: 1px dashed var(--border);
+  background: var(--surface);
+}
+
+#reader-body .mermaid {
+  @apply box-border mt-5 mb-8 mx-0 pt-0 px-0 pb-6 overflow-x-auto overflow-y-hidden;
+}
+
+#reader-body .mermaid svg {
+  @apply block max-w-none min-w-full w-auto h-auto overflow-visible;
+}
+
+#reader-body .mermaid-error {
+  @apply py-3 px-4 text-[0.85em] whitespace-pre-wrap text-left;
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+#reader-body .graphviz,
+#reader-body .diagram-scroll {
+  @apply mt-5 mb-8 mx-0 overflow-auto pb-3 text-center;
+}
+
+#reader-body .graphviz svg { @apply inline-block w-auto h-auto max-w-none; }
+
+#reader-body .katex-display { @apply overflow-x-auto overflow-y-hidden py-2 px-0; }
+
+.txt-view {
+  @apply p-0 text-[13px] leading-[1.6] whitespace-pre-wrap break-all bg-transparent;
+  font-family: var(--reader-font, var(--font-mono));
+  color: var(--text);
+  border: none;
+}

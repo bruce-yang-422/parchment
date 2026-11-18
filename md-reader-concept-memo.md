@@ -1,500 +1,250 @@
-# Markdown / TXT 唯讀閱讀器 — 完整概念備忘錄（含實作規劃）
+# Parchment — Markdown / TXT 唯讀閱讀器概念備忘錄
 
-> **文件狀態：原始規劃備忘錄。** 目前實作已改用本地 vendored 的 markdown-it 擴充引擎，並完成相對資源、雙側欄 TOC、閱讀位置、KaTeX／Mermaid／Graphviz、註腳／Emoji／Alert 與檔案熱更新。現況與使用方式以 [README.md](README.md) 為準。
+本備忘錄記錄設計原則、目前實作及後續規劃。操作方式、開發指令與部署說明請見 [README.md](README.md)。
 
----
+## 一、目的（Purpose）
 
-# 一、目的（Purpose）
+建立一個 **Markdown / 純文字唯讀閱讀工具**，用於：
 
-建立一個 **Markdown / 純文字唯讀閱讀工具（Web-based）**，用於：
-
-* 安全瀏覽本機 `.md` 與 `.txt` 檔案
-* 避免任何誤編輯或誤覆寫
-* 提供簡單、穩定、低干擾的閱讀體驗
-* 透過網站形式免費提供使用
-
-核心目標：
+- 安全瀏覽本機 `.md` 與 `.txt` 檔案
+- 避免誤編輯或誤覆寫
+- 提供簡單、穩定、低干擾的閱讀體驗
+- 透過靜態網站免費提供使用
 
 > **「內容可讀、可複製，但絕不可修改」**
 
----
+## 二、設計理念（Design Philosophy）
 
-# 二、設計理念（Design Philosophy）
+- **唯讀優先**。以讀取權限取得來源檔案。TODO 勾選、閱讀位置等互動只更新瀏覽器中的狀態。
+- **最小干擾**。以檔案樹、閱讀區與文章目錄為核心，提供必要的導覽、複製及外觀設定。
+- **安全優先**。限制本機相對路徑的存取範圍，並在插入頁面前清理 Markdown 輸出與圖表。
+- **單一用途**。以閱讀為產品範圍，編輯、內容管理、協作、版本控制與跨裝置同步留給其他工具。
+- **本機優先**。文件讀取及渲染在瀏覽器內完成。近期紀錄保存檔案控制代碼，離線快取保存網站資產。
 
-## 1. 唯讀優先（Read-Only First）
-不提供任何編輯能力；不存在編輯模式或切換；從設計上消除誤修改可能。
+## 三、部署與產品定位（Deployment & Positioning）
 
-## 2. 最小干擾（Minimal Interaction）
-不包含編輯、同步、插件等功能；不模擬 IDE 或筆記工具；專注閱讀行為。
+| 項目 | 現況 |
+| --- | --- |
+| 產品 | 本機 Markdown / TXT 唯讀瀏覽器 |
+| 部署 | GitHub Pages 靜態單頁網站 |
+| 執行環境 | 瀏覽器或已安裝的 PWA，文件由瀏覽器處理 |
+| 隱私 | 來源文件留在裝置上。文件引用的遠端圖片等資源仍可能由瀏覽器向原網址取得 |
+| 離線 | 首次在線載入並完成預快取後，可離線啟動並讀取使用者選擇的本機文件 |
 
-## 3. 安全優先（Safety over Flexibility）
-優先避免風險，而非增加彈性；降低功能複雜度。
-
-## 4. 單一用途（Single Responsibility）
-僅為閱讀器；不承擔內容管理或創作。
-
-## 5. 本地優先（Local-first）
-所有檔案處理皆在使用者本機完成；不上傳、不儲存、不同步。
-
----
-
-# 三、部署與產品定位（Deployment & Positioning）
-
-| 項目 | 說明 |
-|------|------|
-| 部署方式 | 靜態網站，部署於 **GitHub Pages** |
-| 費用 | 免費 |
-| 後端服務 | 無 |
-| 資料傳輸 | 無，所有操作在瀏覽器本機執行 |
-| 隱私 | 不上傳任何檔案、不存取未授權資料 |
-
-> **產品定位：「Browser-based 本機 Markdown / TXT 唯讀瀏覽器」**
-
----
-
-# 四、使用情境（Use Cases）
+## 四、使用情境（Use Cases）
 
 **主要情境**
-* 瀏覽筆記資料夾
-* 查閱技術文件
-* 快速預覽 Markdown / 純文字
+
+- 瀏覽筆記資料夾。
+- 查閱技術文件、程式碼片段與圖表。
+- 快速預覽 Markdown 或純文字。
 
 **次要情境**
-* 作為編輯器的輔助閱讀工具
-* 避免誤修改正式文件
 
----
+- 作為編輯器的輔助閱讀工具。
+- 以唯讀方式查閱正式文件。
+- 在離線環境中閱讀已存於裝置的文件。
 
-# 五、功能需求（Functional Requirements）
+## 五、功能需求與現況（Functional Requirements）
 
-## 1. 載入方式（Dual Input Modes）
+### 5.1 開啟方式
 
-### (1) 資料夾模式
-選擇本機資料夾 → 顯示樹狀結構 → 可瀏覽多檔案
+| 方式 | 行為 |
+| --- | --- |
+| 開啟檔案 | 選擇一個 `.md` 或 `.txt` 檔案，直接進入閱讀區 |
+| 開啟資料夾 | 顯示資料夾樹，選擇項目後開始閱讀。相對圖片與跨文件連結以所選資料夾為範圍 |
+| 拖放 | 讀取第一個拖入的檔案，進入單檔模式 |
+| 從桌面開啟 | 支援 File Handling API 的已安裝 PWA 可從作業系統接收 `.md` 或 `.txt` 的控制代碼 |
 
-### (2) 單檔模式
-選擇單一檔案 → 直接顯示內容 → 不顯示樹狀結構
+資料夾樹只列出 `.md`、`.txt` 與資料夾，副檔名不分大小寫。圖片等其他檔案可作為資料夾模式的相對資源。
 
-### (3) 拖放支援（Drag & Drop）
-支援拖放 `.md`、`.txt` 檔案 → 拖放後進入單檔模式
+### 5.2 內容與閱讀操作
 
-## 2. 檔案篩選規則（File Filtering）
+| 功能 | 現況 |
+| --- | --- |
+| Markdown | 標題、清單、表格、程式碼高亮及複製按鈕。擴充語法包含註腳、Emoji、警示區塊、縮寫、定義清單、上下標、插入標記及 KaTeX |
+| 純文字 | 以純文字顯示並保留換行與空白 |
+| 圖表 | `mermaid`、`dot` 或 `graphviz` 程式碼區塊交由本機圖表引擎處理。失敗時顯示錯誤與圖表原始碼。主頁 Mermaid 的已知限制見第十一節 |
+| 文章目錄 | 從 Markdown 的 `h1` 至 `h6` 產生目錄與錨點，支援章節跳轉並隨捲動標示目前位置 |
+| 相對資源 | 資料夾模式支援相對圖片與 `.md`、`.txt` 文件跳轉。圖片可點擊放大 |
+| 閱讀位置 | 依文件識別保存捲動位置，重新開啟時恢復 |
+| 檔案熱更新 | 具備可持續讀取的檔案控制代碼時，約每秒檢查修改時間與大小。偵測變更後重新渲染並保留當前捲動位置 |
+| TODO 檢核 | 可勾選 Markdown 工作清單。依文件識別、任務文字指紋與同文任務的出現順序保存布林值 |
 
-| 模式 | 顯示 | 不顯示 |
-|------|------|--------|
-| 資料夾模式 | `.md`、`.txt`、資料夾、隱藏檔 | 其他類型 |
-| 單檔模式 | `.md`、`.txt` | 其他格式（拒絕） |
+### 5.3 主題與閱讀字型
 
-* 副檔名不區分大小寫
-* 無副檔名檔案不顯示
+標題列的主題按鈕用螢幕、太陽與月亮圖示，依序切換跟隨系統、淺色和深色。跟隨系統時，會隨 `prefers-color-scheme` 更新配色及程式碼高亮樣式。
 
-## 3. 內容顯示
+字型選單適用於 Markdown 與 TXT 內文：
 
-| 格式 | 顯示方式 |
-|------|--------|
-| `.md` | 格式化渲染（含標題、清單、表格、程式碼區塊） |
-| `.txt` | 原樣顯示，保留換行 |
+| 選項 | 字型 |
+| --- | --- |
+| 預設字型 | Markdown 使用系統無襯線字型，TXT 使用等寬字型 |
+| 微軟正黑體 | 優先使用裝置上的 Microsoft JhengHei，缺少時依無襯線字型清單回退 |
+| 新細明體 | 優先使用裝置上的 PMingLiU，缺少時依襯線字型清單回退 |
+| 標楷體 | 優先使用裝置上的 DFKai-SB 等楷體，缺少時回退至襯線字型 |
 
-## 4. 使用者操作
-* 支援滑鼠選取、複製（Ctrl+C / 右鍵）
-* 資料夾模式：左欄樹狀、右欄內容
-* 單檔模式：全寬內容
+Markdown 的行內程式碼與程式碼區塊使用等寬字型。主題與閱讀字型選擇保存在 `localStorage`。
 
-## 5. 主題（Theme）
-系統（System） / 淺色（Light） / 深色（Dark）
-
----
-
-# 六、非功能需求（Non-Functional Requirements）
+## 六、非功能需求（Non-Functional Requirements）
 
 | 項目 | 要求 |
-|------|------|
-| 安全性 | 無任何寫入能力、無儲存行為 |
-| 穩定性 | 穩定顯示常見 Markdown / TXT |
-| 效能 | 中小型資料夾快速載入、即時切換 |
-| 易用性 | 無學習成本、操作直覺 |
+| --- | --- |
+| 安全性 | 以唯讀模式取得來源文件，將 Markdown 輸出清理後再插入頁面 |
+| 穩定性 | 穩定顯示常見 Markdown / TXT，圖表渲染失敗時保留可閱讀的原始碼 |
+| 效能 | 中小型資料夾快速載入，大檔案載入時提示可能較慢 |
+| 易用性 | 直接用選檔、資料夾樹與文章目錄操作。外觀偏好在重開後可恢復 |
+| 離線 | 執行期套件、樣式與 KaTeX 字型由網站提供，透過 Service Worker 預快取 |
 
----
+## 七、平台限制（Constraints）
 
-# 七、限制（Constraints）
+- 原生檔案與資料夾選擇依賴 File System Access API。程式分別偵測單檔和資料夾選擇器，並使用對應的檔案欄位降級。
+- 單檔選擇、拖放與作業系統傳入的檔案只提供該文件。相對圖片和跨文件跳轉需要資料夾範圍。
+- 最近開啟與檔案熱更新取決於可保存或持續讀取的原生控制代碼。透過檔案欄位或拖放取得的 `File` 只供當次使用。
+- PWA 安裝、系統檔案關聯及保存存取權限，取決於瀏覽器和作業系統提供的能力。
 
-**不支援功能：** 編輯 / 修改、儲存、插件、雲端同步、協作、版本控制
+## 八、實作架構（Implementation）
 
-**平台限制：**
-* 需支援 File System Access API 的瀏覽器（Chrome 86+ / Edge 86+）
-* Firefox / Safari 目前不支援 `showDirectoryPicker`，資料夾模式降級為單檔模式
-* 需使用者手動授權檔案存取
+### 8.1 技術棧
 
----
+| 層次 | 技術 | 實作 |
+| --- | --- | --- |
+| 頁面與應用 | HTML、原生 JavaScript（ES Modules） | `index.html` 載入 `assets/js/app.js` 及本機第三方套件 |
+| 樣式 | Tailwind CSS 3.4、CSS 自訂屬性 | 靜態版面以工具類別組成，共用與動態閱讀樣式位於 `src/styles/` |
+| Markdown | markdown-it 及語法外掛 | 轉成 HTML 後由 DOMPurify 清理 HTML、SVG 與 MathML |
+| 高亮、公式與圖表 | highlight.js、KaTeX、Mermaid、Viz.js | 第三方套件與相關資產隨網站提供 |
+| 檔案與狀態 | File System Access API、IndexedDB、`localStorage` | 控制代碼、閱讀位置與偏好由瀏覽器管理 |
+| PWA | Web App Manifest、Service Worker | 安裝提示、離線快取，並依平台支援接收系統檔案 |
+| 建置 | npm、Tailwind CLI、esbuild | 編譯站內樣式、第三方套件與離線快取清單 |
 
-# 八、實作規劃（Implementation Plan）
+### 8.2 檔案存取與降級
 
-## 8.1 技術棧選型（Tech Stack）
+| 入口 | 主要路徑 | 降級或權限處理 |
+| --- | --- | --- |
+| 單檔 | `showOpenFilePicker()` → `getFile()` → `File.text()` | `<input type="file">` 讀取使用者選取的檔案 |
+| 資料夾 | `showDirectoryPicker({ mode: 'read' })` → 遞迴列出目錄 | `webkitdirectory` 選取後，以 `webkitRelativePath` 建立檔案樹與相對資源索引 |
+| 最近開啟 | 從 IndexedDB 取出已保存的控制代碼 | 檢查唯讀權限，需授權時由使用者確認 |
+| 拖放 | `DataTransfer.files[0]` | 檢查副檔名後讀取文字 |
+| PWA 檔案啟動 | Manifest `file_handlers` 與 `launchQueue` | 依瀏覽器與作業系統支援啟用 |
 
-### 核心方案：純靜態單頁（推薦）
+相對資源查找會正規化路徑片段並拒絕超出已選根資料夾的路徑。成功載入的本機圖片使用物件 URL，切換文件時釋放。
 
-| 層次 | 技術 | 說明 |
-|------|------|------|
-| 結構 | HTML5 | 單一 `index.html` 入口 |
-| 樣式 | CSS（原生 Custom Properties） | 主題切換無需 JS 框架 |
-| 邏輯 | Vanilla JavaScript（ES Module） | 無框架依賴，易維護 |
-| Markdown 渲染 | **marked.js v12** | 輕量（~50KB）、快速、支援 GFM |
-| 語法高亮 | **highlight.js v11** | 搭配 marked，渲染程式碼區塊 |
-| 安全過濾 | **DOMPurify v3** | 防止 Markdown XSS（`<script>` 注入） |
-| 字型 | **Noto Sans TC**（Google Fonts） | 思源黑體 Web 版本 |
-| 最近開啟 | **IndexedDB** | 儲存 FileSystemHandle，跨頁面恢復存取 |
-| 建置工具 | **Vite**（可選） | 本地開發 HMR、打包壓縮 |
+### 8.3 儲存與離線流程
 
-> **為何不用框架（React/Vue）？**
-> 此工具邏輯簡單，不需要響應式狀態管理。Vanilla JS 體積更小、部署更直接，且 GitHub Pages 不需 build 步驟即可運作。
+| 儲存方式 | 內容 |
+| --- | --- |
+| IndexedDB | 最近開啟的檔案或資料夾控制代碼、名稱、類型與時間。首頁依時間顯示最近八筆 |
+| `localStorage` | 閱讀位置、TODO 檢核狀態、主題、閱讀字型與 PWA 安裝提醒時間 |
+| Service Worker 快取 | 網站入口、樣式、圖示、JavaScript、第三方套件及 KaTeX WOFF2 字型。開啟的本機 Markdown / TXT 直接透過瀏覽器讀取 |
 
----
+Service Worker 對頁面導覽先嘗試網路，再以快取回應離線請求。同源資產優先使用快取。新版本安裝時預先下載清單中的資產，啟用時清理舊版本的 Parchment 快取。
 
-### 備選方案：輕量框架
+支援安裝提示的瀏覽器可直接安裝。iPhone 與 iPad 介面提示從分享選單加入主畫面。「稍後安裝」延後 12 小時，「不安裝」延後 60 天。
 
-若未來需擴充（搜尋、TOC、書籤），可考慮：
+### 8.4 專案結構
 
-| 方案 | 適用時機 |
-|------|---------|
-| **Preact + htm** | 需元件化但不想設 build 工具 |
-| **Alpine.js** | 保留 HTML 結構，加少量互動邏輯 |
-| **Astro（static）** | 需 SSG、多頁架構時 |
-
----
-
-## 8.2 關鍵瀏覽器 API
-
-### File System Access API
-```
-window.showOpenFilePicker()       → 選擇單一檔案
-window.showDirectoryPicker()      → 選擇資料夾（含子目錄遞迴）
-FileSystemFileHandle.getFile()    → 讀取檔案內容（唯讀 Blob）
-FileSystemDirectoryHandle.entries()  → 列出目錄內容
-```
-
-**重要特性：**
-* 僅提供讀取（`read`）權限，本工具不請求 `readwrite`，徹底避免寫入
-* ~~每次重新開啟頁面需重新授權（無持久化存取）~~ → 已透過 IndexedDB 儲存 handle，重新整理後可一鍵恢復（仍需使用者點擊確認授權）
-* Safari / Firefox 不支援 `showDirectoryPicker`，需偵測並顯示提示
-
-### Drag & Drop API
-```
-dragover → 阻止預設行為（避免瀏覽器直接開啟檔案）
-drop     → 取得 DataTransferItem，再轉為 FileSystemFileHandle 或 File
-```
-
-### `prefers-color-scheme` Media Query
-偵測系統主題，配合 CSS 變數自動切換淺 / 深色。
-
----
-
-## 8.3 第三方套件清單
-
-| 套件 | 版本 | 用途 | CDN 引入方式 |
-|------|------|------|------------|
-| [marked](https://marked.js.org/) | v12.x | Markdown → HTML | `<script type="module">` from jsDelivr |
-| [highlight.js](https://highlightjs.org/) | v11.x | 程式碼語法高亮 | jsDelivr（僅載入需要的語言包） |
-| [DOMPurify](https://github.com/cure53/DOMPurify) | v3.x | HTML 清理、防 XSS | jsDelivr |
-
-> 全部透過 CDN 引入，**不需 `npm install`**，GitHub Pages 直接部署零設定。
-> 若使用 Vite，改為本地安裝以支援 tree-shaking。
-
----
-
-## 8.4 專案結構
-
-```
+```text
 parchment/
-├── index.html              ← 主頁（單一 HTML 入口）
+├── index.html                  # 應用入口與 Tailwind 版面
+├── src/styles/                 # Tailwind 樣式來源
+├── tailwind.config.cjs         # Tailwind 設定與斷點
 ├── assets/
-│   ├── css/
-│   │   └── style.css       ← 全域樣式 + 主題 CSS 變數
-│   └── js/
-│       ├── app.js          ← 主邏輯（ES Module）
-│       ├── fileLoader.js   ← File System Access API 封裝
-│       ├── renderer.js     ← Markdown 渲染 + highlight 整合
-│       ├── tree.js         ← 資料夾樹狀結構 UI
-│       ├── theme.js        ← 主題切換邏輯
-│       └── recentFiles.js  ← 最近開啟紀錄（IndexedDB）
-└── README.md
+│   ├── css/style.css           # 編譯後的網站樣式
+│   ├── js/                     # 閱讀、檔案存取、偏好與 PWA 模組
+│   └── vendor/                 # 本機第三方套件、KaTeX 字型及授權
+├── image/                      # 網站品牌圖像
+├── icons/                      # PWA 圖示
+├── manifest.webmanifest        # 安裝、圖示與檔案關聯
+├── service-worker.js           # 依資產內容生成的離線快取
+├── scripts/                    # 第三方套件與 PWA 建置
+└── tests/                      # 路徑、TODO、PWA 與瀏覽器渲染測試
 ```
 
-> 若選擇 Vite，加入 `package.json` 與 `vite.config.js`，輸出至 `/dist` 再部署。
+### 8.5 核心模組
 
----
+| 模組 | 職責 |
+| --- | --- |
+| `app.js` | 串接開檔、拖放與介面狀態，處理相對連結、圖片、圖表、複製、閱讀位置與熱更新 |
+| `fileLoader.js` | 檔案與資料夾選擇、路徑正規化、相對資源存取、唯讀授權 |
+| `renderer.js` | 初始化 Markdown 引擎與高亮，生成並清理 HTML，轉義 TXT |
+| `tree.js`、`toc.js` | 資料夾樹與文章章節導覽 |
+| `recentFiles.js`、`taskState.js` | 最近開啟與 TODO 檢核狀態 |
+| `theme.js`、`readerFont.js` | 切換主題與閱讀字型，保存使用者偏好 |
+| `pwa.js` | 註冊 Service Worker、管理安裝提示並接收系統傳入的檔案 |
 
-## 8.5 核心模組設計
+### 8.6 版面
 
-### fileLoader.js — 檔案讀取
+桌面資料夾模式由左側資料夾樹、中央閱讀區、右側文章目錄組成。單檔模式省略檔案樹，Markdown 有標題時仍可顯示文章目錄。視窗寬度在 820px 以下隱藏右欄。640px 以下的標題列收起資料夾按鈕，首頁仍保留入口。
 
-```javascript
-// 單檔模式
-async function openFile() {
-  const [handle] = await window.showOpenFilePicker({
-    types: [{ accept: { 'text/*': ['.md', '.txt'] } }]
-  });
-  const file = await handle.getFile();
-  return { name: file.name, content: await file.text() };
-}
+## 九、開發、驗證與部署（Development and Deployment）
 
-// 資料夾模式（遞迴）
-async function openDirectory() {
-  const dirHandle = await window.showDirectoryPicker({ mode: 'read' });
-  return buildTree(dirHandle);
-}
+在儲存庫根目錄執行：
 
-async function buildTree(dirHandle, path = '') {
-  const entries = [];
-  for await (const [name, handle] of dirHandle.entries()) {
-    if (handle.kind === 'directory') {
-      entries.push({ type: 'dir', name, children: await buildTree(handle, path + name + '/') });
-    } else if (isSupportedFile(name)) {
-      entries.push({ type: 'file', name, path: path + name, handle });
-    }
-  }
-  return entries.sort(sortDirFirst);
-}
-
-function isSupportedFile(name) {
-  return /\.(md|txt)$/i.test(name);
-}
-```
-
----
-
-### renderer.js — Markdown 渲染
-
-```javascript
-import { marked } from 'marked';
-import hljs from 'highlight.js';
-import DOMPurify from 'dompurify';
-
-marked.setOptions({
-  highlight: (code, lang) => {
-    return lang && hljs.getLanguage(lang)
-      ? hljs.highlight(code, { language: lang }).value
-      : hljs.highlightAuto(code).value;
-  },
-  gfm: true,      // GitHub Flavored Markdown
-  breaks: false,  // 不強制換行（保留 Markdown 標準）
-});
-
-export function renderMarkdown(content) {
-  const rawHtml = marked.parse(content);
-  return DOMPurify.sanitize(rawHtml);   // 清理 XSS
-}
-
-export function renderText(content) {
-  // 純文字：escaping + 保留空白換行
-  const escaped = content
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  return `<pre class="txt-view">${escaped}</pre>`;
-}
-```
-
----
-
-### theme.js — 主題切換
-
-```javascript
-const THEMES = ['system', 'light', 'dark'];
-
-export function applyTheme(theme) {
-  document.documentElement.dataset.theme = theme;
-  localStorage.setItem('theme', theme);
-}
-
-export function initTheme() {
-  const saved = localStorage.getItem('theme') || 'system';
-  applyTheme(saved);
-}
-```
-
-```css
-/* style.css — CSS 變數主題系統 */
-:root {
-  --bg: #ffffff;
-  --text: #1a1a1a;
-  --sidebar-bg: #f5f5f5;
-  --border: #e0e0e0;
-  --accent: #2563eb;
-}
-
-[data-theme="dark"],
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #1e1e1e;
-    --text: #e8e8e8;
-    --sidebar-bg: #252526;
-    --border: #3a3a3a;
-    --accent: #60a5fa;
-  }
-}
-```
-
----
-
-## 8.6 瀏覽器相容性處理
-
-| 功能 | Chrome/Edge 86+ | Firefox | Safari |
-|------|----------------|---------|--------|
-| `showOpenFilePicker` | ✅ | ❌ | ❌ (iOS/macOS 部分支援) |
-| `showDirectoryPicker` | ✅ | ❌ | ❌ |
-| `<input type="file">` | ✅ | ✅ | ✅ |
-| Drag & Drop | ✅ | ✅ | ✅ |
-
-**降級策略：**
-```javascript
-const hasFileSystemAPI = 'showOpenFilePicker' in window;
-
-if (!hasFileSystemAPI) {
-  // 降級：使用傳統 <input type="file"> + webkitdirectory
-  // 資料夾模式仍可用，但路徑資訊受限
-  showFallbackUI();
-}
-```
-
----
-
-## 8.7 UI 佈局草圖
-
-```
-┌─────────────────────────────────────────────────────────┐
-│  📄 MD Reader          [System ▾]  [開啟資料夾] [開啟檔案] │
-├──────────────┬──────────────────────────────────────────┤
-│ 📁 notes/    │  # 標題一                                 │
-│  ├ 📄 a.md   │                                           │
-│  ├ 📄 b.txt  │  內文段落內容，支援 **粗體**、_斜體_...   │
-│  └ 📁 sub/   │                                           │
-│    └ 📄 c.md │  ## 標題二                                │
-│              │  - 清單項目                               │
-│              │  - 清單項目                               │
-│              │                                           │
-│              │  ```python                                │
-│              │  print("Hello")                           │
-│              │  ```                                      │
-└──────────────┴──────────────────────────────────────────┘
-```
-
----
-
-# 九、開發與部署流程（Dev & Deploy）
-
-## 9.1 本地開發
-
-### 方案 A：無建置工具（最簡單）
-```bash
-# 僅需一個本機靜態伺服器（避免 CORS / ES Module 問題）
-npx serve .
-# 或
+```sh
+npm ci
+npm test
 python -m http.server 8080
 ```
 
-### 方案 B：Vite 開發環境
-```bash
-npm create vite@latest md-reader -- --template vanilla
-cd md-reader
-npm install marked highlight.js dompurify
-npm run dev       # HMR 開發
-npm run build     # 輸出至 /dist
-```
+在瀏覽器開啟 `http://localhost:8080`。預覽使用儲存庫內已有的編譯產物。
 
----
+| 指令 | 用途 |
+| --- | --- |
+| `npm test` | 執行 JavaScript 語法、路徑、TODO 與 PWA 測試 |
+| `npm run css` | 編譯 `src/styles/` 與頁面使用的 Tailwind 類別，產生 `assets/css/style.css` |
+| `npm run pwa` | 先編譯 CSS，再依資產內容更新 `service-worker.js` |
+| `npm run vendor` | 重建本機第三方套件，再執行 PWA 建置 |
 
-## 9.2 GitHub Pages 部署
+`tests/renderer-smoke.html` 可透過本機伺服器在瀏覽器中開啟，用來驗證語法與圖表引擎。
 
-### 方案 A：直接推送（無 build 步驟）
-```
-Repository 設定 → Pages → Source: main branch / root
-→ 網址：https://<username>.github.io/md-reader/
-```
+GitHub Pages 以發布分支的儲存庫根目錄提供靜態檔案。修改執行期資產後，先執行 `npm run pwa`，將產生的 CSS 和 Service Worker 與來源一起提交。PWA 預覽使用 HTTPS 或 `localhost`。
 
-### 方案 B：GitHub Actions 自動部署（使用 Vite）
-```yaml
-# .github/workflows/deploy.yml
-name: Deploy to GitHub Pages
-on:
-  push:
-    branches: [main]
+## 十、實作里程碑（Milestones）
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: '20' }
-      - run: npm ci && npm run build
-      - uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
-```
+| 階段 | 成果 | 狀態 |
+| --- | --- | --- |
+| Phase 1 | 單檔模式、Markdown / TXT 顯示、基礎樣式 | 已實作 |
+| Phase 2 | 資料夾模式及樹狀瀏覽 | 已實作 |
+| Phase 3 | 主題切換、拖放及瀏覽器降級 | 已實作 |
+| Phase 4 | 羊皮紙配色、閱讀版面與靜態部署 | 已實作 |
+| Phase 4+ | 最近開啟與程式碼複製 | 已實作 |
+| Phase 5 | 相對資源、文章目錄、閱讀位置、TODO 檢核、擴充語法及熱更新 | 已實作 |
+| PWA | 本機第三方資產、安裝、離線啟動與桌面檔案處理 | 已實作，桌面檔案處理依平台支援 |
+| 介面更新 | Tailwind CSS、主題圖示與閱讀字型選單 | 已實作 |
+| 後續 | 跨檔案全文搜尋 | 待實作 |
 
----
+## 十一、已知風險與對策（Risks）
 
-# 十、實作分階段計畫（Milestones）
+| 風險或限制 | 目前行為 |
+| --- | --- |
+| 使用者重新授權或移除檔案 | 開啟最近紀錄時重新檢查權限，失敗時顯示提示 |
+| 長文件或複雜圖表 | 長文件顯示效能提示後照常渲染，圖表個別處理錯誤 |
+| 文件含原始 HTML | markdown-it 允許解析原始 HTML，插入頁面前由 DOMPurify 清理輸出 |
+| 文件引用遠端資源 | 瀏覽器仍可能發出網路請求。離線時可透過資料夾模式載入已選目錄中的本機相對資源 |
+| 同名的近期紀錄 | IndexedDB 以名稱識別項目，重新開啟同名項目會覆蓋既有紀錄 |
+| 主頁 Mermaid 圖表 | `_displayFile` 的文件參數遮蔽瀏覽器的 `document`，成功產生的 SVG 在插入時進入錯誤處理，主頁顯示圖表原始碼。見 [app.js](assets/js/app.js) |
 
-| 階段 | 目標 | 狀態 |
-|------|------|------|
-| **Phase 1** | 單檔模式 + Markdown 渲染 + 基本樣式 | ✅ 完成 |
-| **Phase 2** | 資料夾模式 + 樹狀結構 UI | ✅ 完成 |
-| **Phase 3** | 主題切換 + 拖放支援 + 瀏覽器降級 | ✅ 完成 |
-| **Phase 4** | UI 精修（字體 Noto Sans TC、配色、間距）+ 部署 | ✅ 完成 |
-| **Phase 4+** | 最近開啟（IndexedDB）+ 程式碼複製按鈕 | ✅ 完成 |
-| **Phase 5**（選填） | 全文搜尋、TOC、閱讀位置記錄 | 待實作 |
+## 十二、使用者價值（User Value）
 
----
+- **降低誤修改風險**。資料以唯讀方式開啟，適合查閱工作文件。
+- **專注閱讀**。檔案樹、章節目錄、閱讀位置和字型選擇支援持續閱讀。
+- **快速使用**。可由瀏覽器直接開啟，也可安裝為離線應用程式。
+- **本機隱私**。來源文件處理及閱讀狀態保留在瀏覽器與裝置。
 
-# 十一、已知風險與對策（Risks）
+## 十三、成功標準（Success Criteria）
 
-| 風險 | 影響 | 對策 |
-|------|------|------|
-| Firefox / Safari 不支援 `showDirectoryPicker` | 資料夾模式失效 | 偵測後降級為 `<input webkitdirectory>` |
-| 超大 `.md` 檔案（> 5MB） | 渲染卡頓 | 加入檔案大小警告 + 延遲渲染 |
-| Markdown 中含惡意 HTML | XSS 攻擊 | DOMPurify 過濾，預設關閉 raw HTML |
-| CDN 無法存取 | 套件載入失敗 | 提供 fallback 本地複製版本 |
+1. 可以選取或拖放常見 Markdown 與 TXT 檔並完成閱讀。
+2. 資料夾模式能從樹狀導覽切換文件，並在已授權範圍解析相對資源。
+3. 來源內容維持唯讀，重新開啟文件時能恢復可用的閱讀狀態。
+4. 預快取完成後，應用程式可離線開啟，並讀取使用者所選的本機文件。
 
----
+## 十四、未來擴展（Future Work）
 
-# 十二、使用者價值（User Value）
+- 跨檔案全文搜尋。
+- 列印與匯出 PDF 的閱讀版面。
 
-* **零誤修改風險** — 設計層面消除
-* **專注閱讀體驗** — 無多餘功能干擾
-* **快速使用（免安裝）** — 瀏覽器直接存取
-* **隱私保護（本地處理）** — 資料不離機器
+## 十五、相關文件
 
----
-
-# 十三、成功標準（Success Criteria）
-
-1. 能快速開啟並瀏覽檔案
-2. 使用過程完全無修改風險
-3. 閱讀體驗清晰穩定
-4. 可取代為閱讀而開啟編輯器
-
----
-
-# 十四、未來擴展（非當前範圍）
-
-* 全文搜尋（Ctrl+F 跨檔案）
-* 文章目錄（TOC 側欄）
-* ~~最近開啟紀錄（IndexedDB）~~ ✅ 已實作
-* 閱讀位置記錄
-* 列印 / 匯出 PDF
-
----
-
-# 十五、總結
-
-本工具定義為：
-
-> **「部署於 GitHub Pages 的本機 Markdown / TXT 唯讀瀏覽器」**
-
-**技術核心：**
-* 純前端 Vanilla JS + marked.js + DOMPurify
-* File System Access API（含降級方案）
-* 靜態部署，無後端，免費可用
-
-**實作起點建議：**
-> 從 **Phase 1（單檔模式）** 開始，以最短時間驗證渲染效果與使用體驗，再逐步加入資料夾模式與主題切換。
+- [README.md](README.md)
+- [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md)
+- [MIT 授權](LICENSE)
