@@ -105,4 +105,6 @@ Ouvrez [[linked-note]] ou accédez à [[linked-note#Section intégrable|une sect
 2. Recherchez dans toutes les notes depuis la barre latérale gauche.
 3. Ouvrez les paramètres pour essayer une autre langue, palette ou police.
 
+Sur mobile, l'arborescence et les informations du document s'ouvrent dans des volets latéraux. Pour les documents de plus de quatre écrans, le bouton de retour en haut apparaît en bas à droite après deux écrans de défilement ; il reste masqué pour les documents courts. Sur ordinateur, placez le pointeur dans l'angle inférieur droit de la zone de lecture pour l'afficher.
+
 Cet exemple reste disponible hors ligne.

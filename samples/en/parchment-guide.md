@@ -105,4 +105,6 @@ Open [[linked-note]], or jump directly to [[linked-note#Embeddable section|a sec
 2. Search all notes from the left sidebar.
 3. Open Settings to try another language, palette, or font.
 
+On phones, the file tree and document information open in side drawers. For documents longer than four screens, the back-to-top button appears in the lower-right after you scroll two screens; it stays hidden for short documents. On desktop, move the pointer to the reading pane's lower-right corner to reveal it.
+
 This sample is available offline with the app.

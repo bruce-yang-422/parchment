@@ -51,7 +51,8 @@ The interface supports Traditional Chinese, Simplified Chinese, English, Japanes
 - **Rich Markdown**: tables, syntax highlighting, footnotes, KaTeX math, Mermaid and Graphviz diagrams, and more.
 - **Notes folder navigation**: file tree, Wiki Links, note embeds, tag filtering, backlinks and full-text search.
 - **Comfortable reading**: five color palettes with light and dark variants, separate CJK and Latin font settings, and a switchable reading width.
-- **Responsive mobile layout**: documents use the full width on narrow screens, with the file tree and document information available as touch-friendly side drawers.
+- **Responsive mobile layout**: documents use the full width on narrow screens, with the file tree and document information available as touch-friendly side drawers and wide tables contained without shifting the page.
+- **Smart back to top**: on desktop, move the pointer to the reading pane's lower-right corner to reveal the shortcut; on mobile, it appears only after two screenfuls in documents longer than four screens.
 - **Eight interface languages**: Traditional Chinese, Simplified Chinese, English, Japanese, Korean, French, German and Spanish, with automatic browser-language detection and a manual selector.
 - **Browser extension**: a Chrome and Edge extension opens Parchment from the toolbar and renders local `.md` files you open in the browser.
 - **Installable and offline**: install it as a PWA to open and read local files without a network connection.
@@ -64,6 +65,7 @@ The interface supports Traditional Chinese, Simplified Chinese, English, Japanes
 - Images and diagrams scale to the reading column; click one to zoom and pan in a lightbox, or save it as PNG.
 - Remembers your reading position in each document, and reloads automatically when a file changes on disk.
 - Task-list checkboxes can be ticked; their state is stored in the browser and never written back to the file.
+- The mobile toolbar keeps an information shortcut for the version, author, last update, source code and privacy policy.
 
 ### Notes
 

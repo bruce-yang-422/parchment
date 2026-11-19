@@ -105,4 +105,6 @@ Abre [[linked-note]] o ve a [[linked-note#Sección incrustable|una sección de l
 2. Busca en todas las notas desde la barra lateral izquierda.
 3. Abre la configuración y prueba otro idioma, paleta o tipo de letra.
 
+En el móvil, el árbol de archivos y la información del documento se abren en paneles laterales. En documentos de más de cuatro pantallas, el botón para volver arriba aparece en la esquina inferior derecha tras desplazarte dos pantallas; permanece oculto en documentos cortos. En el escritorio, mueve el puntero a la esquina inferior derecha del área de lectura para mostrarlo.
+
 Este ejemplo está disponible sin conexión.

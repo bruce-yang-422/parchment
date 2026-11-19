@@ -105,4 +105,6 @@ flowchart LR
 2. Durchsuchen Sie alle Notizen über die linke Seitenleiste.
 3. Probieren Sie in den Einstellungen eine andere Sprache, Palette oder Schriftart aus.
 
+Auf Mobilgeräten öffnen sich Dateibaum und Dokumentinformationen in seitlichen Schubladen. Bei Dokumenten mit mehr als vier Bildschirmhöhen erscheint die Schaltfläche „Nach oben“ unten rechts, nachdem Sie zwei Bildschirmhöhen gescrollt haben; bei kurzen Dokumenten bleibt sie ausgeblendet. Auf dem Desktop wird sie sichtbar, wenn Sie den Mauszeiger in die rechte untere Ecke des Lesebereichs bewegen.
+
 Dieses Beispiel ist auch offline verfügbar.

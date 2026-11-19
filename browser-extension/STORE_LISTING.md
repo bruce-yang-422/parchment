@@ -27,6 +27,8 @@ Parchment 是本機優先的 Markdown 與純文字閱讀器。它以唯讀方式
 • KaTeX 數學公式、Mermaid 與 Graphviz 圖表
 • 圖片與圖表可在燈箱中縮放，並可存成 PNG
 • 記住每份文件的閱讀位置
+• 手機與窄螢幕使用完整寬度閱讀，檔案樹與文件資訊以側邊抽屜開啟
+• 長文章捲動兩個畫面後顯示回到頂端按鈕，短文章不占用畫面空間
 
 【筆記】
 • Wiki Links：[[筆記]]、[[筆記#標題|別名]]
@@ -58,6 +60,8 @@ READING
 • KaTeX math, Mermaid and Graphviz diagrams
 • Zoom images and diagrams in a lightbox and save them as PNG
 • Remembers your reading position in every document
+• Full-width reading on phones and narrow screens, with the file tree and document information in side drawers
+• A back-to-top shortcut appears after two screenfuls in long documents and stays out of the way in short ones
 
 NOTES
 • Wiki Links: [[Note]], [[Note#Heading|Alias]]
@@ -93,6 +97,7 @@ Open source (MIT): https://github.com/bruce-yang-422/parchment
 3. Wiki Links、Callouts 與屬性區塊
 4. Mermaid 圖表與燈箱縮放
 5. 設定對話框與不同配色的對照
+6. 手機版完整寬度閱讀、側邊抽屜與回到頂端按鈕
 
 ## 隱私權做法（Privacy practices）
 
