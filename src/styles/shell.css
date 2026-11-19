@@ -494,7 +494,7 @@ button {
 
 /* 標題列的「安裝 App」：連結色外框；手機版只顯示圖示 */
 .header-install {
-  @apply flex h-8 items-center gap-1.5 px-2.5;
+  @apply flex h-8 items-center justify-center gap-1.5 px-2.5;
   border-color: var(--link);
   color: var(--link);
 }
