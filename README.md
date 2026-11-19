@@ -4,7 +4,7 @@
 
 Parchment 是在瀏覽器中運作的本機 Markdown 與純文字閱讀器。使用者可以唯讀開啟 `.md` 和 `.txt` 文件，也可以選取資料夾，以樹狀目錄瀏覽筆記並開啟文件中的相對圖片與連結。
 
-[線上使用 Parchment](https://bruce-yang-422.github.io/parchment/)
+[線上使用 Parchment](https://bruce-yang-422.github.io/parchment/) · [GitHub 專案頁](https://github.com/bruce-yang-422/parchment)
 
 ## 功能
 
@@ -40,15 +40,14 @@ Markdown 以格式化版面顯示，TXT 則保留純文字與換行。閱讀內�
 
 ## 本機開發
 
-專案包含已編譯的網站資產，可用任何靜態 HTTP 伺服器預覽。以下範例使用 Git 和 Python 3。
+專案包含已編譯的網站資產，可用任何靜態 HTTP 伺服器預覽。先從 [GitHub 專案頁](https://github.com/bruce-yang-422/parchment) 取得原始碼，再進入專案目錄。以下範例使用 Python 3。
 
 ```sh
-git clone https://github.com/bruce-yang-422/parchment.git
 cd parchment
 python -m http.server 8080
 ```
 
-在瀏覽器開啟 [本機預覽](http://localhost:8080/)。
+- [開啟本機預覽](http://localhost:8080/)
 
 ### 建置與測試
 
@@ -61,7 +60,9 @@ python -m http.server 8080
 | `npm run pwa` | 編譯樣式並產生 `service-worker.js`，依網站資產內容更新離線快取版本。 |
 | `npm run vendor` | 重建本機第三方套件，再執行 `npm run pwa`。 |
 
-啟動本機伺服器後，可另外開啟 [渲染測試頁](http://localhost:8080/tests/renderer-smoke.html)，在瀏覽器內驗證 Markdown、筆記擴充語法、圖表引擎和工作清單。
+啟動本機伺服器後，可使用以下入口驗證 Markdown、筆記擴充語法、圖表引擎和工作清單：
+
+- [開啟渲染測試頁](http://localhost:8080/tests/renderer-smoke.html)
 
 ### 專案結構
 
