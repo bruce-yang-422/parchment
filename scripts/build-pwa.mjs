@@ -5,6 +5,7 @@ import path from 'node:path';
 const root = process.cwd();
 const required = [
   'index.html',
+  'privacy.html',
   'manifest.webmanifest',
   'assets/favicon.ico',
   'icons/pwa-icon-192x192.png',

@@ -36,6 +36,10 @@ for (const entry of ['assets', 'icons', 'image']) {
 let indexHtml = await readFile(path.join(projectRoot, 'index.html'), 'utf8');
 indexHtml = indexHtml.replace(/^\s*<link rel="manifest"[^>]*>\r?\n/m, '');
 await writeFile(path.join(appDir, 'index.html'), indexHtml);
+// 隱私權政策頁：外掛中無法以「./」載入 index.html，改為明確的檔名
+const privacyHtml = (await readFile(path.join(projectRoot, 'privacy.html'), 'utf8'))
+  .replace(/href="\.\/"/g, 'href="index.html"');
+await writeFile(path.join(appDir, 'privacy.html'), privacyHtml);
 for (const file of ['LICENSE', 'THIRD_PARTY_LICENSES.md']) {
   await cp(path.join(projectRoot, file), path.join(distDir, file));
 }
@@ -69,7 +73,7 @@ for (const locale of await readdir(path.join(distDir, '_locales'))) {
 }
 
 // Manifest V3 的擴充功能頁面禁止內嵌腳本與內嵌事件屬性
-for (const page of ['app/index.html', manifest.options_ui.page]) {
+for (const page of ['app/index.html', 'app/privacy.html', manifest.options_ui.page]) {
   const html = (await readFile(path.join(distDir, page), 'utf8'))
     .replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g, '');
   if (/<script(?![^>]*\bsrc=)[^>]*>/i.test(html)) problems.push(`${page} 含有內嵌 <script>`);

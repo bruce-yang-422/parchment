@@ -121,7 +121,7 @@ Parchment displays local Markdown and plain-text files in a read-only, formatted
 ### 隱私權政策網址
 
 ```text
-https://github.com/bruce-yang-422/parchment/blob/main/browser-extension/PRIVACY.md
+https://bruce-yang-422.github.io/parchment/privacy.html
 ```
 
 ## 送審前檢查

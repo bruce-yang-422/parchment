@@ -157,6 +157,8 @@ Parchment 會先使用 [File System Access API](https://developer.mozilla.org/do
 
 ## 隱私
 
+完整內容請見 [隱私權政策](https://bruce-yang-422.github.io/parchment/privacy.html)。重點如下：
+
 - 文件只在你的瀏覽器中讀取與渲染，來源檔案以唯讀方式開啟。
 - 最近開啟的檔案與資料夾控制代碼保存在 IndexedDB；閱讀位置、外觀偏好與工作清單狀態保存在 `localStorage`。
 - 「存成 PNG」在本機轉換並直接下載，不會上傳任何內容。
@@ -193,6 +195,8 @@ npm ci
 ```text
 parchment/
 ├── index.html             # 應用程式入口
+├── privacy.html           # 隱私權政策頁
+├── sitemap.xml            # 網站地圖（提交至 Search Console）
 ├── manifest.webmanifest   # PWA 安裝資訊與檔案關聯
 ├── service-worker.js      # 由 npm run pwa 產生的離線快取
 ├── assets/

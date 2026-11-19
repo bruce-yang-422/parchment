@@ -201,7 +201,11 @@ parchment/
 
 桌面資料夾模式由左側資料夾樹、中央閱讀區、右側文件資訊面板組成。資料夾預設收合，左右側欄可用滑鼠或鍵盤調整寬度，並分別保存偏好。左下角工作區列可切換瀏覽器保存的資料夾授權。標題列右側依序為安裝 App、明暗切換、工具資訊、設定、開啟資料夾與開啟檔案；安裝、工具資訊與設定固定在標題列，首頁與單檔模式隱藏側欄時仍可使用。設定與工具資訊對話框從標題列下方靠右彈出，靠近觸發按鈕，點擊外側、按 Esc 或關閉按鈕即可收起。右側以圖示切換文章目錄、標籤、連結筆記與雙向連結；連結筆記與雙向連結需要開啟資料夾建立筆記索引。視窗寬度在 820px 以下隱藏右欄。640px 以下的標題列收起資料夾按鈕與 Parchment 名稱，「安裝 App」只顯示圖示，首頁仍保留資料夾入口。
 
-### 8.7 瀏覽器外掛
+### 8.7 SEO 與隱私權政策
+
+`index.html` 提供標題、描述、`robots`、canonical、Open Graph 與 Twitter 卡片，以及 `WebApplication` 結構化資料（功能清單、版本、作者、授權與 `priceCurrency`）。`privacy.html` 為網站、PWA 與瀏覽器外掛共用的中英文隱私權政策，首頁以 `<link rel="privacy-policy">`、歡迎畫面連結、工具資訊對話框與 `<noscript>` 說明連結至此頁，Chrome Web Store 上架時亦填寫此網址。`sitemap.xml` 列出首頁與隱私權頁；由於本站為 GitHub Pages 專案網站，網域根目錄的 `robots.txt` 不屬於本儲存庫，網站地圖需於 Google Search Console 手動提交。`tests/seo-test.mjs` 檢查上述項目，並確認結構化資料的版本與 `package.json` 一致。
+
+### 8.8 瀏覽器外掛
 
 `browser-extension/` 以 Manifest V3 將網站包裝為 Chrome 與 Edge 外掛，建置時把 `index.html`、`assets/`、`icons/`、`image/` 複製到 `dist/app/`，並移除 PWA manifest 連結；外掛頁面的 CSP 為 `script-src 'self' 'wasm-unsafe-eval'`，因此網站不使用內嵌腳本與內嵌事件屬性（配色還原與 `btoa` 修補分別位於 `boot.js`、`btoa-patch.js`），Service Worker 只在 http(s) 註冊。
 

@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Parchment｜本機 Markdown 與 TXT 唯讀閱讀器</title>
-  <meta name="description" content="在瀏覽器唯讀開啟本機 Markdown（.md）與純文字（.txt），文件留在裝置上。支援檔案拖放、資料夾樹狀瀏覽、文章目錄與離線閱讀。">
+  <title>Parchment｜本機 Markdown 與 TXT 筆記閱讀器（唯讀、離線、免上傳）</title>
+  <meta name="description" content="免安裝、免上傳的本機 Markdown 與純文字閱讀器：唯讀開啟 .md 與 .txt，支援筆記資料夾、Wiki Links、全文搜尋、Mermaid 圖表與 KaTeX 公式，可離線使用，也提供 Chrome／Edge 外掛。">
+  <meta name="robots" content="index, follow, max-image-preview:large">
   <link rel="canonical" href="https://bruce-yang-422.github.io/parchment/">
   <meta name="author" content="Bruce Yang">
   <meta name="theme-color" content="#5b2f18">
@@ -17,16 +18,16 @@
   <meta property="og:site_name" content="Parchment">
   <meta property="og:locale" content="zh_TW">
   <meta property="og:url" content="https://bruce-yang-422.github.io/parchment/">
-  <meta property="og:title" content="Parchment｜本機 Markdown 與 TXT 唯讀閱讀器">
-  <meta property="og:description" content="在瀏覽器唯讀開啟本機 Markdown（.md）與純文字（.txt），文件留在裝置上。支援檔案拖放、資料夾樹狀瀏覽、文章目錄與離線閱讀。">
+  <meta property="og:title" content="Parchment｜本機 Markdown 與 TXT 筆記閱讀器（唯讀、離線、免上傳）">
+  <meta property="og:description" content="唯讀開啟本機 Markdown 與純文字筆記，支援 Wiki Links、全文搜尋與圖表，文件不離開你的裝置。">
   <meta property="og:image" content="https://bruce-yang-422.github.io/parchment/icons/pwa-icon-512x512.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="512">
   <meta property="og:image:height" content="512">
   <meta property="og:image:alt" content="Parchment 圖示，含羊皮紙、羽毛筆與鎖頭">
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Parchment｜本機 Markdown 與 TXT 唯讀閱讀器">
-  <meta name="twitter:description" content="在瀏覽器唯讀開啟本機 Markdown（.md）與純文字（.txt），文件留在裝置上。支援檔案拖放、資料夾樹狀瀏覽、文章目錄與離線閱讀。">
+  <meta name="twitter:title" content="Parchment｜本機 Markdown 與 TXT 筆記閱讀器（唯讀、離線、免上傳）">
+  <meta name="twitter:description" content="唯讀開啟本機 Markdown 與純文字筆記，支援 Wiki Links、全文搜尋與圖表，文件不離開你的裝置。">
   <meta name="twitter:image" content="https://bruce-yang-422.github.io/parchment/icons/pwa-icon-512x512.png">
   <meta name="twitter:image:alt" content="Parchment 圖示，含羊皮紙、羽毛筆與鎖頭">
 
@@ -35,22 +36,44 @@
       "@context": "https://schema.org",
       "@type": "WebApplication",
       "name": "Parchment",
-      "description": "在瀏覽器唯讀開啟本機 Markdown（.md）與純文字（.txt），文件留在裝置上。支援檔案拖放、資料夾樹狀瀏覽、文章目錄與離線閱讀。",
+      "alternateName": "Parchment 本機 Markdown 閱讀器",
+      "description": "免安裝、免上傳的本機 Markdown 與純文字閱讀器：唯讀開啟 .md 與 .txt，支援筆記資料夾、Wiki Links、全文搜尋、Mermaid 圖表與 KaTeX 公式，可離線使用，也提供 Chrome／Edge 外掛。",
       "url": "https://bruce-yang-422.github.io/parchment/",
       "image": "https://bruce-yang-422.github.io/parchment/icons/pwa-icon-512x512.png",
       "inLanguage": "zh-TW",
       "applicationCategory": "UtilitiesApplication",
-      "browserRequirements": "需要支援 JavaScript 的瀏覽器",
+      "operatingSystem": "Windows, macOS, Linux, ChromeOS, Android, iOS",
+      "browserRequirements": "需要支援 JavaScript 的瀏覽器；資料夾的最近開啟與自動更新需要支援 File System Access API 的瀏覽器",
+      "softwareVersion": "1.1.0",
+      "featureList": [
+        "唯讀開啟本機 Markdown（.md）與純文字（.txt）檔案",
+        "筆記資料夾檔案樹、Wiki Links、內嵌筆記與雙向連結",
+        "資料夾全文搜尋與標籤篩選",
+        "Mermaid、Graphviz 圖表與 KaTeX 數學公式",
+        "五套淺色與深色配色",
+        "PWA 離線使用與 Chrome／Edge 瀏覽器外掛"
+      ],
       "isAccessibleForFree": true,
       "offers": {
         "@type": "Offer",
-        "price": 0
-      }
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "license": "https://opensource.org/licenses/MIT",
+      "author": {
+        "@type": "Person",
+        "name": "Bruce Yang",
+        "url": "https://github.com/bruce-yang-422"
+      },
+      "sameAs": [
+        "https://github.com/bruce-yang-422/parchment"
+      ]
     }
   </script>
   <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
   <link rel="apple-touch-icon" href="icons/pwa-icon-192x192.png">
   <link rel="manifest" href="manifest.webmanifest">
+  <link rel="privacy-policy" href="privacy.html">
   <script src="assets/js/boot.js"></script>
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="stylesheet" href="assets/vendor/katex/katex.min.css">
@@ -62,6 +85,13 @@
 </head>
 <body class="flex flex-col bg-[var(--bg)] font-[family-name:var(--font-sans)] text-[15px] leading-[1.6]
   text-[color:var(--text)] [transition:background_0.2s,color_0.2s]">
+  <noscript>
+    <div class="noscript-message">
+      <h1>Parchment：本機 Markdown 與 TXT 筆記閱讀器</h1>
+      <p>Parchment 在瀏覽器中以唯讀方式開啟本機 Markdown（.md）與純文字（.txt）檔案，支援筆記資料夾、Wiki Links、全文搜尋、Mermaid 圖表與 KaTeX 公式，文件不會上傳。請啟用 JavaScript 以使用 Parchment。</p>
+      <p><a href="privacy.html">隱私權政策</a> · <a href="https://github.com/bruce-yang-422/parchment">GitHub 原始碼</a></p>
+    </div>
+  </noscript>
   <header id="header" class="sticky top-0 z-[100] flex h-[var(--header-h)] shrink-0 items-center justify-between
     gap-3 bg-[var(--header-bg)] px-4 [border-bottom:1px_solid_var(--header-border)] mobile:px-2.5">
     <div class="mobile:hidden">
@@ -201,6 +231,10 @@
             <p class="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-muted)]">最近開啟</p>
             <ul id="recent-list" class="m-0 list-none p-0"></ul>
           </div>
+          <nav class="welcome-links" aria-label="網站資訊">
+            <a href="privacy.html">隱私權政策</a>
+            <a href="https://github.com/bruce-yang-422/parchment" target="_blank" rel="noopener noreferrer">GitHub 原始碼</a>
+          </nav>
         </div>
       </div>
 
@@ -350,7 +384,11 @@
         <div><strong>Parchment</strong><span>版本 1.1.0</span></div>
       </div>
       <p>文件內容留在瀏覽器中處理；只有你主動授權的檔案與資料夾能被讀取。</p>
-      <a href="https://github.com/bruce-yang-422/parchment" target="_blank" rel="noopener noreferrer">GitHub 專案網站</a>
+      <p class="about-links">
+        <a href="https://github.com/bruce-yang-422/parchment" target="_blank" rel="noopener noreferrer">GitHub 專案網站</a>
+        <span aria-hidden="true">·</span>
+        <a href="privacy.html" target="_blank" rel="noopener">隱私權政策</a>
+      </p>
     </div>
   </dialog>
 

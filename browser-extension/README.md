@@ -30,7 +30,7 @@
 | `src/icons/` | 16、32、48、128 px 圖示（由 `icons/pwa-icon-512x512.png` 縮製） |
 | `scripts/build.mjs` | 組合 `dist/`、檢查商店限制、輸出上架用 zip |
 | `STORE_LISTING.md` | 商店頁文案、權限說明與隱私權做法 |
-| `PRIVACY.md` | 隱私權政策（商店頁連結此檔案） |
+| `PRIVACY.md` | 指向網站隱私權政策頁的說明（政策全文在根目錄 `privacy.html`） |
 
 ### 權限
 

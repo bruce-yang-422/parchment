@@ -563,6 +563,7 @@ button {
 .about-brand span { @apply block text-[11px]; color: var(--text-muted); }
 .about-content p { @apply mb-4; color: var(--text-muted); }
 .about-content a { color: var(--link); }
+.about-links { @apply flex flex-wrap items-center gap-2; }
 
 /* === 全文搜尋 === */
 .search-input {
@@ -617,6 +618,67 @@ button {
   background: var(--mark-bg);
   color: var(--text);
 }
+
+/* === 隱私權政策等說明頁（privacy.html） === */
+.legal-body {
+  @apply h-auto min-h-full;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.75;
+}
+.legal-header {
+  @apply flex items-center justify-between gap-3 px-5 py-3;
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--header-border);
+}
+.legal-brand {
+  @apply flex items-center gap-2 text-[17px] font-semibold no-underline;
+  color: var(--heading-h1);
+}
+.legal-brand img { @apply rounded-md; }
+.legal-nav { @apply flex gap-3 text-[13px]; }
+.legal-nav a,
+.legal-page a,
+.legal-footer a { color: var(--link); }
+.legal-page {
+  @apply mx-auto max-w-[760px] px-5 pb-12 pt-8;
+}
+.legal-page h1 { @apply mb-1 text-[28px] font-semibold leading-tight; color: var(--heading-h1); }
+.legal-page h2 { @apply mb-2 mt-8 text-[19px] font-semibold; color: var(--heading-h2); }
+.legal-page p { @apply mb-3; }
+.legal-page ul { @apply mb-3 pl-6; }
+.legal-page li { @apply mb-1.5; }
+.legal-page code {
+  @apply rounded px-1 text-[0.9em];
+  background: var(--code-bg);
+  font-family: var(--font-mono);
+}
+.legal-page hr { @apply my-12 border-0; border-top: 1px solid var(--border); }
+.legal-meta { @apply text-[13px]; color: var(--text-muted); }
+.legal-footer {
+  @apply flex justify-center gap-2 px-5 py-6 text-[13px];
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+/* 首頁底部的說明連結（隱私權政策、原始碼），也提供搜尋引擎可跟隨的內部連結 */
+.welcome-links {
+  @apply mt-6 flex flex-wrap justify-center gap-x-3 gap-y-1 text-[12px];
+  color: var(--text-muted);
+}
+.welcome-links a { color: var(--text-muted); text-decoration: underline; text-underline-offset: 3px; }
+.welcome-links a:hover { color: var(--link); }
+
+/* 停用 JavaScript 時的說明 */
+.noscript-message {
+  @apply mx-auto max-w-[640px] px-5 py-10 text-center;
+  color: var(--text);
+}
+.noscript-message h1 { @apply mb-3 text-[22px] font-semibold; }
+.noscript-message p { @apply mb-3; }
+.noscript-message a { color: var(--link); }
 
 /* === WELCOME === */
 .welcome-logo-image {
