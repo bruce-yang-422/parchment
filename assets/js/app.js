@@ -14,6 +14,7 @@ import { wireTaskCheckboxes } from './taskState.js';
 import { initReaderFont } from './readerFont.js';
 import { initPaneResize } from './sidebarResize.js';
 import { initLightboxZoom } from './lightboxZoom.js';
+import { saveImageAsPng, pngFileName } from './imageExport.js';
 import { buildDocumentIndex } from './noteLinks.js';
 import { initRightPanel } from './rightPanel.js';
 
@@ -111,6 +112,15 @@ if (lightboxEl) {
     if (e.target === lightboxEl) _closeImageLightbox();
   });
 }
+const lightboxSavePng = document.getElementById('lightbox-save-png');
+lightboxSavePng?.addEventListener('click', _saveLightboxImage);
+document.addEventListener('keydown', (e) => {
+  if (lightboxEl && !lightboxEl.hidden && (e.key === 's' || e.key === 'S')
+    && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    e.preventDefault();
+    _saveLightboxImage();
+  }
+});
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && lightboxEl && !lightboxEl.hidden) _closeImageLightbox();
 });
@@ -625,7 +635,12 @@ function _prepareMermaidDiagram(wrapper) {
     const markup = new XMLSerializer().serializeToString(clone);
     const url = URL.createObjectURL(new Blob([markup], { type: 'image/svg+xml' }));
     _objectUrls.push(url);
-    _openImageLightbox({ src: url, alt: 'Mermaid 圖表' });
+    const index = [...readerBody.querySelectorAll('.mermaid')].indexOf(wrapper) + 1;
+    const base = pngFileName(_currentDocument?.name, 'diagram').replace(/\.png$/, '');
+    _openImageLightbox(
+      { src: url, alt: 'Mermaid 圖表' },
+      { downloadName: `${base}-diagram-${index || 1}.png` },
+    );
   });
 }
 
@@ -673,11 +688,12 @@ function _syncImageOverflowState(img) {
   img.classList.toggle('is-overflowing', naturalWidth > frameWidth + 8);
 }
 
-function _openImageLightbox(img) {
+function _openImageLightbox(img, { downloadName } = {}) {
   if (!lightboxEl || !lightboxImage) return;
   lightboxZoom?.reset();
   lightboxImage.src = img.currentSrc || img.src;
   lightboxImage.alt = img.alt || '';
+  lightboxImage.dataset.downloadName = downloadName || _imageDownloadName(img);
   lightboxEl.hidden = false;
   document.body.style.overflow = 'hidden';
 }
@@ -688,7 +704,29 @@ function _closeImageLightbox() {
   lightboxZoom?.reset();
   lightboxImage.removeAttribute('src');
   lightboxImage.alt = '';
+  delete lightboxImage.dataset.downloadName;
   document.body.style.overflow = '';
+}
+
+function _imageDownloadName(img) {
+  // blob: URL 沒有可用檔名，改用 Markdown 原始 src、alt 或文件名稱。
+  const original = img.getAttribute?.('src') || '';
+  let fromSrc = /^(blob:|data:)/i.test(original) ? '' : original.split(/[?#]/)[0];
+  try { fromSrc = decodeURIComponent(fromSrc); } catch { /* 保留原字串 */ }
+  return pngFileName(fromSrc || img.alt || _currentDocument?.name, 'image');
+}
+
+async function _saveLightboxImage() {
+  const src = lightboxImage?.getAttribute('src');
+  if (!src || lightboxSavePng?.disabled) return;
+  if (lightboxSavePng) lightboxSavePng.disabled = true;
+  try {
+    await saveImageAsPng(src, lightboxImage.dataset.downloadName || 'image.png');
+  } catch (err) {
+    _showToast(`無法存成 PNG：${err.message}`, 'error');
+  } finally {
+    if (lightboxSavePng) lightboxSavePng.disabled = false;
+  }
 }
 
 /* ──────────────────── 本機相對路徑 ──────────────────── */
