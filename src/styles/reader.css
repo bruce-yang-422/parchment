@@ -42,6 +42,42 @@
 
 #reader-body p { @apply mb-4; }
 
+/* Obsidian-style tag property converted from `## tags: [...]`. */
+#reader-body .metadata-property-tags {
+  @apply flex items-start gap-3 my-5 py-2 px-3 rounded;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+#reader-body .metadata-property-key {
+  @apply shrink-0 pt-0.5 text-[0.875em] font-semibold;
+  min-width: 4.5rem;
+  color: var(--text-muted);
+}
+
+#reader-body .metadata-property-value {
+  @apply flex flex-wrap items-center gap-1.5 min-w-0;
+}
+
+#reader-body .metadata-tag {
+  @apply inline-flex cursor-pointer items-center rounded-full py-0.5 px-2.5 text-[0.85em] leading-5 font-medium;
+  background: var(--tree-active);
+  border: 1px solid var(--border);
+  color: var(--tree-active-text);
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+#reader-body .metadata-tag:hover { border-color: var(--accent); }
+#reader-body .metadata-tag:active { transform: translateY(1px); }
+#reader-body .metadata-tag[aria-pressed='true'] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 22%, transparent);
+}
+#reader-body .metadata-tag:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+
 #reader-body a {
   @apply no-underline hover:underline;
   color: var(--link);

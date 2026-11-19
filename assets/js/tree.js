@@ -11,14 +11,21 @@ let _pathButtons = new Map();
  * @param {TreeEntry[]} entries
  * @param {function(entry: TreeEntry, content: string): Promise<void>} onFileSelect
  */
-export function renderTree(entries, onFileSelect) {
+export function renderTree(entries, onFileSelect, { expandDirectories = false } = {}) {
   _onFileSelect = onFileSelect;
   _activeBtn = null;
   _pathButtons = new Map();
 
   const container = document.getElementById('tree-container');
   container.innerHTML = '';
-  container.appendChild(_buildList(entries, 0));
+  if (!entries.length) {
+    const empty = document.createElement('p');
+    empty.className = 'tree-empty';
+    empty.textContent = '沒有符合此標籤的文件';
+    container.appendChild(empty);
+    return;
+  }
+  container.appendChild(_buildList(entries, 0, expandDirectories));
 }
 
 /** 清除樹狀結構 */
@@ -33,6 +40,15 @@ export function clearTree() {
 export function setActiveTreePath(path) {
   const btn = _pathButtons.get(path.join('/').toLocaleLowerCase());
   if (!btn) return;
+
+  let nested = btn.closest('.tree-nested');
+  while (nested) {
+    if (nested.classList.contains('collapsed')) {
+      _setDirectoryExpanded(nested.previousElementSibling, nested, true);
+    }
+    nested = nested.parentElement.closest('.tree-nested');
+  }
+
   if (_activeBtn) _activeBtn.classList.remove('active');
   btn.classList.add('active');
   btn.scrollIntoView({ block: 'nearest' });
@@ -41,43 +57,47 @@ export function setActiveTreePath(path) {
 
 /* ──────────────────── 建立 DOM 樹 ──────────────────── */
 
-function _buildList(entries, depth) {
+function _buildList(entries, depth, expandDirectories) {
   const ul = document.createElement('ul');
   ul.className = depth === 0 ? 'tree-list' : 'tree-list tree-nested';
 
   for (const entry of entries) {
     ul.appendChild(entry.type === 'dir'
-      ? _makeDirItem(entry, depth)
+      ? _makeDirItem(entry, depth, expandDirectories)
       : _makeFileItem(entry));
   }
 
   return ul;
 }
 
-function _makeDirItem(entry, depth) {
+function _makeDirItem(entry, depth, expandDirectories) {
   const li = document.createElement('li');
   li.className = 'tree-dir';
 
   const toggle = document.createElement('button');
   toggle.className = 'tree-toggle';
-  toggle.setAttribute('aria-expanded', 'true');
   toggle.innerHTML =
-    `<span class="tree-arrow" aria-hidden="true">▾</span>` +
-    `<span class="tree-icon" aria-hidden="true">📁</span>` +
+    `<span class="tree-arrow" aria-hidden="true"></span>` +
+    `<span class="tree-icon" aria-hidden="true"></span>` +
     `<span class="tree-label">${_esc(entry.name)}</span>`;
 
-  const nested = _buildList(entry.children, depth + 1);
+  const nested = _buildList(entry.children, depth + 1, expandDirectories);
+  _setDirectoryExpanded(toggle, nested, expandDirectories);
 
   toggle.addEventListener('click', () => {
-    const collapsed = nested.classList.toggle('collapsed');
-    toggle.setAttribute('aria-expanded', String(!collapsed));
-    toggle.querySelector('.tree-arrow').textContent = collapsed ? '▸' : '▾';
-    toggle.querySelector('.tree-icon').textContent  = collapsed ? '📁' : '📂';
+    _setDirectoryExpanded(toggle, nested, nested.classList.contains('collapsed'));
   });
 
   li.appendChild(toggle);
   li.appendChild(nested);
   return li;
+}
+
+function _setDirectoryExpanded(toggle, nested, expanded) {
+  nested.classList.toggle('collapsed', !expanded);
+  toggle.setAttribute('aria-expanded', String(expanded));
+  toggle.querySelector('.tree-arrow').textContent = expanded ? '▾' : '▸';
+  toggle.querySelector('.tree-icon').textContent = expanded ? '📂' : '📁';
 }
 
 function _makeFileItem(entry) {

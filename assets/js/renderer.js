@@ -38,6 +38,46 @@ export function setupRenderer() {
     },
   });
 
+  _markdown.core.ruler.after('inline', 'obsidian-tags-property', (state) => {
+    for (let index = 0; index < state.tokens.length - 2; index += 1) {
+      const opening = state.tokens[index];
+      const inline = state.tokens[index + 1];
+      const closing = state.tokens[index + 2];
+      if (opening.type !== 'heading_open' || opening.tag !== 'h2'
+        || inline.type !== 'inline' || closing.type !== 'heading_close') continue;
+
+      const tags = _parseTagsProperty(inline.content);
+      if (!tags) continue;
+
+      opening.meta = { ...opening.meta, obsidianTags: true };
+      closing.meta = { ...closing.meta, obsidianTags: true };
+      const tagMarkup = new state.Token('html_inline', '', 0);
+      tagMarkup.content = tags
+        .map(tag => `<button type="button" class="metadata-tag" data-tag="${_escapeHtml(tag)}" aria-label="以標籤 ${_escapeHtml(tag)} 篩選文件">#${_escapeHtml(tag)}</button>`)
+        .join('');
+      inline.children = [tagMarkup];
+    }
+  });
+
+  const defaultHeadingOpen = _markdown.renderer.rules.heading_open;
+  const defaultHeadingClose = _markdown.renderer.rules.heading_close;
+  _markdown.renderer.rules.heading_open = (tokens, index, options, env, self) => {
+    if (tokens[index].meta?.obsidianTags) {
+      return '<div class="metadata-property metadata-property-tags" role="group" aria-label="標籤">'
+        + '<span class="metadata-property-key">tags</span>'
+        + '<div class="metadata-property-value">';
+    }
+    return defaultHeadingOpen
+      ? defaultHeadingOpen(tokens, index, options, env, self)
+      : self.renderToken(tokens, index, options);
+  };
+  _markdown.renderer.rules.heading_close = (tokens, index, options, env, self) => {
+    if (tokens[index].meta?.obsidianTags) return '</div></div>\n';
+    return defaultHeadingClose
+      ? defaultHeadingClose(tokens, index, options, env, self)
+      : self.renderToken(tokens, index, options);
+  };
+
   const defaultFence = _markdown.renderer.rules.fence.bind(_markdown.renderer.rules);
   _markdown.renderer.rules.fence = (tokens, index, options, env, self) => {
     const token = tokens[index];
@@ -82,4 +122,35 @@ function _escapeHtml(str) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+/** 將 `## tags: [標籤一, 標籤二]` 解析成 Obsidian 風格標籤屬性。 */
+function _parseTagsProperty(content) {
+  const match = String(content).match(/^\s*tags\s*:\s*(.*?)\s*$/i);
+  if (!match) return null;
+
+  let value = match[1];
+  if (value.startsWith('[') && value.endsWith(']')) value = value.slice(1, -1);
+
+  const tags = value
+    .split(/[,，]/)
+    .map(tag => tag.trim().replace(/^(['"])(.*)\1$/, '$2').replace(/^#/, '').trim())
+    .filter(Boolean);
+  return tags.length ? tags : null;
+}
+
+/** 擷取 Markdown 內所有 `## tags:` 屬性，供資料夾標籤篩選使用。 */
+export function extractMarkdownTags(content) {
+  const tags = [];
+  const seen = new Set();
+  const pattern = /^##[\t ]+tags[\t ]*:[\t ]*(.*)$/gmi;
+  for (const match of String(content).matchAll(pattern)) {
+    for (const tag of _parseTagsProperty(`tags: ${match[1]}`) || []) {
+      const key = tag.toLocaleLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      tags.push(tag);
+    }
+  }
+  return tags;
 }

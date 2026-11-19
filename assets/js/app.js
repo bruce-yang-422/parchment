@@ -5,13 +5,14 @@
 
 import { initTheme, cycleTheme }           from './theme.js';
 import { openFile, openDirectory, openFileFromHandle, openDirectoryFromHandle, isSupportedFile, normalizeRelativePath } from './fileLoader.js';
-import { setupRenderer, renderMarkdown, renderText } from './renderer.js';
+import { setupRenderer, renderMarkdown, renderText, extractMarkdownTags } from './renderer.js';
 import { renderTree, clearTree, setActiveTreePath } from './tree.js';
 import { saveRecent, getRecents, removeRecent } from './recentFiles.js';
 import { renderTOC, clearTOC, scrollToHash } from './toc.js';
 import { initPWA } from './pwa.js';
 import { wireTaskCheckboxes } from './taskState.js';
 import { initReaderFont } from './readerFont.js';
+import { initPaneResize } from './sidebarResize.js';
 
 /* ──────────────────── 初始化 ──────────────────── */
 
@@ -24,7 +25,11 @@ _refreshRecents();
 
 const mainEl          = document.getElementById('main');
 const sidebarEl       = document.getElementById('sidebar');
+const sidebarResizer  = document.getElementById('sidebar-resizer');
 const treeRootName    = document.getElementById('tree-root-name');
+const tagFilterStatus = document.getElementById('tag-filter-status');
+const tagFilterLabel  = document.getElementById('tag-filter-label');
+const tagFilterClear  = document.getElementById('tag-filter-clear');
 const welcomeEl       = document.getElementById('welcome');
 const readerEl        = document.getElementById('reader');
 const readerBody      = document.getElementById('reader-body');
@@ -36,6 +41,7 @@ const lightboxImage   = document.getElementById('lightbox-image');
 const lightboxClose   = document.getElementById('lightbox-close');
 const contentArea     = document.getElementById('content-area');
 const tocSidebar      = document.getElementById('toc-sidebar');
+const tocResizer      = document.getElementById('toc-resizer');
 const tocContainer    = document.getElementById('toc-container');
 const hotReloadStatus = document.getElementById('hot-reload-status');
 const todoLocalStatus = document.getElementById('todo-local-status');
@@ -45,8 +51,18 @@ let _currentDocument = null;
 let _hotReloadTimer = null;
 let _saveScrollTimer = null;
 let _objectUrls = [];
+let _activeTagFilter = null;
+let _tagFilterGeneration = 0;
 
 initPWA({ onFileLaunch: _openFileFromLaunchQueue });
+initPaneResize(mainEl, sidebarEl, sidebarResizer, tocSidebar, {
+  side: 'left',
+  storageKey: 'parchment-sidebar-width',
+});
+initPaneResize(mainEl, tocSidebar, tocResizer, sidebarEl, {
+  side: 'right',
+  storageKey: 'parchment-toc-width',
+});
 
 contentArea.addEventListener('scroll', () => {
   clearTimeout(_saveScrollTimer);
@@ -62,6 +78,12 @@ document.getElementById('btn-open-file').addEventListener('click', handleOpenFil
 document.getElementById('btn-open-dir').addEventListener('click', handleOpenDir);
 document.getElementById('welcome-btn-file').addEventListener('click', handleOpenFile);
 document.getElementById('welcome-btn-dir').addEventListener('click', handleOpenDir);
+tagFilterClear.addEventListener('click', _clearTagFilter);
+readerBody.addEventListener('click', (event) => {
+  const tagButton = event.target.closest('.metadata-tag');
+  if (!tagButton || !readerBody.contains(tagButton)) return;
+  _filterFolderByTag(tagButton.dataset.tag);
+});
 if (lightboxClose) {
   lightboxClose.addEventListener('click', _closeImageLightbox);
 }
@@ -73,7 +95,7 @@ if (lightboxEl) {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && lightboxEl && !lightboxEl.hidden) _closeImageLightbox();
 });
-window.addEventListener('resize', () => _refreshImageOverflow(readerBody));
+new ResizeObserver(() => _refreshImageOverflow(readerBody)).observe(contentArea);
 
 async function handleOpenFile() {
   try {
@@ -142,9 +164,11 @@ dragOverlay.addEventListener('drop', async (e) => {
 /* ──────────────────── 模式切換 ──────────────────── */
 
 function _enterSingleMode() {
+  _resetTagFilter();
   _folderContext = null;
   mainEl.classList.replace('folder-mode', 'single-mode');
   sidebarEl.hidden = true;
+  sidebarResizer.hidden = true;
   folderPlaceholder.hidden = true;
   clearTree();
 }
@@ -155,9 +179,11 @@ function _enterFolderMode(directory) {
   if (lightboxEl && !lightboxEl.hidden) _closeImageLightbox();
   _revokeObjectUrls();
   const { rootName, entries, getFileByPath } = directory;
-  _folderContext = { rootName, entries, getFileByPath };
+  _resetTagFilter();
+  _folderContext = { rootName, entries, getFileByPath, tagIndex: null, tagIndexPromise: null };
   mainEl.classList.replace('single-mode', 'folder-mode');
   sidebarEl.hidden = false;
+  sidebarResizer.hidden = false;
   treeRootName.textContent = rootName;
 
   // 顯示 placeholder，等待使用者選擇檔案
@@ -167,10 +193,14 @@ function _enterFolderMode(directory) {
   clearTOC(tocSidebar, tocContainer);
   _stopHotReload();
 
+  _renderFolderTree(entries);
+}
+
+function _renderFolderTree(entries, options = {}) {
   renderTree(entries, async (entry, content) => {
     await _displayFile({ ...entry, content, folder: _folderContext });
     folderPlaceholder.hidden = true;
-  });
+  }, options);
 }
 
 async function _openFileFromLaunchQueue(handle) {
@@ -210,6 +240,7 @@ async function _displayFile(document, options = {}) {
   readerBody.innerHTML = isMarkdown
     ? renderMarkdown(content)
     : renderText(content);
+  _syncActiveTagButtons();
 
   let taskStorageWarningShown = false;
   const taskCount = isMarkdown
@@ -273,6 +304,133 @@ async function _displayFile(document, options = {}) {
     if (location.hash) history.replaceState(null, '', location.pathname + location.search);
     _restoreReadingPosition(document);
   }
+}
+
+/* ──────────────────── 標籤篩選 ──────────────────── */
+
+async function _filterFolderByTag(rawTag) {
+  const tag = String(rawTag || '').trim().replace(/^#/, '');
+  if (!tag) return;
+  if (!_folderContext) {
+    _showToast('請先開啟資料夾，再用標籤篩選文件。');
+    return;
+  }
+
+  const context = _folderContext;
+  const generation = ++_tagFilterGeneration;
+  _activeTagFilter = tag;
+  tagFilterStatus.hidden = false;
+  tagFilterLabel.textContent = `#${tag} · 搜尋中…`;
+  _syncActiveTagButtons();
+
+  try {
+    const index = await _getFolderTagIndex(context);
+    if (generation !== _tagFilterGeneration || context !== _folderContext) return;
+
+    const matches = index.get(_normalizedTag(tag)) || new Set();
+    const filteredEntries = _filterEntriesByPath(context.entries, matches);
+    _renderFolderTree(filteredEntries, { expandDirectories: true });
+    tagFilterLabel.textContent = `#${tag} · ${matches.size} 個文件`;
+
+    const currentPath = _currentDocument?.path;
+    if (currentPath && matches.has(_treePathKey(currentPath))) setActiveTreePath(currentPath);
+    _syncActiveTagButtons();
+  } catch (error) {
+    if (generation !== _tagFilterGeneration) return;
+    _showToast(`無法建立標籤索引：${error.message}`, 'error');
+    _clearTagFilter();
+  }
+}
+
+function _clearTagFilter() {
+  _tagFilterGeneration += 1;
+  _activeTagFilter = null;
+  tagFilterStatus.hidden = true;
+  tagFilterLabel.textContent = '';
+  if (!_folderContext) return;
+
+  _renderFolderTree(_folderContext.entries);
+  if (_currentDocument?.path) setActiveTreePath(_currentDocument.path);
+  _syncActiveTagButtons();
+}
+
+function _resetTagFilter() {
+  _tagFilterGeneration += 1;
+  _activeTagFilter = null;
+  tagFilterStatus.hidden = true;
+  tagFilterLabel.textContent = '';
+}
+
+function _syncActiveTagButtons() {
+  const active = _activeTagFilter ? _normalizedTag(_activeTagFilter) : null;
+  readerBody.querySelectorAll('.metadata-tag').forEach(button => {
+    button.setAttribute('aria-pressed', String(active === _normalizedTag(button.dataset.tag)));
+  });
+}
+
+async function _getFolderTagIndex(context) {
+  if (context.tagIndex) return context.tagIndex;
+  if (context.tagIndexPromise) return context.tagIndexPromise;
+
+  context.tagIndexPromise = _buildFolderTagIndex(context.entries)
+    .then(index => {
+      context.tagIndex = index;
+      return index;
+    })
+    .finally(() => { context.tagIndexPromise = null; });
+  return context.tagIndexPromise;
+}
+
+async function _buildFolderTagIndex(entries) {
+  const files = [];
+  const collect = items => items.forEach(entry => {
+    if (entry.type === 'dir') collect(entry.children);
+    else if (/\.md$/i.test(entry.name)) files.push(entry);
+  });
+  collect(entries);
+
+  const index = new Map();
+  let cursor = 0;
+  const worker = async () => {
+    while (cursor < files.length) {
+      const entry = files[cursor++];
+      try {
+        const content = await (await entry.handle.getFile()).text();
+        extractMarkdownTags(content).forEach(tag => {
+          const key = _normalizedTag(tag);
+          if (!index.has(key)) index.set(key, new Set());
+          index.get(key).add(_treePathKey(entry.path));
+        });
+      } catch (error) {
+        console.warn(`無法索引標籤：${entry.path.join('/')}`, error);
+      }
+    }
+  };
+
+  const workerCount = Math.min(8, files.length);
+  await Promise.all(Array.from({ length: workerCount }, worker));
+  return index;
+}
+
+function _filterEntriesByPath(entries, matches) {
+  const filtered = [];
+  for (const entry of entries) {
+    if (entry.type === 'dir') {
+      const children = _filterEntriesByPath(entry.children, matches);
+      if (children.length) filtered.push({ ...entry, children });
+    } else if (matches.has(_treePathKey(entry.path))) {
+      filtered.push(entry);
+    }
+  }
+  return filtered;
+}
+
+function _treePathKey(path) {
+  return path.join('/').toLocaleLowerCase();
+}
+
+function _normalizedTag(tag) {
+  return String(tag || '').trim().replace(/^#/, '').toLocaleLowerCase();
 }
 
 /* ──────────────────── 複製按鈕 ──────────────────── */
@@ -709,6 +867,7 @@ function _startHotReload(document) {
       } else if (signature !== nextSignature) {
         signature = nextSignature;
         const updated = { ...document, content: await file.text() };
+        if (document.folder) document.folder.tagIndex = null;
         await _displayFile(updated, { hotReload: true });
         _showToast(`${file.name} 已自動更新`);
       }

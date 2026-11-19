@@ -13,6 +13,8 @@
 
   const sample = String.raw`# Smoke Test
 
+## tags: [住院, 陪病, 清單]
+
 Emoji: :rocket: :+1:
 
 Inline math $E=mc^2$.
@@ -58,6 +60,14 @@ digraph { A -> B }
     localStorage.removeItem(taskDocumentKey(taskDocument));
     if (result.innerHTML.includes('onerror=')) missing.push('XSS sanitizer');
     if (result.textContent.includes(':rocket:')) missing.push('emoji');
+    const renderedTags = [...result.querySelectorAll('.metadata-tag')].map(tag => tag.textContent);
+    if (renderedTags.join(',') !== '#住院,#陪病,#清單') missing.push('Obsidian tags');
+    if (![...result.querySelectorAll('.metadata-tag')].every(tag => tag.matches('button[type="button"]'))) {
+      missing.push('interactive Obsidian tags');
+    }
+    if ([...result.querySelectorAll('h2')].some(heading => heading.textContent.startsWith('tags:'))) {
+      missing.push('tags rendered as heading');
+    }
 
     const mermaidSource = result.querySelector('.mermaid').textContent;
     window.mermaid.initialize({ startOnLoad: false });

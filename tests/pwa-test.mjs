@@ -29,6 +29,7 @@ assert.match(serviceWorker, /image\/parchment-logo-transparent\.png/);
 assert.match(serviceWorker, /assets\/js\/pwa\.js/);
 assert.match(serviceWorker, /assets\/css\/style\.css/);
 assert.match(serviceWorker, /assets\/js\/readerFont\.js/);
+assert.match(serviceWorker, /assets\/js\/sidebarResize\.js/);
 assert.match(serviceWorker, /assets\/js\/taskState\.js/);
 
 for (const [file, width, height] of [

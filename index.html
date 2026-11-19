@@ -102,12 +102,19 @@
   <main id="main" class="single-mode flex h-[calc(100vh_-_var(--header-h))] flex-auto overflow-hidden">
     <aside id="sidebar" class="flex w-[var(--sidebar-w)] shrink-0 flex-col overflow-hidden bg-[var(--sidebar-bg)]
       [border-right:1px_solid_var(--border)]" hidden>
-      <div id="tree-header" class="truncate px-3 pb-2 pt-2.5 text-[11px] font-semibold uppercase tracking-[0.5px]
+      <div id="tree-header" class="px-3 pb-2 pt-2.5 text-[11px] font-semibold uppercase tracking-[0.5px]
         text-[color:var(--text-muted)] [border-bottom:1px_solid_var(--border)]">
-        <span id="tree-root-name"></span>
+        <span id="tree-root-name" class="block truncate"></span>
+        <div id="tag-filter-status" class="mt-2 flex items-center gap-1.5 normal-case tracking-normal" aria-live="polite" hidden>
+          <span id="tag-filter-label" class="min-w-0 flex-1 truncate"></span>
+          <button id="tag-filter-clear" type="button" class="tag-filter-clear" aria-label="清除標籤篩選" title="清除標籤篩選">×</button>
+        </div>
       </div>
       <div id="tree-container" class="flex-1 overflow-y-auto py-1"></div>
     </aside>
+
+    <div id="sidebar-resizer" class="pane-resizer pane-resizer-left" role="separator" aria-orientation="vertical" aria-controls="sidebar"
+      aria-label="調整資料夾欄寬度" title="左右拖曳調整欄寬" tabindex="0" hidden></div>
 
     <section id="content-area" class="relative min-w-0 flex-auto overflow-y-auto">
       <div id="welcome" class="flex h-full min-h-[400px] items-center justify-center
@@ -164,6 +171,9 @@
         <p>從左側選擇檔案以開始閱讀</p>
       </div>
     </section>
+
+    <div id="toc-resizer" class="pane-resizer pane-resizer-right" role="separator" aria-orientation="vertical"
+      aria-controls="toc-sidebar" aria-label="調整文章目錄欄寬度" title="左右拖曳調整欄寬" tabindex="0" hidden></div>
 
     <aside id="toc-sidebar" class="flex w-[238px] shrink-0 flex-col overflow-hidden bg-[var(--sidebar-bg)]
       [border-left:1px_solid_var(--border)] narrow:w-[205px] no-toc:hidden" hidden aria-label="文章目錄">

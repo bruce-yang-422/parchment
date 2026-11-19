@@ -138,6 +138,38 @@ button {
   color: var(--text);
 }
 
+/* === SIDEBAR RESIZER === */
+.pane-resizer {
+  @apply relative z-10 w-2 shrink-0 touch-none cursor-col-resize focus-visible:outline-none;
+}
+
+.pane-resizer-left {
+  @apply -ml-px -mr-[7px];
+}
+
+.pane-resizer-right {
+  @apply -ml-[7px] -mr-px;
+}
+
+.pane-resizer:is(:hover, :focus-visible, .is-resizing)::after {
+  @apply pointer-events-none absolute inset-y-0 w-0.5;
+  content: '';
+  background: var(--link);
+}
+
+.pane-resizer-left::after {
+  @apply left-px;
+}
+
+.pane-resizer-right::after {
+  @apply right-px;
+}
+
+.pane-resizing,
+.pane-resizing * {
+  @apply !cursor-col-resize select-none;
+}
+
 /* === DOCUMENT TOC === */
 .toc-link {
   @apply block w-full truncate rounded-none bg-transparent text-left text-xs font-normal leading-[1.45];
@@ -203,6 +235,24 @@ button {
 
 .tree-label {
   @apply truncate;
+}
+
+.tag-filter-clear {
+  @apply flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-full text-[16px] leading-none;
+  background: var(--tree-active);
+  border: 1px solid var(--border);
+  color: var(--tree-active-text);
+}
+
+.tag-filter-clear:hover { border-color: var(--accent); }
+.tag-filter-clear:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+
+.tree-empty {
+  @apply m-0 px-3 py-5 text-center text-[13px];
+  color: var(--text-muted);
 }
 
 /* === WELCOME === */
