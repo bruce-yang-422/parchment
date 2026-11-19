@@ -13,6 +13,7 @@ import { initPWA } from './pwa.js';
 import { wireTaskCheckboxes } from './taskState.js';
 import { initReaderFont } from './readerFont.js';
 import { initPaneResize } from './sidebarResize.js';
+import { initLightboxZoom } from './lightboxZoom.js';
 
 /* ──────────────────── 初始化 ──────────────────── */
 
@@ -87,6 +88,16 @@ readerBody.addEventListener('click', (event) => {
 if (lightboxClose) {
   lightboxClose.addEventListener('click', _closeImageLightbox);
 }
+const lightboxZoom = lightboxEl && lightboxImage
+  ? initLightboxZoom({
+    lightbox: lightboxEl,
+    image: lightboxImage,
+    zoomIn: document.getElementById('lightbox-zoom-in'),
+    zoomOut: document.getElementById('lightbox-zoom-out'),
+    reset: document.getElementById('lightbox-zoom-reset'),
+    level: document.getElementById('lightbox-zoom-level'),
+  })
+  : null;
 if (lightboxEl) {
   lightboxEl.addEventListener('click', (e) => {
     if (e.target === lightboxEl) _closeImageLightbox();
@@ -221,11 +232,11 @@ async function _openFileFromLaunchQueue(handle) {
 
 /* ──────────────────── 內容顯示 ──────────────────── */
 
-async function _displayFile(document, options = {}) {
-  const { name, content } = document;
+async function _displayFile(doc, options = {}) {
+  const { name, content } = doc;
   const previousTop = contentArea.scrollTop;
   if (!options.hotReload) _saveReadingPosition();
-  _currentDocument = document;
+  _currentDocument = doc;
   if (lightboxEl && !lightboxEl.hidden) _closeImageLightbox();
   _revokeObjectUrls();
 
@@ -244,7 +255,7 @@ async function _displayFile(document, options = {}) {
 
   let taskStorageWarningShown = false;
   const taskCount = isMarkdown
-    ? wireTaskCheckboxes(readerBody, document, {
+    ? wireTaskCheckboxes(readerBody, doc, {
       onStorageError: () => {
         if (taskStorageWarningShown) return;
         taskStorageWarningShown = true;
@@ -255,12 +266,12 @@ async function _displayFile(document, options = {}) {
   if (todoLocalStatus) todoLocalStatus.hidden = taskCount === 0;
 
   if (isMarkdown) {
-    await _resolveRelativeImages(readerBody, document);
-    _wireDocumentLinks(readerBody, document);
+    await _resolveRelativeImages(readerBody, doc);
+    _wireDocumentLinks(readerBody, doc);
   }
 
   // ── Mermaid 渲染 ──────────────────────────────────────────────────
-  // 直接交給 mermaid.run 處理 DOM 節點，兼容性比手動 render SVG 更穩。
+  // 以 mermaid.render 產生 SVG，經 DOMPurify 清理後替換原節點。
   const mermaidNodes = [...readerBody.querySelectorAll('.mermaid')];
 
   if (window.mermaid && mermaidNodes.length) {
@@ -273,7 +284,7 @@ async function _displayFile(document, options = {}) {
         const svg = await _renderMermaidSource(normalizedSource);
         const wrapper = document.createElement('div');
         wrapper.className = 'mermaid';
-        wrapper.appendChild(_sanitizeDiagramSvg(svg));
+        wrapper.appendChild(_sanitizeDiagramSvg(svg, { allowForeignObject: true }));
         _prepareMermaidDiagram(wrapper);
         node.replaceWith(wrapper);
       } catch (err) {
@@ -294,7 +305,7 @@ async function _displayFile(document, options = {}) {
   readerEl.hidden = false;
 
   renderTOC(readerBody, tocSidebar, tocContainer, contentArea);
-  _startHotReload(document);
+  _startHotReload(doc);
 
   if (options.hotReload) {
     contentArea.scrollTop = previousTop;
@@ -302,7 +313,7 @@ async function _displayFile(document, options = {}) {
     history.replaceState(null, '', options.hash);
   } else {
     if (location.hash) history.replaceState(null, '', location.pathname + location.search);
-    _restoreReadingPosition(document);
+    _restoreReadingPosition(doc);
   }
 }
 
@@ -577,19 +588,28 @@ function _prepareMermaidDiagram(wrapper) {
   const viewBox = svg.viewBox?.baseVal;
   const widthAttr = Number.parseFloat(svg.getAttribute('width') || '');
   const heightAttr = Number.parseFloat(svg.getAttribute('height') || '');
-  const intrinsicWidth = viewBox?.width || widthAttr;
-  const intrinsicHeight = viewBox?.height || heightAttr;
+  const intrinsicWidth = Math.ceil(viewBox?.width || widthAttr || 0);
+  const intrinsicHeight = Math.ceil(viewBox?.height || heightAttr || 0);
 
-  if (intrinsicWidth) {
-    svg.style.width = `${Math.ceil(intrinsicWidth)}px`;
-    svg.style.maxWidth = 'none';
-  }
+  // 縮放至欄寬（不放大超過原始尺寸），由 viewBox 維持比例。
+  svg.removeAttribute('height');
+  svg.style.width = '100%';
+  svg.style.height = 'auto';
+  svg.style.maxWidth = intrinsicWidth ? `${intrinsicWidth}px` : '100%';
 
-  if (intrinsicHeight) {
-    svg.style.height = `${Math.ceil(intrinsicHeight)}px`;
-  } else {
-    svg.style.height = 'auto';
-  }
+  // 點擊以原始尺寸在燈箱中檢視。
+  wrapper.classList.add('diagram-zoomable');
+  wrapper.title = '點擊放大檢視';
+  wrapper.addEventListener('click', () => {
+    const clone = svg.cloneNode(true);
+    clone.removeAttribute('style');
+    if (intrinsicWidth) clone.setAttribute('width', intrinsicWidth);
+    if (intrinsicHeight) clone.setAttribute('height', intrinsicHeight);
+    const markup = new XMLSerializer().serializeToString(clone);
+    const url = URL.createObjectURL(new Blob([markup], { type: 'image/svg+xml' }));
+    _objectUrls.push(url);
+    _openImageLightbox({ src: url, alt: 'Mermaid 圖表' });
+  });
 }
 
 function _enhanceImages(container) {
@@ -638,6 +658,7 @@ function _syncImageOverflowState(img) {
 
 function _openImageLightbox(img) {
   if (!lightboxEl || !lightboxImage) return;
+  lightboxZoom?.reset();
   lightboxImage.src = img.currentSrc || img.src;
   lightboxImage.alt = img.alt || '';
   lightboxEl.hidden = false;
@@ -647,6 +668,7 @@ function _openImageLightbox(img) {
 function _closeImageLightbox() {
   if (!lightboxEl || !lightboxImage) return;
   lightboxEl.hidden = true;
+  lightboxZoom?.reset();
   lightboxImage.removeAttribute('src');
   lightboxImage.alt = '';
   document.body.style.overflow = '';
@@ -812,9 +834,19 @@ function _createDiagramFallback(name, source, err) {
   return wrapper;
 }
 
-function _sanitizeDiagramSvg(svg) {
+function _sanitizeDiagramSvg(svg, { allowForeignObject = false } = {}) {
+  // Mermaid 的 htmlLabels 把節點文字以 HTML 放在 <foreignObject> 內。
+  // DOMPurify 預設會移除 <foreignObject>，且只把 annotation-xml 視為
+  // HTML 整合點，SVG 底下的 HTML 元素會被刪除，導致圖表沒有文字。
+  const foreignObjectOptions = allowForeignObject
+    ? {
+      ADD_TAGS: ['foreignObject'],
+      HTML_INTEGRATION_POINTS: { 'annotation-xml': true, foreignobject: true },
+    }
+    : {};
   return window.DOMPurify.sanitize(svg, {
     USE_PROFILES: { html: true, svg: true, svgFilters: true },
+    ...foreignObjectOptions,
     RETURN_DOM_FRAGMENT: true,
   });
 }

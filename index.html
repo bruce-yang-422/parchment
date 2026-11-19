@@ -193,7 +193,14 @@
 
   <div id="image-lightbox" hidden>
     <button id="lightbox-close" class="btn-icon" type="button" aria-label="關閉圖片預覽">關閉</button>
-    <img id="lightbox-image" alt="">
+    <div id="lightbox-toolbar" role="toolbar" aria-label="縮放">
+      <button id="lightbox-zoom-out" class="btn-icon" type="button" aria-label="縮小" title="縮小（-）">−</button>
+      <span id="lightbox-zoom-level" aria-live="polite">100%</span>
+      <button id="lightbox-zoom-in" class="btn-icon" type="button" aria-label="放大" title="放大（+）">+</button>
+      <button id="lightbox-zoom-reset" class="btn-icon" type="button" title="符合視窗（0）">重設</button>
+      <span class="lightbox-hint">滾輪縮放・拖曳移動・雙擊切換</span>
+    </div>
+    <img id="lightbox-image" alt="" draggable="false">
   </div>
 
   <div id="toast-container" class="fixed bottom-5 right-5 z-[300] flex flex-col gap-2"></div>

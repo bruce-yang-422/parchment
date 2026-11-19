@@ -246,8 +246,10 @@
 }
 
 #reader-body .mermaid svg {
-  @apply block max-w-none min-w-full w-auto h-auto overflow-visible;
+  @apply block mx-auto h-auto;
 }
+
+#reader-body .mermaid.diagram-zoomable { @apply cursor-zoom-in; }
 
 #reader-body .mermaid-error {
   @apply py-3 px-4 text-[0.85em] whitespace-pre-wrap text-left;

@@ -341,7 +341,7 @@ button {
 }
 
 #image-lightbox {
-  @apply fixed inset-0 z-[250] flex items-center justify-center p-8;
+  @apply fixed inset-0 z-[250] flex items-center justify-center overflow-hidden p-8;
   background: var(--lightbox-bg);
   backdrop-filter: blur(6px);
 }
@@ -355,7 +355,26 @@ button {
   border-radius: var(--radius);
   box-shadow: var(--shadow-lg);
   background: var(--surface);
+  transform-origin: 0 0;
+  touch-action: none;
+  user-select: none;
+  cursor: zoom-in;
 }
+
+#lightbox-image.is-zoomed { @apply cursor-grab active:cursor-grabbing; }
+
+#lightbox-toolbar {
+  @apply absolute bottom-5 left-1/2 z-[1] flex -translate-x-1/2 items-center gap-2 rounded-full px-3 py-1.5 text-[13px];
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+}
+
+#lightbox-toolbar .btn-icon { @apply min-w-[32px]; }
+
+#lightbox-zoom-level { @apply min-w-[3.5em] text-center tabular-nums; }
+
+.lightbox-hint { @apply hidden pl-2 sm:inline; color: var(--text-muted); }
 
 .drag-inner {
   @apply pointer-events-none text-center;
