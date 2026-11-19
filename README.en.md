@@ -108,8 +108,6 @@ cd parchment
 python -m http.server 8080
 ```
 
-Then open <http://localhost:8080/> in your browser.
-
 ## Usage
 
 ### Opening files
@@ -191,7 +189,7 @@ npm ci
 > [!IMPORTANT]
 > After changing anything in `assets/`, `src/styles/` or `index.html`, run `npm run pwa` so the offline cache version is updated. Otherwise users who have installed the app may keep receiving the old files.
 
-With the local server running, open <http://localhost:8080/tests/renderer-smoke.html> to check Markdown, the extended syntax and the diagram engines in a browser.
+The browser rendering test page [`tests/renderer-smoke.html`](tests/renderer-smoke.html) checks Markdown, the extended syntax and the diagram engines; serve it from a local server to run it.
 
 ### Project structure
 
