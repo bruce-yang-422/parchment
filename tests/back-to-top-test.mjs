@@ -11,13 +11,13 @@ assert.match(BACK_TO_TOP_MEDIA_QUERY, /pointer:\s*fine/);
 assert.match(BACK_TO_TOP_MEDIA_QUERY, /min-width:\s*641px/);
 assert.equal(BACK_TO_TOP_MOBILE_QUERY, '(max-width: 640px)');
 
-// 只有兩個畫面長，不論滑到哪裡都不顯示。
-assert.equal(shouldShowMobileBackToTop({ scrollTop: 800, scrollHeight: 1600, clientHeight: 800 }), false);
-// 長文章尚未讀過可捲動距離的一半時不顯示。
-assert.equal(shouldShowMobileBackToTop({ scrollTop: 799, scrollHeight: 2400, clientHeight: 800 }), false);
-// 長文章讀到一半後顯示，往上滑回一半以前就會隱藏。
-assert.equal(shouldShowMobileBackToTop({ scrollTop: 800, scrollHeight: 2400, clientHeight: 800 }), true);
-assert.equal(shouldShowMobileBackToTop({ scrollTop: 1500, scrollHeight: 2400, clientHeight: 800 }), true);
+// 四個畫面以內，不論滑到哪裡都不顯示。
+assert.equal(shouldShowMobileBackToTop({ scrollTop: 2400, scrollHeight: 3200, clientHeight: 800 }), false);
+// 超過四頁的長文章，尚未捲動滿兩個畫面時不顯示。
+assert.equal(shouldShowMobileBackToTop({ scrollTop: 1599, scrollHeight: 4000, clientHeight: 800 }), false);
+// 捲動滿兩個畫面後顯示；超長文章也不需要等待閱讀到 50%。
+assert.equal(shouldShowMobileBackToTop({ scrollTop: 1600, scrollHeight: 4000, clientHeight: 800 }), true);
+assert.equal(shouldShowMobileBackToTop({ scrollTop: 1600, scrollHeight: 8800, clientHeight: 800 }), true);
 assert.equal(shouldShowMobileBackToTop({ scrollTop: 0, scrollHeight: 0, clientHeight: 0 }), false);
 
 const index = await readFile('index.html', 'utf8');

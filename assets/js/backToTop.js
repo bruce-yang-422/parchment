@@ -4,14 +4,13 @@ export const BACK_TO_TOP_MEDIA_QUERY = '(hover: hover) and (pointer: fine) and (
 export const BACK_TO_TOP_MOBILE_QUERY = '(max-width: 640px)';
 const MIN_SCROLL_TOP = 160;
 const EDGE_GAP = 12;
-const MOBILE_MIN_PAGES = 2;
-const MOBILE_MIN_PROGRESS = 0.5;
+const MOBILE_MIN_DOCUMENT_PAGES = 4;
+const MOBILE_TRIGGER_PAGES = 2;
 
-/** 手機僅在長文章且已閱讀過半時顯示回頂按鈕。 */
+/** 手機僅在超過四頁的長文章中，向下捲動兩個畫面後顯示回頂按鈕。 */
 export function shouldShowMobileBackToTop({ scrollTop, scrollHeight, clientHeight }) {
-  if (clientHeight <= 0 || scrollHeight <= clientHeight * MOBILE_MIN_PAGES) return false;
-  const maxScrollTop = scrollHeight - clientHeight;
-  return maxScrollTop > 0 && scrollTop / maxScrollTop >= MOBILE_MIN_PROGRESS;
+  if (clientHeight <= 0 || scrollHeight <= clientHeight * MOBILE_MIN_DOCUMENT_PAGES) return false;
+  return scrollTop >= clientHeight * MOBILE_TRIGGER_PAGES;
 }
 
 /** 桌面版閱讀欄右下角的滑鼠熱區與回頂快捷按鈕。 */
