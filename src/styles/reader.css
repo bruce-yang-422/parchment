@@ -330,6 +330,30 @@
   @apply text-[11px] whitespace-nowrap;
   color: var(--success);
 }
+/* 標準／滿版閱讀寬度快捷切換 */
+.reader-width-toggle {
+  @apply flex h-6 items-center gap-1 rounded-full px-2 py-0 text-[11px] font-normal leading-none;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+.reader-width-toggle:hover {
+  background: var(--tree-hover);
+  color: var(--text);
+}
+.reader-width-toggle[aria-pressed='true'] {
+  border-color: var(--link);
+  color: var(--link);
+}
+.reader-width-toggle svg {
+  @apply size-3.5 shrink-0;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
 #hot-reload-status::before {
   @apply inline-block w-[7px] h-[7px] mr-[5px] rounded-full bg-current;
   content: '';

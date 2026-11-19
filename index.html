@@ -52,11 +52,13 @@
   <link rel="apple-touch-icon" href="icons/pwa-icon-192x192.png">
   <link rel="manifest" href="manifest.webmanifest">
   <script>
-    // 在樣式套用前還原配色與深色模式，避免載入時閃爍；完整邏輯見 assets/js/theme.js
+    // 在樣式套用前還原配色、閱讀寬度與深色模式，避免載入時閃爍；完整邏輯見 assets/js/theme.js
     try {
       var root = document.documentElement;
       var palette = localStorage.getItem('parchment-palette');
       if (palette) root.dataset.palette = palette;
+      var readerWidth = localStorage.getItem('parchment-reader-width');
+      if (readerWidth) root.dataset.readerWidth = readerWidth;
       var theme = localStorage.getItem('parchment-theme') || 'system';
       if (theme === 'dark' || (theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)) {
         root.classList.add('dark');
@@ -223,6 +225,14 @@
             <span id="todo-local-status" title="勾選只儲存在此瀏覽器，不會修改 Markdown 文件" class="whitespace-nowrap rounded-full
               bg-[var(--surface)] px-2 py-px text-[11px] text-[color:var(--text-muted)] [border:1px_solid_var(--border)]" hidden>TODO 本機狀態</span>
             <span id="hot-reload-status" hidden>自動更新</span>
+            <button id="reader-width-toggle" class="reader-width-toggle" type="button" aria-pressed="false"
+              aria-label="切換為滿版寬度" title="切換為滿版寬度">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path data-width-icon="expand" d="M3 12h18M3 12l3.5-3.5M3 12l3.5 3.5M21 12l-3.5-3.5M21 12l-3.5 3.5"/>
+                <path data-width-icon="shrink" d="M2 12h7m0 0L5.5 8.5M9 12l-3.5 3.5M22 12h-7m0 0 3.5-3.5M15 12l3.5 3.5" hidden/>
+              </svg>
+              <span data-width-label>滿版</span>
+            </button>
           </div>
         </div>
         <div id="reader-body"></div>

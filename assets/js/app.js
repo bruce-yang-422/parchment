@@ -13,6 +13,7 @@ import { renderTOC, clearTOC, scrollToHash, headingSlug } from './toc.js';
 import { initPWA } from './pwa.js';
 import { wireTaskCheckboxes } from './taskState.js';
 import { initReaderFont } from './readerFont.js';
+import { initReaderWidth } from './readerWidth.js';
 import { initPaneResize } from './sidebarResize.js';
 import { initLightboxZoom } from './lightboxZoom.js';
 import { saveImageAsPng, pngFileName } from './imageExport.js';
@@ -27,6 +28,7 @@ import { initSettingsPanel } from './settingsPanel.js';
 setupRenderer();
 initTheme();
 initReaderFont();
+initReaderWidth(document.getElementById('reader-width-toggle'));
 initSettingsPanel();
 _refreshRecents();
 

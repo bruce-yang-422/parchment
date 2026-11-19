@@ -182,7 +182,10 @@
   color: var(--text);
   padding: 0.6em 1em;
 }
+/* 表格本身是可橫向捲動的 block；卡片外框需貼合內容寬度，否則右側會留白 */
 :root[data-palette='lake'] #reader-body table {
+  width: max-content;
+  max-width: 100%;
   border: 1px solid var(--border);
   border-radius: 8px;
   border-collapse: separate;
@@ -252,3 +255,6 @@
   background: color-mix(in srgb, var(--callout-color) 8%, var(--bg));
 }
 :root[data-palette='aluminum'] #reader-body :is(.metadata-properties, .note-embed) { border-radius: 10px; }
+
+/* ════════════════ 滿版閱讀寬度（優先於各配色的閱讀欄寬） ════════════════ */
+:root[data-reader-width='full'] main #reader { max-width: none; }
