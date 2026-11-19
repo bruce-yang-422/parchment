@@ -663,15 +663,30 @@ button {
   color: var(--text-muted);
 }
 
-/* 首頁「開啟範例文件」 */
+/* 首頁「開啟範例文件」：次要的膠囊按鈕，與上方主要按鈕保持距離 */
 .welcome-sample {
-  @apply mt-3 bg-transparent px-2 py-1 text-[13px] font-normal;
-  border: 0;
-  color: var(--link);
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  @apply mt-5 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12.5px] font-normal leading-5;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
 }
-.welcome-sample:hover { color: var(--accent-hover); }
+.welcome-sample svg {
+  @apply size-3.5 shrink-0;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+.welcome-sample:hover {
+  background: var(--tree-hover);
+  border-color: var(--border);
+  color: var(--link);
+}
+.welcome-sample:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
 
 /* 首頁底部的說明連結（隱私權政策、原始碼），也提供搜尋引擎可跟隨的內部連結 */
 .welcome-links {

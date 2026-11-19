@@ -67,27 +67,23 @@ self.addEventListener('fetch', event => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
+  // 頁面與資產都只從「同一版本」的快取取用，避免部署後出現新 HTML 搭配舊 CSS／JS。
+  // 新版本由瀏覽器在背景下載 service-worker.js 後安裝，下次載入即生效。
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
-        .then(response => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
-          return response;
-        })
-        .catch(() => caches.match(request).then(cached => cached || caches.match(APP_SHELL)))
+      caches.open(CACHE_NAME)
+        .then(cache => cache.match(request, { ignoreSearch: true })
+          .then(cached => cached || (url.pathname.endsWith('/') ? cache.match(APP_SHELL) : undefined)))
+        .then(cached => cached || fetch(request).catch(() => caches.open(CACHE_NAME).then(cache => cache.match(APP_SHELL))))
     );
     return;
   }
 
   event.respondWith(
-    caches.match(request).then(cached => cached || fetch(request).then(response => {
-      if (response.ok) {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
-      }
+    caches.open(CACHE_NAME).then(cache => cache.match(request).then(cached => cached || fetch(request).then(response => {
+      if (response.ok) cache.put(request, response.clone());
       return response;
-    }))
+    })))
   );
 });
 `;

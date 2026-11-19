@@ -14,6 +14,19 @@ export function initPWA({ onFileLaunch } = {}) {
 function _registerServiceWorker() {
   // 瀏覽器外掛（chrome-extension:）與本機檔案不使用 Service Worker 離線快取
   if (!('serviceWorker' in navigator) || !/^https?:$/.test(location.protocol)) return;
+
+  // 已有舊版 Service Worker 時，新版接手代表網站已更新：
+  // 停在首頁就自動重新整理以套用新版；正在閱讀時不打斷，下次開啟即為新版。
+  if (navigator.serviceWorker.controller) {
+    let reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      const reader = document.getElementById('reader');
+      if (reloaded || (reader && !reader.hidden)) return;
+      reloaded = true;
+      window.location.reload();
+    });
+  }
+
   window.addEventListener('load', () => {
     const serviceWorkerUrl = new URL('../../service-worker.js', import.meta.url);
     navigator.serviceWorker.register(serviceWorkerUrl)

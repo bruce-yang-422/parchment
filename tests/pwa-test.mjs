@@ -35,6 +35,10 @@ assert.match(serviceWorker, /icons\/pwa-icon-192x192\.png/);
 assert.match(serviceWorker, /icons\/pwa-icon-512x512\.png/);
 assert.match(serviceWorker, /image\/parchment-logo-transparent\.png/);
 assert.match(serviceWorker, /assets\/js\/pwa\.js/);
+// 頁面與資產只能從同一版本的快取取用，避免部署後新 HTML 搭配舊 CSS／JS
+assert.doesNotMatch(serviceWorker, /(?<!cache\.)caches\.match\(request/);
+assert.match(serviceWorker, /caches\.open\(CACHE_NAME\)[\s\S]*cache\.match\(request, \{ ignoreSearch: true \}\)/);
+assert.match(pwaScript, /controllerchange/);
 assert.match(serviceWorker, /assets\/css\/style\.css/);
 assert.match(serviceWorker, /assets\/js\/readerFont\.js/);
 assert.match(serviceWorker, /assets\/js\/settingsPanel\.js/);
