@@ -5,7 +5,7 @@
 
 import { initTheme, cycleTheme }           from './theme.js';
 import { openFile, openDirectory, openFileFromHandle, openDirectoryFromHandle, isSupportedFile, normalizeRelativePath } from './fileLoader.js';
-import { setupRenderer, renderMarkdown, renderText, extractMarkdownTags } from './renderer.js';
+import { setupRenderer, renderMarkdown, renderText } from './renderer.js';
 import { renderTree, clearTree, setActiveTreePath } from './tree.js';
 import { saveRecent, getRecents, removeRecent } from './recentFiles.js';
 import { renderTOC, clearTOC, scrollToHash } from './toc.js';
@@ -14,6 +14,8 @@ import { wireTaskCheckboxes } from './taskState.js';
 import { initReaderFont } from './readerFont.js';
 import { initPaneResize } from './sidebarResize.js';
 import { initLightboxZoom } from './lightboxZoom.js';
+import { buildDocumentIndex } from './noteLinks.js';
+import { initRightPanel } from './rightPanel.js';
 
 /* ──────────────────── 初始化 ──────────────────── */
 
@@ -54,6 +56,12 @@ let _saveScrollTimer = null;
 let _objectUrls = [];
 let _activeTagFilter = null;
 let _tagFilterGeneration = 0;
+
+const rightPanel = initRightPanel({
+  sidebar: tocSidebar,
+  onSelectTag: _filterFolderByTag,
+  onOpenDocument: _openIndexedDocument,
+});
 
 initPWA({ onFileLaunch: _openFileFromLaunchQueue });
 initPaneResize(mainEl, sidebarEl, sidebarResizer, tocSidebar, {
@@ -191,7 +199,14 @@ function _enterFolderMode(directory) {
   _revokeObjectUrls();
   const { rootName, entries, getFileByPath } = directory;
   _resetTagFilter();
-  _folderContext = { rootName, entries, getFileByPath, tagIndex: null, tagIndexPromise: null };
+  _folderContext = {
+    rootName,
+    entries,
+    getFileByPath,
+    documentIndex: null,
+    documentIndexPromise: null,
+    indexGeneration: 0,
+  };
   mainEl.classList.replace('single-mode', 'folder-mode');
   sidebarEl.hidden = false;
   sidebarResizer.hidden = false;
@@ -202,6 +217,7 @@ function _enterFolderMode(directory) {
   readerEl.hidden = true;
   folderPlaceholder.hidden = false;
   clearTOC(tocSidebar, tocContainer);
+  rightPanel.clear();
   _stopHotReload();
 
   _renderFolderTree(entries);
@@ -305,6 +321,11 @@ async function _displayFile(doc, options = {}) {
   readerEl.hidden = false;
 
   renderTOC(readerBody, tocSidebar, tocContainer, contentArea);
+  if (isMarkdown) {
+    rightPanel.render(doc, doc.folder ? _getFolderDocumentIndex(doc.folder) : null);
+  } else {
+    rightPanel.clear();
+  }
   _startHotReload(doc);
 
   if (options.hotReload) {
@@ -380,47 +401,43 @@ function _syncActiveTagButtons() {
 }
 
 async function _getFolderTagIndex(context) {
-  if (context.tagIndex) return context.tagIndex;
-  if (context.tagIndexPromise) return context.tagIndexPromise;
-
-  context.tagIndexPromise = _buildFolderTagIndex(context.entries)
-    .then(index => {
-      context.tagIndex = index;
-      return index;
-    })
-    .finally(() => { context.tagIndexPromise = null; });
-  return context.tagIndexPromise;
+  return (await _getFolderDocumentIndex(context)).tags;
 }
 
-async function _buildFolderTagIndex(entries) {
-  const files = [];
-  const collect = items => items.forEach(entry => {
-    if (entry.type === 'dir') collect(entry.children);
-    else if (/\.md$/i.test(entry.name)) files.push(entry);
-  });
-  collect(entries);
+function _getFolderDocumentIndex(context) {
+  if (context.documentIndex) return Promise.resolve(context.documentIndex);
+  if (context.documentIndexPromise) return context.documentIndexPromise;
 
-  const index = new Map();
-  let cursor = 0;
-  const worker = async () => {
-    while (cursor < files.length) {
-      const entry = files[cursor++];
-      try {
-        const content = await (await entry.handle.getFile()).text();
-        extractMarkdownTags(content).forEach(tag => {
-          const key = _normalizedTag(tag);
-          if (!index.has(key)) index.set(key, new Set());
-          index.get(key).add(_treePathKey(entry.path));
-        });
-      } catch (error) {
-        console.warn(`無法索引標籤：${entry.path.join('/')}`, error);
-      }
-    }
-  };
+  const generation = context.indexGeneration;
+  const promise = buildDocumentIndex(context.entries)
+    .then(index => {
+      if (generation === context.indexGeneration) context.documentIndex = index;
+      return index;
+    })
+    .finally(() => {
+      if (context.documentIndexPromise === promise) context.documentIndexPromise = null;
+    });
+  context.documentIndexPromise = promise;
+  return promise;
+}
 
-  const workerCount = Math.min(8, files.length);
-  await Promise.all(Array.from({ length: workerCount }, worker));
-  return index;
+function _invalidateDocumentIndex(context) {
+  context.indexGeneration += 1;
+  context.documentIndex = null;
+  context.documentIndexPromise = null;
+}
+
+async function _openIndexedDocument(entry) {
+  if (!_folderContext) return;
+  if (_activeTagFilter) _clearTagFilter();
+  try {
+    const file = await entry.handle.getFile();
+    await _displayFile({ ...entry, content: await file.text(), folder: _folderContext });
+    setActiveTreePath(entry.path);
+    folderPlaceholder.hidden = true;
+  } catch (error) {
+    _showToast(`無法開啟連結文件：${error.message}`, 'error');
+  }
 }
 
 function _filterEntriesByPath(entries, matches) {
@@ -899,7 +916,7 @@ function _startHotReload(document) {
       } else if (signature !== nextSignature) {
         signature = nextSignature;
         const updated = { ...document, content: await file.text() };
-        if (document.folder) document.folder.tagIndex = null;
+        if (document.folder) _invalidateDocumentIndex(document.folder);
         await _displayFile(updated, { hotReload: true });
         _showToast(`${file.name} 已自動更新`);
       }

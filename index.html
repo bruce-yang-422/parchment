@@ -176,10 +176,37 @@
       aria-controls="toc-sidebar" aria-label="調整文章目錄欄寬度" title="左右拖曳調整欄寬" tabindex="0" hidden></div>
 
     <aside id="toc-sidebar" class="flex w-[238px] shrink-0 flex-col overflow-hidden bg-[var(--sidebar-bg)]
-      [border-left:1px_solid_var(--border)] narrow:w-[205px] no-toc:hidden" hidden aria-label="文章目錄">
-      <div id="toc-header" class="px-3.5 pb-2 pt-2.5 text-[11px] font-semibold uppercase tracking-[0.5px]
-        text-[color:var(--text-muted)] [border-bottom:1px_solid_var(--border)]">文章目錄</div>
-      <nav id="toc-container" class="flex-1 overflow-y-auto pb-6 pt-2"></nav>
+      [border-left:1px_solid_var(--border)] narrow:w-[205px] no-toc:hidden" hidden aria-label="文件資訊">
+      <div class="right-panel-tabs" role="tablist" aria-label="文件資訊面板">
+        <button class="right-panel-tab" type="button" role="tab" data-right-tab="outline" aria-controls="right-panel-outline" aria-label="文章目錄" title="文章目錄">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+        </button>
+        <button class="right-panel-tab" type="button" role="tab" data-right-tab="tags" aria-controls="right-panel-tags" aria-label="標籤" title="標籤">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.6 13.6 11 23l-9-9V2h12l6.6 6.6a3.5 3.5 0 0 1 0 5ZM7.5 7.5h.01"/></svg>
+        </button>
+        <button class="right-panel-tab" type="button" role="tab" data-right-tab="links" aria-controls="right-panel-links" aria-label="連結筆記" title="目前文件連到的筆記">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 7h3a5 5 0 0 1 0 10h-3M9 17H6A5 5 0 0 1 6 7h3M8 12h8M13 3l4 4-4 4"/></svg>
+        </button>
+        <button class="right-panel-tab" type="button" role="tab" data-right-tab="backlinks" aria-controls="right-panel-backlinks" aria-label="雙向連結" title="雙向連結">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 7h3a5 5 0 0 1 0 10h-3M9 17H6A5 5 0 0 1 6 7h3M8 12h8M11 3 7 7l4 4"/></svg>
+        </button>
+      </div>
+      <section id="right-panel-outline" class="right-panel-view" role="tabpanel" data-right-panel="outline">
+        <h2 class="right-panel-heading">文章目錄</h2>
+        <nav id="toc-container" class="right-panel-scroll"></nav>
+      </section>
+      <section id="right-panel-tags" class="right-panel-view" role="tabpanel" data-right-panel="tags" hidden>
+        <h2 class="right-panel-heading">標籤</h2>
+        <div id="right-panel-tags-list" class="right-panel-scroll"></div>
+      </section>
+      <section id="right-panel-links" class="right-panel-view" role="tabpanel" data-right-panel="links" hidden>
+        <h2 class="right-panel-heading">連結筆記</h2>
+        <div id="right-panel-links-list" class="right-panel-scroll"></div>
+      </section>
+      <section id="right-panel-backlinks" class="right-panel-view" role="tabpanel" data-right-panel="backlinks" hidden>
+        <h2 class="right-panel-heading">雙向連結</h2>
+        <div id="right-panel-backlinks-list" class="right-panel-scroll"></div>
+      </section>
     </aside>
   </main>
 

@@ -171,6 +171,98 @@ button {
 }
 
 /* === DOCUMENT TOC === */
+.right-panel-tabs {
+  @apply flex shrink-0 items-center gap-1 px-2 py-1.5;
+  border-bottom: 1px solid var(--border);
+}
+
+.right-panel-tab {
+  @apply flex size-8 items-center justify-center rounded p-0;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+}
+
+.right-panel-tab svg {
+  @apply size-4;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.right-panel-tab:hover {
+  background: var(--tree-hover);
+  color: var(--text);
+}
+
+.right-panel-tab.active {
+  background: var(--tree-active);
+  border-color: var(--border);
+  color: var(--tree-active-text);
+}
+
+.right-panel-tab:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 1px;
+}
+
+.right-panel-view {
+  @apply min-h-0 flex-1 overflow-hidden;
+}
+
+.right-panel-view:not([hidden]) {
+  @apply flex flex-col;
+}
+
+.right-panel-heading {
+  @apply m-0 shrink-0 px-3.5 pb-2 pt-2.5 text-[11px] font-semibold uppercase tracking-[0.5px];
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.right-panel-scroll {
+  @apply min-h-0 flex-1 overflow-y-auto pb-6 pt-2;
+}
+
+.right-panel-list {
+  @apply m-0 list-none p-0;
+}
+
+.right-panel-list li { @apply m-0; }
+
+.right-panel-link {
+  @apply block w-full overflow-hidden text-ellipsis whitespace-nowrap rounded-none px-3 py-[5px] text-left text-[13px] font-normal leading-[1.45] no-underline;
+  background: transparent;
+  border: 0;
+  color: var(--text-muted);
+}
+
+.right-panel-link:is(:hover, :focus-visible) {
+  background: var(--tree-hover);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.right-panel-empty {
+  @apply m-0 px-3 py-4 text-[13px] leading-[1.6];
+  color: var(--text-muted);
+}
+
+.right-tag-list {
+  @apply flex flex-wrap gap-1.5 px-3 py-2;
+}
+
+.right-tag {
+  @apply rounded-full px-2.5 py-0.5 text-[13px] font-medium leading-5;
+  background: var(--tree-active);
+  border: 1px solid var(--border);
+  color: var(--tree-active-text);
+}
+
+.right-tag:is(:hover, :focus-visible) { border-color: var(--accent); }
+
 .toc-link {
   @apply block w-full truncate rounded-none bg-transparent text-left text-xs font-normal leading-[1.45];
   padding: 5px 12px 5px calc(12px + var(--toc-indent, 0px));
