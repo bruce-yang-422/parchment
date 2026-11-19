@@ -4,7 +4,7 @@ The privacy policy for the Parchment website, app and browser extension is publi
 
 Parchment 網站、應用程式與瀏覽器外掛的隱私權政策公布於：
 
-**<https://bruce-yang-422.github.io/parchment/privacy.html>**
+**<https://parchment.stack-base.com/privacy.html>**
 
 The source of that page is [`privacy.html`](../privacy.html) in the project root. It is also bundled with the browser extension.
 

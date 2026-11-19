@@ -10,7 +10,7 @@
 | 簡短描述 | 由 `_locales` 提供（上限 132 字元，建置時會檢查） |
 | 類別 | 建議選擇「工具」類別（Productivity → Tools） |
 | 語言 | 中文（台灣）、英文 |
-| 官方網址 | <https://bruce-yang-422.github.io/parchment/> |
+| 官方網址 | <https://parchment.stack-base.com/> |
 | 支援網址 | <https://github.com/bruce-yang-422/parchment/issues> |
 
 ### 詳細說明（繁體中文）
@@ -121,7 +121,7 @@ Parchment displays local Markdown and plain-text files in a read-only, formatted
 ### 隱私權政策網址
 
 ```text
-https://bruce-yang-422.github.io/parchment/privacy.html
+https://parchment.stack-base.com/privacy.html
 ```
 
 ## 送審前檢查

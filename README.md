@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://bruce-yang-422.github.io/parchment/"><img alt="線上使用" src="https://img.shields.io/badge/demo-GitHub%20Pages-2ea44f"></a>
+  <a href="https://parchment.stack-base.com/"><img alt="線上使用" src="https://img.shields.io/badge/demo-parchment.stack--base.com-2ea44f"></a>
   <a href="LICENSE"><img alt="授權：MIT" src="https://img.shields.io/badge/license-MIT-blue"></a>
   <img alt="PWA：可離線使用" src="https://img.shields.io/badge/PWA-offline%20ready-5a0fc8">
   <img alt="版本 1.1.0" src="https://img.shields.io/badge/version-1.1.0-lightgrey">
@@ -23,7 +23,7 @@
 
 Parchment 是一個本機優先（local-first）的靜態網頁應用程式，用來安全地閱讀 `.md` 與 `.txt` 文件。它以唯讀權限開啟檔案，在瀏覽器內完成渲染，不需要伺服器、帳號或上傳。開啟整個筆記資料夾後，可以用檔案樹瀏覽、全文搜尋，並跟隨 Wiki Links 在筆記之間跳轉。
 
-**[立即線上使用 →](https://bruce-yang-422.github.io/parchment/)**
+**[立即線上使用 →](https://parchment.stack-base.com/)**
 
 ## 目錄
 
@@ -87,7 +87,7 @@ Parchment 是一個本機優先（local-first）的靜態網頁應用程式，�
 
 ### 線上使用
 
-1. 開啟 **[Parchment](https://bruce-yang-422.github.io/parchment/)**。
+1. 開啟 **[Parchment](https://parchment.stack-base.com/)**。
 2. 選擇 **開啟檔案**，或把 `.md`／`.txt` 檔案拖進頁面。
 3. 要瀏覽整個筆記資料夾、使用 Wiki Links 或全文搜尋時，選擇 **開啟資料夾**。
 
@@ -157,7 +157,7 @@ Parchment 會先使用 [File System Access API](https://developer.mozilla.org/do
 
 ## 隱私
 
-完整內容請見 [隱私權政策](https://bruce-yang-422.github.io/parchment/privacy.html)。重點如下：
+完整內容請見 [隱私權政策](https://parchment.stack-base.com/privacy.html)。重點如下：
 
 - 文件只在你的瀏覽器中讀取與渲染，來源檔案以唯讀方式開啟。
 - 最近開啟的檔案與資料夾控制代碼保存在 IndexedDB；閱讀位置、外觀偏好與工作清單狀態保存在 `localStorage`。
@@ -196,7 +196,9 @@ npm ci
 parchment/
 ├── index.html             # 應用程式入口
 ├── privacy.html           # 隱私權政策頁
-├── sitemap.xml            # 網站地圖（提交至 Search Console）
+├── sitemap.xml            # 網站地圖
+├── robots.txt             # 搜尋引擎索引規則
+├── CNAME                  # GitHub Pages 自訂網域
 ├── manifest.webmanifest   # PWA 安裝資訊與檔案關聯
 ├── service-worker.js      # 由 npm run pwa 產生的離線快取
 ├── assets/
@@ -228,6 +230,7 @@ Parchment 是純靜態網站，可以部署到任何靜態主機。部署到 Git
 1. 執行 `npm run pwa`；如果更新了第三方套件，改為執行 `npm run vendor`。
 2. 提交原始碼，以及產生的 `assets/css/style.css`、`service-worker.js`（重建第三方套件時，也一併提交 `assets/vendor/`）。
 3. 在儲存庫的 **Settings → Pages** 選擇 **Deploy from a branch**，發布來源設為 `main` 分支的 `/ (root)`。
+4. 本專案使用自訂網域 `parchment.stack-base.com`，設定記錄在根目錄的 `CNAME`。若要部署到其他網域，請修改 `CNAME`，並一併更新 `index.html`、`privacy.html`、`sitemap.xml`、`robots.txt` 中的網址。
 
 ## 參與貢獻
 

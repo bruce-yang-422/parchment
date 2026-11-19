@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const SITE = 'https://bruce-yang-422.github.io/parchment/';
+const SITE = 'https://parchment.stack-base.com/';
 const index = await readFile('index.html', 'utf8');
 const privacy = await readFile('privacy.html', 'utf8');
 const serviceWorker = await readFile('service-worker.js', 'utf8');
@@ -45,6 +45,17 @@ assert.doesNotMatch(privacy, /\son[a-z]+=/);
 assert.match(serviceWorker, /"\.\/privacy\.html"/);
 assert.match(sitemap, new RegExp(`<loc>${SITE}</loc>`));
 assert.match(sitemap, new RegExp(`<loc>${SITE}privacy\\.html</loc>`));
+
+/* 自訂網域：CNAME 與 robots.txt 必須與網站網址一致 */
+const cname = (await readFile('CNAME', 'utf8')).trim();
+assert.equal(`https://${cname}/`, SITE, 'CNAME 需與網站網址一致');
+const robots = await readFile('robots.txt', 'utf8');
+assert.match(robots, /^User-agent: \*$/m);
+assert.ok(robots.includes(`Sitemap: ${SITE}sitemap.xml`));
+for (const file of ['index.html', 'privacy.html', 'sitemap.xml', 'README.md', 'README.en.md']) {
+  const text = await readFile(file, 'utf8');
+  assert.doesNotMatch(text, /bruce-yang-422\.github\.io\/parchment/, `${file} 仍含舊網址`);
+}
 
 /* 外掛上架時填寫的隱私權政策網址 */
 const listing = await readFile('browser-extension/STORE_LISTING.md', 'utf8');

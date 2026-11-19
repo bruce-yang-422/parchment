@@ -26,7 +26,7 @@
 | 項目 | 現況 |
 | --- | --- |
 | 產品 | 本機 Markdown / TXT 唯讀瀏覽器 |
-| 部署 | GitHub Pages 靜態單頁網站 |
+| 部署 | GitHub Pages 靜態單頁網站，使用自訂網域 `parchment.stack-base.com`（根目錄 `CNAME`） |
 | 執行環境 | 瀏覽器或已安裝的 PWA，文件由瀏覽器處理 |
 | 隱私 | 來源文件留在裝置上。文件引用的遠端圖片等資源仍可能由瀏覽器向原網址取得 |
 | 離線 | 首次在線載入並完成預快取後，可離線啟動並讀取使用者選擇的本機文件 |
@@ -203,7 +203,7 @@ parchment/
 
 ### 8.7 SEO 與隱私權政策
 
-`index.html` 提供標題、描述、`robots`、canonical、Open Graph 與 Twitter 卡片，以及 `WebApplication` 結構化資料（功能清單、版本、作者、授權與 `priceCurrency`）。`privacy.html` 為網站、PWA 與瀏覽器外掛共用的中英文隱私權政策，首頁以 `<link rel="privacy-policy">`、歡迎畫面連結、工具資訊對話框與 `<noscript>` 說明連結至此頁，Chrome Web Store 上架時亦填寫此網址。`sitemap.xml` 列出首頁與隱私權頁；由於本站為 GitHub Pages 專案網站，網域根目錄的 `robots.txt` 不屬於本儲存庫，網站地圖需於 Google Search Console 手動提交。`tests/seo-test.mjs` 檢查上述項目，並確認結構化資料的版本與 `package.json` 一致。
+`index.html` 提供標題、描述、`robots`、canonical、Open Graph 與 Twitter 卡片，以及 `WebApplication` 結構化資料（功能清單、版本、作者、授權與 `priceCurrency`）。`privacy.html` 為網站、PWA 與瀏覽器外掛共用的中英文隱私權政策，首頁以 `<link rel="privacy-policy">`、歡迎畫面連結、工具資訊對話框與 `<noscript>` 說明連結至此頁，Chrome Web Store 上架時亦填寫此網址。`sitemap.xml` 列出首頁與隱私權頁；網站位於自訂網域的根目錄，`robots.txt` 允許全站索引並指向網站地圖，也可另於 Google Search Console 提交。`tests/seo-test.mjs` 檢查上述項目，並確認結構化資料的版本與 `package.json` 一致。
 
 ### 8.8 瀏覽器外掛
 
