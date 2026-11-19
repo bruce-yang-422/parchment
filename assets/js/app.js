@@ -24,6 +24,7 @@ import { initSearchPanel } from './searchPanel.js';
 import { initSettingsPanel } from './settingsPanel.js';
 import { currentLocale, initI18n, t } from './i18n.js';
 import { enhanceTableReadability } from './tableLayout.js';
+import { initMobileLayout } from './mobileLayout.js';
 
 /* ──────────────────── 初始化 ──────────────────── */
 
@@ -66,6 +67,9 @@ const workspaceMenu = document.getElementById('workspace-menu');
 const workspaceList = document.getElementById('workspace-list');
 const workspaceOpenNew = document.getElementById('workspace-open-new');
 const workspaceCurrentName = document.getElementById('workspace-current-name');
+const mobileTreeToggle = document.getElementById('btn-mobile-tree');
+const mobileInfoToggle = document.getElementById('btn-mobile-info');
+const mobilePaneBackdrop = document.getElementById('mobile-pane-backdrop');
 
 let _folderContext = null;
 let _currentDocument = null;
@@ -75,6 +79,15 @@ let _objectUrls = [];
 let _activeTagFilter = null;
 let _tagFilterGeneration = 0;
 let _workspaceRenderGeneration = 0;
+
+initMobileLayout({
+  layout: mainEl,
+  sidebar: sidebarEl,
+  sidebarToggle: mobileTreeToggle,
+  infoPane: tocSidebar,
+  infoToggle: mobileInfoToggle,
+  backdrop: mobilePaneBackdrop,
+});
 
 const rightPanel = initRightPanel({
   sidebar: tocSidebar,

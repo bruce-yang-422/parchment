@@ -3,7 +3,7 @@ title: Guide d’utilisation de Parchment
 tags: [exemple, démarrage]
 aliases: [Guide d’utilisation]
 auteur: Parchment
-version: 1.1.0
+version: 1.1.1
 terminé: false
 ---
 

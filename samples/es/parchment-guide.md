@@ -3,7 +3,7 @@ title: Guía de uso de Parchment
 tags: [ejemplo, introducción]
 aliases: [Guía de uso]
 autor: Parchment
-versión: 1.1.0
+versión: 1.1.1
 terminado: false
 ---
 

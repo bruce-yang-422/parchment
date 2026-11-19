@@ -3,7 +3,7 @@ title: Parchment User Guide
 tags: [sample, getting-started]
 aliases: [User Guide]
 author: Parchment
-version: 1.1.0
+version: 1.1.1
 finished: false
 ---
 

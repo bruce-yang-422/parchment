@@ -44,7 +44,7 @@
       "applicationCategory": "UtilitiesApplication",
       "operatingSystem": "Windows, macOS, Linux, ChromeOS, Android, iOS",
       "browserRequirements": "需要支援 JavaScript 的瀏覽器；資料夾的最近開啟與自動更新需要支援 File System Access API 的瀏覽器",
-      "softwareVersion": "1.1.0",
+      "softwareVersion": "1.1.1",
       "featureList": [
         "唯讀開啟本機 Markdown（.md）與純文字（.txt）檔案",
         "筆記資料夾檔案樹、Wiki Links、內嵌筆記與雙向連結",
@@ -98,6 +98,16 @@
       <span class="text-[17px] font-semibold tracking-[-0.3px] text-[color:var(--heading-h1)]">Parchment</span>
     </div>
     <div class="flex items-center gap-2 mobile:w-full mobile:justify-end mobile:gap-1">
+      <button id="btn-mobile-tree" class="btn-icon mobile-pane-toggle" type="button"
+        aria-controls="sidebar" aria-expanded="false" aria-label="開啟資料夾導覽" title="資料夾" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h7l2 2h9v10H3z"/></svg>
+      </button>
+      <button id="btn-mobile-info" class="btn-icon mobile-pane-toggle" type="button"
+        aria-controls="toc-sidebar" aria-expanded="false" aria-label="開啟文件資訊" title="文件資訊" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+      </button>
       <button id="btn-install-pwa" class="btn-secondary header-install" type="button"
         aria-label="安裝 Parchment App" title="安裝 Parchment App" hidden>
         <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -271,7 +281,7 @@
       aria-controls="toc-sidebar" aria-label="調整文章目錄欄寬度" title="左右拖曳調整欄寬" tabindex="0" hidden></div>
 
     <aside id="toc-sidebar" class="flex w-[238px] shrink-0 flex-col overflow-hidden bg-[var(--sidebar-bg)]
-      [border-left:1px_solid_var(--border)] narrow:w-[205px] no-toc:hidden" hidden aria-label="文件資訊">
+      [border-left:1px_solid_var(--border)] narrow:w-[205px]" hidden aria-label="文件資訊">
       <div class="right-panel-tabs" role="tablist" aria-label="文件資訊面板">
         <button class="right-panel-tab" type="button" role="tab" data-right-tab="outline" aria-controls="right-panel-outline" aria-label="文章目錄" title="文章目錄">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
@@ -303,6 +313,8 @@
         <div id="right-panel-backlinks-list" class="right-panel-scroll"></div>
       </section>
     </aside>
+
+    <button id="mobile-pane-backdrop" class="mobile-pane-backdrop" type="button" aria-label="關閉" hidden></button>
   </main>
 
   <div id="drag-overlay" hidden>
@@ -398,7 +410,7 @@
     <div class="about-content">
       <div class="about-brand">
         <img src="icons/pwa-icon-192x192.png" alt="" width="52" height="52">
-        <div><strong>Parchment</strong><span>版本 1.1.0</span></div>
+        <div><strong>Parchment</strong><span>版本 1.1.1</span></div>
       </div>
       <p>文件內容留在瀏覽器中處理；只有你主動授權的檔案與資料夾能被讀取。</p>
       <p class="about-links">

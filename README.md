@@ -12,7 +12,7 @@
   <a href="https://parchment.stack-base.com/"><img alt="線上使用" src="https://img.shields.io/badge/demo-parchment.stack--base.com-2ea44f"></a>
   <a href="LICENSE"><img alt="授權：MIT" src="https://img.shields.io/badge/license-MIT-blue"></a>
   <img alt="PWA：可離線使用" src="https://img.shields.io/badge/PWA-offline%20ready-5a0fc8">
-  <img alt="版本 1.1.0" src="https://img.shields.io/badge/version-1.1.0-lightgrey">
+  <img alt="版本 1.1.1" src="https://img.shields.io/badge/version-1.1.1-lightgrey">
 </p>
 
 <p align="center">
@@ -49,6 +49,7 @@ Parchment 是一個本機優先（local-first）的靜態網頁應用程式，�
 - **完整的 Markdown 支援**：表格、程式碼高亮、註腳、KaTeX 數學公式、Mermaid 與 Graphviz 圖表等。
 - **筆記資料夾導覽**：檔案樹、Wiki Links、內嵌筆記、標籤篩選、雙向連結與全文搜尋。
 - **舒適的閱讀體驗**：五套各含淺色與深色版本的配色、中英文字型分開設定、可切換的閱讀寬度。
+- **手機版閱讀介面**：窄螢幕使用完整寬度閱讀，檔案樹與文件資訊改以觸控友善的側邊抽屜開啟。
 - **八語介面**：支援繁體中文、簡體中文、英文、日文、韓文、法文、德文與西班牙文；首次使用時自動偵測瀏覽器語言，無法匹配時使用英文，也可在設定中自行切換。
 - **瀏覽器外掛**：Chrome 與 Edge 外掛可從工具列開啟 Parchment，並以 Parchment 顯示你在瀏覽器中開啟的本機 `.md` 檔。
 - **可安裝、可離線**：安裝為 PWA 後，即使沒有網路也能開啟並閱讀本機文件。

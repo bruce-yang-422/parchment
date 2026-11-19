@@ -3,7 +3,7 @@ title: Parchment-Benutzerhandbuch
 tags: [beispiel, einstieg]
 aliases: [Benutzerhandbuch]
 autor: Parchment
-version: 1.1.0
+version: 1.1.1
 gelesen: false
 ---
 

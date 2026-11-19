@@ -12,7 +12,7 @@
   <a href="https://parchment.stack-base.com/"><img alt="Live demo" src="https://img.shields.io/badge/demo-parchment.stack--base.com-2ea44f"></a>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue"></a>
   <img alt="PWA: offline ready" src="https://img.shields.io/badge/PWA-offline%20ready-5a0fc8">
-  <img alt="Version 1.1.0" src="https://img.shields.io/badge/version-1.1.0-lightgrey">
+  <img alt="Version 1.1.1" src="https://img.shields.io/badge/version-1.1.1-lightgrey">
 </p>
 
 <p align="center">
@@ -51,6 +51,7 @@ The interface supports Traditional Chinese, Simplified Chinese, English, Japanes
 - **Rich Markdown**: tables, syntax highlighting, footnotes, KaTeX math, Mermaid and Graphviz diagrams, and more.
 - **Notes folder navigation**: file tree, Wiki Links, note embeds, tag filtering, backlinks and full-text search.
 - **Comfortable reading**: five color palettes with light and dark variants, separate CJK and Latin font settings, and a switchable reading width.
+- **Responsive mobile layout**: documents use the full width on narrow screens, with the file tree and document information available as touch-friendly side drawers.
 - **Eight interface languages**: Traditional Chinese, Simplified Chinese, English, Japanese, Korean, French, German and Spanish, with automatic browser-language detection and a manual selector.
 - **Browser extension**: a Chrome and Edge extension opens Parchment from the toolbar and renders local `.md` files you open in the browser.
 - **Installable and offline**: install it as a PWA to open and read local files without a network connection.

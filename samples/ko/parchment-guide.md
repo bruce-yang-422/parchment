@@ -3,7 +3,7 @@ title: Parchment 사용 안내서
 tags: [예제, 시작하기]
 aliases: [사용 안내서]
 작성자: Parchment
-버전: 1.1.0
+버전: 1.1.1
 읽기완료: false
 ---
 
