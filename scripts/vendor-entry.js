@@ -9,7 +9,6 @@ import markdownItSub from 'markdown-it-sub';
 import markdownItSup from 'markdown-it-sup';
 import markdownItTaskLists from 'markdown-it-task-lists';
 import markdownItKatex from '@traptitech/markdown-it-katex';
-import { alert as markdownItAlert } from '@mdit/plugin-alert';
 
 window.ParchmentMarkdown = {
   create(options = {}) {
@@ -30,8 +29,7 @@ window.ParchmentMarkdown = {
       .use(markdownItSub)
       .use(markdownItSup)
       .use(markdownItTaskLists, { enabled: false, label: true })
-      .use(markdownItKatex, { throwOnError: false, errorColor: '#cc0000' })
-      .use(markdownItAlert);
+      .use(markdownItKatex, { throwOnError: false, errorColor: '#cc0000' });
 
     return md;
   },

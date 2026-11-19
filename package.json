@@ -12,7 +12,6 @@
     "test": "npm run check && node tests/path-test.mjs && node tests/tag-test.mjs && node tests/note-links-test.mjs && node tests/reader-font-test.mjs && node tests/reader-width-test.mjs && node tests/theme-test.mjs && node tests/task-state-test.mjs && node tests/pwa-test.mjs && node tests/lightbox-zoom-test.mjs && node tests/image-export-test.mjs && node tests/note-syntax-test.mjs && node tests/search-test.mjs && node tests/tree-sort-test.mjs"
   },
   "devDependencies": {
-    "@mdit/plugin-alert": "2.0.0",
     "@traptitech/markdown-it-katex": "3.6.0",
     "@viz-js/viz": "3.29.0",
     "dompurify": "3.4.14",

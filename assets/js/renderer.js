@@ -40,8 +40,7 @@ export function setupRenderer() {
     },
   });
 
-  // 筆記擴充語法；> [!type] 改由 callout 規則處理（相容 GitHub 提示區塊）
-  try { _markdown.block.ruler.disable('alert'); } catch { /* 外掛未載入 */ }
+  // 筆記擴充語法；> [!type] 由 callout 規則處理（相容 GitHub 提示區塊）
   _markdown.use(noteSyntaxPlugin);
 
   _markdown.core.ruler.after('inline', 'tags-property', (state) => {

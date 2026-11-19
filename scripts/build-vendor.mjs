@@ -54,7 +54,6 @@ for (const [source, target] of copies) {
 }
 
 const licenses = [
-  '@mdit/plugin-alert',
   '@traptitech/markdown-it-katex',
   'dompurify',
   'highlight.js',
@@ -78,4 +77,14 @@ for (const packageName of licenses) {
     path.join(root, 'node_modules', packageName, filename),
     path.join(out, 'licenses', `${packageName.replaceAll('/', '__')}.txt`),
   );
+}
+
+// @viz-js/viz 的 npm 套件未附 LICENSE 檔，且內含以 Emscripten 編譯的 Graphviz。
+// 授權全文取自上游（Viz.js v3 分支、Graphviz 15.1.1 標籤），保存在 scripts/licenses/。
+const vendoredLicenses = [
+  ['viz-js.txt', '@viz-js__viz.txt'],
+  ['graphviz.txt', 'graphviz.txt'],
+];
+for (const [source, target] of vendoredLicenses) {
+  await cp(path.join(root, 'scripts', 'licenses', source), path.join(out, 'licenses', target));
 }
