@@ -2,6 +2,7 @@
 @import "./shell.css";
 @import "./palettes.css";
 @import "./reader.css";
+@import "./palette-reader.css";
 
 @tailwind base;
 @tailwind utilities;

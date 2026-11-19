@@ -47,6 +47,15 @@ for (const palette of PALETTES.filter(name => name !== 'parchment')) {
   assert.match(index, new RegExp(`<option value="${palette}">`), `設定選單缺少 ${palette}`);
 }
 
+/* 每套非預設配色都有自己的閱讀版面（欄寬、內文字級與標題） */
+const readerLayout = await readFile('src/styles/palette-reader.css', 'utf8');
+for (const palette of PALETTES.filter(name => name !== 'parchment')) {
+  const prefix = `:root[data-palette='${palette}']`;
+  assert.ok(readerLayout.includes(`${prefix} #reader { max-width:`), `${palette} 缺少閱讀欄寬`);
+  assert.ok(readerLayout.includes(`${prefix} #reader-body {`), `${palette} 缺少內文字級`);
+  assert.ok(readerLayout.includes(`${prefix} #reader-body h1 {`), `${palette} 缺少標題樣式`);
+}
+
 /* WCAG 對比度：內文 4.5、次要文字與連結 4.5、主要按鈕 4.5 */
 const luminance = hex => {
   const value = hex.replace('#', '');
