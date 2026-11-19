@@ -318,6 +318,14 @@
   background: var(--surface);
 }
 
+/* 短表頭、金額與數量不可在標點或中文字之間斷行。表格過寬時由 table 橫向捲動。 */
+#reader-body .table-compact-cell {
+  white-space: nowrap;
+  word-break: keep-all;
+  overflow-wrap: normal;
+  font-variant-numeric: tabular-nums;
+}
+
 #reader-body tr:nth-child(even) td { background: var(--surface); }
 
 #reader-body hr {

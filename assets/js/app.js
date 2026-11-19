@@ -23,6 +23,7 @@ import { resolveWikiPath, extractNoteSection, wikiDisplayText } from './noteSynt
 import { initSearchPanel } from './searchPanel.js';
 import { initSettingsPanel } from './settingsPanel.js';
 import { currentLocale, initI18n, t } from './i18n.js';
+import { enhanceTableReadability } from './tableLayout.js';
 
 /* ──────────────────── 初始化 ──────────────────── */
 
@@ -591,6 +592,8 @@ async function _displayFile(doc, options = {}) {
     _wireDocumentLinks(readerBody, doc);
     await _renderNoteEmbeds(readerBody, doc);
   }
+
+  enhanceTableReadability(readerBody);
 
   // ── Mermaid 渲染 ──────────────────────────────────────────────────
   // 以 mermaid.render 產生 SVG，經 DOMPurify 清理後替換原節點。
