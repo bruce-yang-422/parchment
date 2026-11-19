@@ -199,6 +199,7 @@ parchment/
 ├── sitemap.xml            # 網站地圖
 ├── robots.txt             # 搜尋引擎索引規則
 ├── CNAME                  # GitHub Pages 自訂網域
+├── .nojekyll              # 停用 Jekyll，讓 .md 範例檔原樣提供
 ├── manifest.webmanifest   # PWA 安裝資訊與檔案關聯
 ├── service-worker.js      # 由 npm run pwa 產生的離線快取
 ├── assets/
@@ -231,7 +232,8 @@ Parchment 是純靜態網站，可以部署到任何靜態主機。部署到 Git
 1. 執行 `npm run pwa`；如果更新了第三方套件，改為執行 `npm run vendor`。
 2. 提交原始碼，以及產生的 `assets/css/style.css`、`service-worker.js`（重建第三方套件時，也一併提交 `assets/vendor/`）。
 3. 在儲存庫的 **Settings → Pages** 選擇 **Deploy from a branch**，發布來源設為 `main` 分支的 `/ (root)`。
-4. 本專案使用自訂網域 `parchment.stack-base.com`，設定記錄在根目錄的 `CNAME`。若要部署到其他網域，請修改 `CNAME`，並一併更新 `index.html`、`privacy.html`、`sitemap.xml`、`robots.txt` 中的網址。
+4. 根目錄的 `.nojekyll` 用來停用 GitHub Pages 的 Jekyll 處理；否則含 Frontmatter 的 `samples/*.md` 會被轉成 HTML，範例無法開啟，離線快取也會安裝失敗。
+5. 本專案使用自訂網域 `parchment.stack-base.com`，設定記錄在根目錄的 `CNAME`。若要部署到其他網域，請修改 `CNAME`，並一併更新 `index.html`、`privacy.html`、`sitemap.xml`、`robots.txt` 中的網址。
 
 ## 參與貢獻
 

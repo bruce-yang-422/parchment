@@ -46,6 +46,10 @@ assert.match(serviceWorker, /"\.\/privacy\.html"/);
 assert.match(sitemap, new RegExp(`<loc>${SITE}</loc>`));
 assert.match(sitemap, new RegExp(`<loc>${SITE}privacy\\.html</loc>`));
 
+/* GitHub Pages 不使用 Jekyll：否則含 Frontmatter 的 samples/*.md 會被轉成 .html，
+   範例無法開啟，Service Worker 預先快取也會因 404 而安裝失敗 */
+await readFile('.nojekyll', 'utf8');
+
 /* 自訂網域：CNAME 與 robots.txt 必須與網站網址一致 */
 const cname = (await readFile('CNAME', 'utf8')).trim();
 assert.equal(`https://${cname}/`, SITE, 'CNAME 需與網站網址一致');
