@@ -28,7 +28,7 @@ The interface supports Traditional Chinese, Simplified Chinese, English, Japanes
 **[Try it online →](https://parchment.stack-base.com/)**
 
 <p align="center">
-  <a href="https://parchment.stack-base.com/"><img src="image/screenshots/parchment-reader-overview.png" alt="Parchment local Markdown reader with a file tree, document view, and note information panel" width="100%"></a>
+  <a href="https://parchment.stack-base.com/"><img src="image/screenshots/parchment-reader-overview-en.png" alt="Parchment English interface with a Markdown document view and outline panel" width="100%"></a>
 </p>
 <p align="center"><sub>Parchment folder view brings file navigation, rendered notes, and document information into one workspace.</sub></p>
 
@@ -90,6 +90,11 @@ The interface supports Traditional Chinese, Simplified Chinese, English, Japanes
 | Aluminum | Silver surfaces with large radii; a desktop help-viewer look |
 
 Each palette has light and dark variants and its own reading layout — column width, font size, headings, code, quotes and tables. Light/dark mode can follow your system setting.
+
+<p align="center">
+  <img src="image/screenshots/parchment-reading-settings-en.png" alt="Parchment reading settings for interface language, CJK and Latin fonts, color palette, and light or dark mode" width="420">
+</p>
+<p align="center"><sub>Reading settings provide separate controls for the interface language, CJK and Latin fonts, color palette, and appearance mode.</sub></p>
 
 ## Getting started
 

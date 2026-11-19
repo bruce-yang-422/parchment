@@ -26,7 +26,7 @@ Parchment 是一個本機優先（local-first）的靜態網頁應用程式，�
 **[立即線上使用 →](https://parchment.stack-base.com/)**
 
 <p align="center">
-  <a href="https://parchment.stack-base.com/"><img src="image/screenshots/parchment-reader-overview.png" alt="Parchment 本機 Markdown 閱讀器：檔案樹、文章內容與右側資訊面板" width="100%"></a>
+  <a href="https://parchment.stack-base.com/"><img src="image/screenshots/parchment-reader-overview-zh-tw.png" alt="Parchment 繁體中文介面：檔案樹、Markdown 閱讀區與文章目錄" width="100%"></a>
 </p>
 <p align="center"><sub>Parchment 資料夾閱讀模式：檔案導覽、格式化文章與筆記資訊集中在同一個畫面。</sub></p>
 
@@ -88,6 +88,11 @@ Parchment 是一個本機優先（local-first）的靜態網頁應用程式，�
 | 鋁銀 | 銀灰底、大圓角的桌面說明文件風格 |
 
 每套配色都有淺色與深色版本，也有各自的閱讀欄寬、字級、標題、程式碼、引用與表格樣式。明暗模式可跟隨系統設定。
+
+<p align="center">
+  <img src="image/screenshots/parchment-reading-settings-zh-tw.png" alt="Parchment 繁體中文閱讀設定：介面語言、中英文字型、配色與明暗模式" width="420">
+</p>
+<p align="center"><sub>閱讀設定可分別調整介面語言、中文與英數字型、配色及明暗模式。</sub></p>
 
 ## 快速開始
 
