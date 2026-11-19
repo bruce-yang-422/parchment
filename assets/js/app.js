@@ -31,6 +31,7 @@ initReaderFont();
 initReaderWidth(document.getElementById('reader-width-toggle'));
 initSettingsPanel();
 _refreshRecents();
+_initWelcomeLogo();
 
 /* ──────────────────── DOM 參照 ──────────────────── */
 
@@ -397,6 +398,88 @@ document.addEventListener('click', event => {
 treeCollapseToggle?.addEventListener('click', () => setAllDirectoriesExpanded(!hasExpandedDirectory()));
 _syncTreeSortMenu();
 
+/* ──────────────────── 首頁標誌 ──────────────────── */
+
+/** 標誌圖片載入成功時隱藏文字替代標誌；失敗時隱藏圖片（取代內嵌 onload／onerror，以符合 CSP）。 */
+function _initWelcomeLogo() {
+  const img = document.querySelector('.welcome-logo-image');
+  if (!img) return;
+  const showImage = () => {
+    if (img.previousElementSibling) img.previousElementSibling.hidden = true;
+  };
+  const hideImage = () => { img.hidden = true; };
+  if (img.complete) {
+    if (img.naturalWidth) showImage();
+    else hideImage();
+    return;
+  }
+  img.addEventListener('load', showImage, { once: true });
+  img.addEventListener('error', hideImage, { once: true });
+}
+
+/* ──────────────────── 以網址開啟本機檔案（瀏覽器外掛） ──────────────────── */
+
+/**
+ * index.html?file=file:///D:/notes/a.md：讀取該檔案並以單檔模式顯示。
+ * 瀏覽器外掛在使用者直接開啟本機 .md 檔時會導向此網址。
+ * 相對圖片與相對 .md 連結以檔案所在資料夾解析，透過 XMLHttpRequest 讀取 file:// 網址。
+ */
+async function _openFromUrlParameter() {
+  const fileUrl = new URLSearchParams(location.search).get('file');
+  if (!fileUrl || !/^file:\/\//i.test(fileUrl)) return;
+  try {
+    const url = new URL(fileUrl);
+    const segments = url.pathname.split('/').filter(Boolean).map(part => {
+      try { return decodeURIComponent(part); } catch { return part; }
+    });
+    const base = `file://${url.host}/`;
+    const folder = {
+      rootName: url.host || segments[0] || '/',
+      entries: [],
+      files: [],
+      notePaths: [],
+      fileUrlBase: base,
+      documentIndex: null,
+      documentIndexPromise: null,
+      indexGeneration: 0,
+      getFileByPath: async path => {
+        const parts = normalizeRelativePath(path);
+        const target = base + parts.map(part => encodeURIComponent(part).replace(/%3A/gi, ':')).join('/');
+        return _readFileUrl(target, parts.at(-1));
+      },
+    };
+    const file = await folder.getFileByPath(segments);
+    if (!isSupportedFile(file.name)) throw new Error(`不支援的格式：${file.name}`);
+    await _displayFile({ name: file.name, content: await file.text(), path: segments, folder });
+    _enterSingleMode();
+  } catch (err) {
+    _showToast(err.message, 'error');
+  }
+}
+
+/** 以 XMLHttpRequest 讀取 file:// 網址（fetch 不支援 file: 協定）。 */
+function _readFileUrl(url, name) {
+  return new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest();
+    request.open('GET', url);
+    request.responseType = 'blob';
+    request.onload = () => {
+      if ((request.status === 0 || request.status === 200) && request.response) {
+        resolve(new File([request.response], name, { type: request.response.type }));
+      } else {
+        reject(new DOMException(`找不到檔案：${name}`, 'NotFoundError'));
+      }
+    };
+    request.onerror = () => {
+      const blocked = globalThis.chrome?.extension?.isAllowedFileSchemeAccess;
+      reject(new Error(blocked
+        ? `無法讀取本機檔案：${name}。請在擴充功能詳細資料中開啟「允許存取檔案網址」。`
+        : `無法讀取本機檔案：${name}`));
+    };
+    request.send();
+  });
+}
+
 async function _openFileFromLaunchQueue(handle) {
   const file = await handle.getFile();
   if (!isSupportedFile(file.name)) {
@@ -496,6 +579,16 @@ async function _displayFile(doc, options = {}) {
     rightPanel.clear();
   }
   _startHotReload(doc);
+
+  if (doc.folder?.fileUrlBase && doc.path) {
+    const current = doc.folder.fileUrlBase
+      + doc.path.map(part => encodeURIComponent(part).replace(/%3A/gi, ':')).join('/');
+    history.replaceState(null, '', `${location.pathname}?file=${encodeURIComponent(current)}`);
+    document.title = `${doc.name} · Parchment`;
+  } else if (new URLSearchParams(location.search).has('file')) {
+    history.replaceState(null, '', location.pathname + location.hash);
+    document.title = 'Parchment';
+  }
 
   if (options.hotReload) {
     contentArea.scrollTop = previousTop;
@@ -1525,3 +1618,5 @@ function _formatSize(bytes) {
   if (bytes >= 1024)        return `${(bytes / 1024).toFixed(0)} KB`;
   return `${bytes} B`;
 }
+
+_openFromUrlParameter();

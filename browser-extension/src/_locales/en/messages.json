@@ -1,0 +1,50 @@
+{
+  "extName": {
+    "message": "Parchment – Local Markdown Reader"
+  },
+  "extDescription": {
+    "message": "Read local Markdown and text notes, read-only: Wiki Links, callouts, diagrams, math and search. Files never leave your device."
+  },
+  "actionTitle": {
+    "message": "Open Parchment"
+  },
+  "optionsTitle": {
+    "message": "Parchment settings"
+  },
+  "optionsIntro": {
+    "message": "Parchment opens your local Markdown and text files read-only. Everything is processed in your browser; nothing is uploaded."
+  },
+  "openApp": {
+    "message": "Open Parchment"
+  },
+  "autoOpenHeading": {
+    "message": "Open local Markdown files with Parchment"
+  },
+  "autoOpenLabel": {
+    "message": "When I open a local .md file in the browser, show it in Parchment"
+  },
+  "autoOpenHelp": {
+    "message": "Relative images and links to other .md files in the same folder keep working. Press Back to see the original plain text."
+  },
+  "fileAccessHeading": {
+    "message": "Access to file URLs"
+  },
+  "fileAccessEnabled": {
+    "message": "Enabled. Local .md files will open in Parchment."
+  },
+  "fileAccessDisabled": {
+    "message": "Not enabled. To open local .md files with Parchment, turn on \"Allow access to file URLs\" in the extension's details page."
+  },
+  "fileAccessButton": {
+    "message": "Open extension details"
+  },
+  "fileAccessNote": {
+    "message": "The browser requires you to turn this on yourself. Opening files and folders from inside Parchment works without it."
+  },
+  "privacyHeading": {
+    "message": "Privacy"
+  },
+  "privacyNote": {
+    "message": "Parchment does not collect, send or store your documents anywhere outside this browser. It only reads the files you open."
+  }
+}

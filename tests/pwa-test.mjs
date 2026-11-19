@@ -22,8 +22,11 @@ assert.match(index, /id="pwa-install-action"/);
 assert.match(index, /id="pwa-install-later"/);
 assert.match(index, /id="pwa-install-decline"/);
 assert.match(index, /class="welcome-logo-image" src="image\/parchment-logo-transparent\.png"/);
-assert.match(index, /onload="this\.previousElementSibling\.hidden = true"/);
-assert.match(index, /onerror="this\.hidden = true"/);
+// 不使用內嵌腳本或事件屬性，以符合瀏覽器外掛的內容安全政策（CSP）
+assert.doesNotMatch(index, /\son(load|error|click)=/);
+assert.doesNotMatch(index.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/, ''), /<script>/);
+assert.match(index, /<script src="assets\/js\/boot\.js"><\/script>/);
+assert.match(index, /<script src="assets\/js\/btoa-patch\.js"><\/script>\s*<script src="assets\/vendor\/mermaid\.min\.js">/);
 assert.match(pwaScript, /beforeinstallprompt/);
 assert.match(pwaScript, /加入主畫面/);
 assert.equal(PWA_INSTALL_REMINDER_DELAYS.later, 12 * 60 * 60 * 1000);

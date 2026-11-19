@@ -12,7 +12,8 @@ export function initPWA({ onFileLaunch } = {}) {
 }
 
 function _registerServiceWorker() {
-  if (!('serviceWorker' in navigator)) return;
+  // 瀏覽器外掛（chrome-extension:）與本機檔案不使用 Service Worker 離線快取
+  if (!('serviceWorker' in navigator) || !/^https?:$/.test(location.protocol)) return;
   window.addEventListener('load', () => {
     const serviceWorkerUrl = new URL('../../service-worker.js', import.meta.url);
     navigator.serviceWorker.register(serviceWorkerUrl)

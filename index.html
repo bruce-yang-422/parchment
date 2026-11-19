@@ -51,20 +51,7 @@
   <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
   <link rel="apple-touch-icon" href="icons/pwa-icon-192x192.png">
   <link rel="manifest" href="manifest.webmanifest">
-  <script>
-    // 在樣式套用前還原配色、閱讀寬度與深色模式，避免載入時閃爍；完整邏輯見 assets/js/theme.js
-    try {
-      var root = document.documentElement;
-      var palette = localStorage.getItem('parchment-palette');
-      if (palette) root.dataset.palette = palette;
-      var readerWidth = localStorage.getItem('parchment-reader-width');
-      if (readerWidth) root.dataset.readerWidth = readerWidth;
-      var theme = localStorage.getItem('parchment-theme') || 'system';
-      if (theme === 'dark' || (theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)) {
-        root.classList.add('dark');
-      }
-    } catch (error) { /* 使用預設外觀 */ }
-  </script>
+  <script src="assets/js/boot.js"></script>
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="stylesheet" href="assets/vendor/katex/katex.min.css">
   <link id="hljs-light" rel="stylesheet"
@@ -186,8 +173,7 @@
           <div class="relative mx-auto mb-5 flex size-20 items-center justify-center" aria-label="Parchment">
             <span class="flex size-14 items-center justify-center rounded-[14px] bg-[var(--accent)] text-[28px]
               font-bold text-[color:var(--accent-contrast)]" aria-hidden="true">P</span>
-            <img class="welcome-logo-image" src="image/parchment-logo-transparent.png" alt="" width="80" height="80"
-              onload="this.previousElementSibling.hidden = true" onerror="this.hidden = true">
+            <img class="welcome-logo-image" src="image/parchment-logo-transparent.png" alt="" width="80" height="80">
           </div>
           <h1 class="mb-2 border-0 p-0 text-[24px] font-semibold">
             Parchment
@@ -374,23 +360,7 @@
   <script src="assets/vendor/dompurify.min.js"></script>
   <script src="assets/vendor/highlight.min.js"></script>
   <script src="assets/vendor/markdown-engine.min.js"></script>
-  <script>
-    (function () {
-      const nativeBtoa = window.btoa.bind(window);
-      window.btoa = function patchedBtoa(value) {
-        try {
-          return nativeBtoa(value);
-        } catch (err) {
-          if (!(err instanceof DOMException)) throw err;
-
-          const bytes = new TextEncoder().encode(String(value));
-          let binary = '';
-          for (const byte of bytes) binary += String.fromCharCode(byte);
-          return nativeBtoa(binary);
-        }
-      };
-    })();
-  </script>
+  <script src="assets/js/btoa-patch.js"></script>
   <script src="assets/vendor/mermaid.min.js"></script>
   <script src="assets/vendor/graphviz.min.js"></script>
 

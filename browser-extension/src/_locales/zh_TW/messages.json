@@ -1,0 +1,50 @@
+{
+  "extName": {
+    "message": "Parchment – 本機 Markdown 閱讀器"
+  },
+  "extDescription": {
+    "message": "唯讀閱讀本機 Markdown 與純文字筆記：支援 Wiki Links、提示區塊、圖表、數學公式與全文搜尋，檔案不離開你的裝置。"
+  },
+  "actionTitle": {
+    "message": "開啟 Parchment"
+  },
+  "optionsTitle": {
+    "message": "Parchment 設定"
+  },
+  "optionsIntro": {
+    "message": "Parchment 以唯讀方式開啟本機 Markdown 與純文字檔案，所有處理都在瀏覽器中完成，不會上傳任何內容。"
+  },
+  "openApp": {
+    "message": "開啟 Parchment"
+  },
+  "autoOpenHeading": {
+    "message": "以 Parchment 開啟本機 Markdown 檔"
+  },
+  "autoOpenLabel": {
+    "message": "在瀏覽器開啟本機 .md 檔時，自動以 Parchment 顯示"
+  },
+  "autoOpenHelp": {
+    "message": "同一資料夾內的相對圖片與其他 .md 連結仍可使用。按「上一頁」可回到原始純文字。"
+  },
+  "fileAccessHeading": {
+    "message": "檔案網址存取權"
+  },
+  "fileAccessEnabled": {
+    "message": "已開啟。本機 .md 檔會以 Parchment 顯示。"
+  },
+  "fileAccessDisabled": {
+    "message": "尚未開啟。若要以 Parchment 顯示本機 .md 檔，請到擴充功能的詳細資料頁開啟「允許存取檔案網址」。"
+  },
+  "fileAccessButton": {
+    "message": "開啟擴充功能詳細資料"
+  },
+  "fileAccessNote": {
+    "message": "這個選項必須由你自行開啟。在 Parchment 中開啟檔案或資料夾則不需要它。"
+  },
+  "privacyHeading": {
+    "message": "隱私"
+  },
+  "privacyNote": {
+    "message": "Parchment 不會收集、傳送或在這個瀏覽器以外的地方儲存你的文件，只會讀取你開啟的檔案。"
+  }
+}

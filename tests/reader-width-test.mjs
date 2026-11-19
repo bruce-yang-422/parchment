@@ -22,6 +22,7 @@ const css = await readFile('src/styles/palette-reader.css', 'utf8');
 assert.match(css, /:root\[data-reader-width='full'\] main #reader \{ max-width: none; \}/);
 const index = await readFile('index.html', 'utf8');
 assert.match(index, /id="reader-width-toggle"/);
-assert.match(index, /parchment-reader-width/);
+const boot = await readFile('assets/js/boot.js', 'utf8');
+assert.match(boot, /parchment-reader-width/);
 
 console.log('reader-width-test: passed');

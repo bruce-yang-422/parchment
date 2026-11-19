@@ -36,6 +36,7 @@ Parchment is a local-first static web app for safely reading `.md` and `.txt` fi
 - [Browser support](#browser-support)
 - [Privacy](#privacy)
 - [Development](#development)
+- [Browser extension](#browser-extension)
 - [Deployment](#deployment)
 - [Contributing](#contributing)
 - [License](#license)
@@ -46,6 +47,7 @@ Parchment is a local-first static web app for safely reading `.md` and `.txt` fi
 - **Rich Markdown**: tables, syntax highlighting, footnotes, KaTeX math, Mermaid and Graphviz diagrams, and more.
 - **Notes folder navigation**: file tree, Wiki Links, note embeds, tag filtering, backlinks and full-text search.
 - **Comfortable reading**: five color palettes with light and dark variants, separate CJK and Latin font settings, and a switchable reading width.
+- **Browser extension**: a Chrome and Edge extension opens Parchment from the toolbar and renders local `.md` files you open in the browser.
 - **Installable and offline**: install it as a PWA to open and read local files without a network connection.
 
 ### Reading
@@ -184,6 +186,7 @@ npm ci
 | `npm run css` | Compiles `src/styles/` into `assets/css/style.css` with Tailwind CSS 3.4 |
 | `npm run pwa` | Builds the styles and generates the offline cache list in `service-worker.js` from the site assets |
 | `npm run vendor` | Rebuilds the third-party bundles in `assets/vendor/` from `node_modules`, then runs `npm run pwa` |
+| `npm run extension` | Builds the browser extension into `browser-extension/dist/` and a zip for the store |
 
 > [!IMPORTANT]
 > After changing anything in `assets/`, `src/styles/` or `index.html`, run `npm run pwa` so the offline cache version is updated. Otherwise users who have installed the app may keep receiving the old files.
@@ -202,11 +205,22 @@ parchment/
 │   ├── css/style.css      # Compiled styles
 │   └── vendor/            # Bundled third-party libraries and their licenses
 ├── src/styles/            # Tailwind style sources, including palettes and reading layouts
+├── browser-extension/     # Chrome / Edge extension sources, build script and store listing
 ├── scripts/               # Build scripts for third-party bundles and the PWA
 └── tests/                 # Unit tests and the browser rendering test page
 ```
 
 For architecture, browser API usage and design decisions, see the [concept memo](md-reader-concept-memo.md) (in Traditional Chinese).
+
+## Browser extension
+
+`browser-extension/` packages Parchment as a Chrome and Edge extension (Manifest V3). The site code is copied from the project root at build time.
+
+- Click the toolbar icon to open the full Parchment app in a new tab; everything works offline.
+- Open a local `.md` file in the browser and it is rendered by Parchment automatically. This needs "Allow access to file URLs" turned on in the extension's details page.
+- It only requests the `storage` and `file:///*` permissions and never accesses websites.
+
+Run `npm run pwa` and then `npm run extension` to build it. See [browser-extension/README.md](browser-extension/README.md) (in Traditional Chinese) for loading it for testing, publishing to the Chrome Web Store, and the privacy policy.
 
 ## Deployment
 

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title data-i18n="optionsTitle">Parchment settings</title>
+  <link rel="icon" href="../icons/icon-32.png">
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main class="page">
+    <header class="header">
+      <img src="../icons/icon-48.png" alt="" width="48" height="48">
+      <div>
+        <h1 data-i18n="optionsTitle">Parchment settings</h1>
+        <p class="muted" data-i18n="optionsIntro"></p>
+      </div>
+    </header>
+
+    <button id="open-app" class="primary" type="button" data-i18n="openApp">Open Parchment</button>
+
+    <section class="card" aria-labelledby="auto-open-heading">
+      <h2 id="auto-open-heading" data-i18n="autoOpenHeading"></h2>
+      <label class="toggle">
+        <input id="auto-open" type="checkbox" checked>
+        <span data-i18n="autoOpenLabel"></span>
+      </label>
+      <p class="muted" data-i18n="autoOpenHelp"></p>
+    </section>
+
+    <section class="card" aria-labelledby="file-access-heading">
+      <h2 id="file-access-heading" data-i18n="fileAccessHeading"></h2>
+      <p id="file-access-status" class="status" role="status"></p>
+      <button id="open-details" class="secondary" type="button" data-i18n="fileAccessButton" hidden></button>
+      <p class="muted" data-i18n="fileAccessNote"></p>
+    </section>
+
+    <section class="card" aria-labelledby="privacy-heading">
+      <h2 id="privacy-heading" data-i18n="privacyHeading"></h2>
+      <p class="muted" data-i18n="privacyNote"></p>
+    </section>
+  </main>
+  <script src="options.js"></script>
+</body>
+</html>
