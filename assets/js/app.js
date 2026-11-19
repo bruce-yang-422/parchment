@@ -6,7 +6,8 @@
 import { initTheme, cycleTheme }           from './theme.js';
 import { openFile, openDirectory, openFileFromHandle, openDirectoryFromHandle, isSupportedFile, normalizeRelativePath } from './fileLoader.js';
 import { setupRenderer, renderMarkdown, renderText } from './renderer.js';
-import { renderTree, clearTree, setActiveTreePath } from './tree.js';
+import { renderTree, clearTree, setActiveTreePath, setAllDirectoriesExpanded, hasExpandedDirectory, getExpandedDirectoryKeys } from './tree.js';
+import { sortTreeEntries, collectTreeFiles, treePathKey, isTimeSort, TREE_SORT_MODES, DEFAULT_TREE_SORT } from './treeSort.js';
 import { saveRecent, getRecents, removeRecent } from './recentFiles.js';
 import { renderTOC, clearTOC, scrollToHash, headingSlug } from './toc.js';
 import { initPWA } from './pwa.js';
@@ -165,7 +166,6 @@ document.addEventListener('keydown', (e) => {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && lightboxEl && !lightboxEl.hidden) _closeImageLightbox();
 });
-new ResizeObserver(() => _refreshImageOverflow(readerBody)).observe(contentArea);
 
 async function handleOpenFile() {
   try {
@@ -283,11 +283,117 @@ function _enterFolderMode(directory) {
 }
 
 function _renderFolderTree(entries, options = {}) {
-  renderTree(entries, async (entry, content) => {
+  const context = _folderContext;
+  _treeEntries = entries;
+  if (context && isTimeSort(_treeSortMode) && !context.mtimes) _loadModifiedTimes(context);
+  renderTree(sortTreeEntries(entries, _treeSortMode, context?.mtimes || new Map()), async (entry, content) => {
     await _displayFile({ ...entry, content, folder: _folderContext });
     folderPlaceholder.hidden = true;
-  }, options);
+  }, { ...options, onExpansionChange: _syncTreeCollapseButton });
 }
+
+/* ──────────────────── 資料夾樹：排序與折疊 ──────────────────── */
+
+const TREE_SORT_STORAGE_KEY = 'parchment-tree-sort';
+const treeSortToggle = document.getElementById('tree-sort-toggle');
+const treeSortMenu = document.getElementById('tree-sort-menu');
+const treeCollapseToggle = document.getElementById('tree-collapse-toggle');
+let _treeEntries = [];
+let _treeSortMode = (() => {
+  try {
+    const saved = localStorage.getItem(TREE_SORT_STORAGE_KEY);
+    return TREE_SORT_MODES.includes(saved) ? saved : DEFAULT_TREE_SORT;
+  } catch {
+    return DEFAULT_TREE_SORT;
+  }
+})();
+
+function _syncTreeSortMenu() {
+  treeSortMenu?.querySelectorAll('[data-tree-sort]').forEach(item => {
+    item.setAttribute('aria-checked', String(item.dataset.treeSort === _treeSortMode));
+  });
+}
+
+function _setTreeSortMenu(open) {
+  if (!treeSortMenu || !treeSortToggle) return;
+  treeSortMenu.hidden = !open;
+  treeSortToggle.setAttribute('aria-expanded', String(open));
+  if (open) {
+    _syncTreeSortMenu();
+    treeSortMenu.querySelector('[aria-checked="true"]')?.focus();
+  }
+}
+
+/** 重新排序後保留展開狀態與目前文件的反白。 */
+function _rerenderFolderTree() {
+  if (!_folderContext) return;
+  const expandedKeys = getExpandedDirectoryKeys();
+  _renderFolderTree(_treeEntries, { expandedKeys });
+  if (_currentDocument?.path) setActiveTreePath(_currentDocument.path);
+}
+
+/** 讀取所有檔案的最後修改時間（瀏覽器不提供建立時間），完成後依時間重新排序。 */
+function _loadModifiedTimes(context) {
+  if (context.mtimesPromise) return context.mtimesPromise;
+  const files = collectTreeFiles(context.entries);
+  const mtimes = new Map();
+  let cursor = 0;
+  const worker = async () => {
+    while (cursor < files.length) {
+      const entry = files[cursor++];
+      try {
+        const file = await entry.handle.getFile();
+        mtimes.set(treePathKey(entry.path), file.lastModified);
+      } catch { /* 無法讀取的檔案排在最後 */ }
+    }
+  };
+  context.mtimesPromise = Promise.all(Array.from({ length: Math.min(16, files.length) }, worker))
+    .then(() => {
+      context.mtimes = mtimes;
+      if (context === _folderContext && isTimeSort(_treeSortMode)) _rerenderFolderTree();
+    });
+  return context.mtimesPromise;
+}
+
+function _syncTreeCollapseButton() {
+  if (!treeCollapseToggle) return;
+  const expanded = hasExpandedDirectory();
+  const label = expanded ? '全部折疊' : '全部展開';
+  treeCollapseToggle.title = label;
+  treeCollapseToggle.setAttribute('aria-label', label);
+  treeCollapseToggle.querySelector('[data-tree-icon="expand"]').toggleAttribute('hidden', expanded);
+  treeCollapseToggle.querySelector('[data-tree-icon="collapse"]').toggleAttribute('hidden', !expanded);
+}
+
+treeSortToggle?.addEventListener('click', () => _setTreeSortMenu(treeSortMenu.hidden));
+treeSortMenu?.addEventListener('click', event => {
+  const item = event.target.closest('[data-tree-sort]');
+  if (!item) return;
+  _treeSortMode = item.dataset.treeSort;
+  try { localStorage.setItem(TREE_SORT_STORAGE_KEY, _treeSortMode); } catch { /* 僅本次有效 */ }
+  _setTreeSortMenu(false);
+  treeSortToggle.focus();
+  _rerenderFolderTree();
+});
+treeSortMenu?.addEventListener('keydown', event => {
+  const items = [...treeSortMenu.querySelectorAll('[data-tree-sort]')];
+  const index = items.indexOf(document.activeElement);
+  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    event.preventDefault();
+    const next = (index + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+    items[next].focus();
+  } else if (event.key === 'Escape') {
+    event.preventDefault();
+    event.stopPropagation();
+    _setTreeSortMenu(false);
+    treeSortToggle.focus();
+  }
+});
+document.addEventListener('click', event => {
+  if (treeSortMenu && !treeSortMenu.hidden && !event.target.closest('.tree-sort')) _setTreeSortMenu(false);
+});
+treeCollapseToggle?.addEventListener('click', () => setAllDirectoriesExpanded(!hasExpandedDirectory()));
+_syncTreeSortMenu();
 
 async function _openFileFromLaunchQueue(handle) {
   const file = await handle.getFile();
@@ -713,32 +819,13 @@ function _enhanceImages(container) {
       inner.appendChild(img);
     }
 
+    // 圖片縮放至閱讀欄寬（CSS max-width），點擊以燈箱檢視原始尺寸
     img.classList.add('image-zoomable');
     if (!img.dataset.zoomBound) {
       img.addEventListener('click', () => _openImageLightbox(img));
       img.dataset.zoomBound = 'true';
     }
-
-    if (img.complete) {
-      _syncImageOverflowState(img);
-    } else {
-      img.addEventListener('load', () => _syncImageOverflowState(img), { once: true });
-    }
   });
-}
-
-function _refreshImageOverflow(container) {
-  container.querySelectorAll('img.image-zoomable').forEach(_syncImageOverflowState);
-}
-
-function _syncImageOverflowState(img) {
-  const inner = img.parentElement;
-  const frame = inner?.parentElement;
-  if (!frame) return;
-
-  const naturalWidth = img.naturalWidth || img.width;
-  const frameWidth = frame.clientWidth;
-  img.classList.toggle('is-overflowing', naturalWidth > frameWidth + 8);
 }
 
 function _openImageLightbox(img, { downloadName } = {}) {
@@ -1276,6 +1363,7 @@ function _startHotReload(document) {
         signature = nextSignature;
       } else if (signature !== nextSignature) {
         signature = nextSignature;
+        document.folder?.mtimes?.set(treePathKey(document.path), file.lastModified);
         const updated = { ...document, content: await file.text() };
         if (document.folder) _invalidateDocumentIndex(document.folder);
         await _displayFile(updated, { hotReload: true });

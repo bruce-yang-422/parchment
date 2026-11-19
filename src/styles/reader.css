@@ -335,16 +335,16 @@
   content: '';
 }
 
-#reader-body .image-scroll-frame { @apply my-5 mx-0 overflow-x-auto overflow-y-hidden; }
-#reader-body .image-scroll-inner { @apply w-fit min-w-full; }
+/* 圖片寬度上限為閱讀欄寬，保持比例；較小的圖片與指定寬度（![[圖.png|300]]）維持原尺寸 */
+#reader-body .image-scroll-frame { @apply my-5 mx-0 w-full; }
+#reader-body .image-scroll-inner { @apply w-full; }
 
 #reader-body img {
-  @apply block max-w-full;
+  @apply block h-auto max-w-full;
   border-radius: var(--radius);
 }
 
 #reader-body img.image-zoomable { @apply cursor-zoom-in; }
-#reader-body img.image-zoomable.is-overflowing { @apply max-w-none; }
 
 #reader-body img.local-resource-unavailable {
   @apply min-w-[220px] min-h-[72px];

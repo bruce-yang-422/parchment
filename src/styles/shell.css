@@ -346,6 +346,60 @@ button {
   outline-offset: 2px;
 }
 
+/* === 資料夾樹工具列：排序、全部折疊／展開 === */
+.tree-toolbar {
+  @apply -my-1 flex shrink-0 items-center gap-0.5 font-normal normal-case tracking-normal;
+}
+.tree-tool {
+  @apply grid size-7 place-items-center rounded p-0;
+  background: transparent;
+  border: 0;
+  color: var(--text-muted);
+}
+.tree-tool:hover,
+.tree-tool[aria-expanded='true'] {
+  background: var(--tree-hover);
+  color: var(--text);
+}
+.tree-tool:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 1px;
+}
+.tree-tool svg {
+  @apply size-4;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+.tree-sort { @apply relative; }
+.tree-sort-menu {
+  @apply absolute right-0 top-[calc(100%_+_4px)] z-[40] flex w-[220px] flex-col rounded p-1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+}
+.tree-sort-menu button {
+  @apply flex w-full items-center justify-between gap-2 rounded px-2.5 py-1.5 text-left text-[13px] font-normal;
+  background: transparent;
+  border: 0;
+  color: var(--text);
+}
+.tree-sort-menu button:hover,
+.tree-sort-menu button:focus-visible {
+  background: var(--tree-hover);
+  outline: none;
+}
+.tree-sort-menu button[aria-checked='true']::after {
+  content: '✓';
+  color: var(--accent);
+}
+.tree-sort-menu hr {
+  @apply mx-1 my-1 border-0;
+  border-top: 1px solid var(--border);
+}
+
 .tree-empty {
   @apply m-0 px-3 py-5 text-center text-[13px];
   color: var(--text-muted);
@@ -490,9 +544,13 @@ button {
 .setting-row small { @apply mt-0.5 block text-[11px]; color: var(--text-muted); }
 .setting-row select {
   @apply w-[190px] max-w-[48%] cursor-pointer appearance-none rounded py-1.5 pl-2 pr-7 text-[13px];
-  background: var(--btn-secondary-bg);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='m3 4.5 3 3 3-3' fill='none' stroke='%23756351' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-position: right 8px center;
+  /* 以兩段斜向漸層畫出 V 形箭頭，顏色跟隨目前配色與明暗模式 */
+  background-color: var(--btn-secondary-bg);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--text-muted) 50%),
+    linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
+  background-position: calc(100% - 14px) 55%, calc(100% - 9px) 55%;
+  background-size: 5px 5px;
   background-repeat: no-repeat;
   border: 1px solid var(--btn-secondary-border);
   color: var(--btn-secondary-text);
