@@ -367,7 +367,6 @@ button {
 
 .workspace-toggle:hover { background: var(--tree-hover); }
 .workspace-toggle svg,
-.workspace-utilities svg,
 .workspace-open-new svg {
   @apply size-4 shrink-0;
   fill: none;
@@ -378,23 +377,17 @@ button {
 }
 
 .workspace-current-name { @apply truncate; }
-.workspace-utilities { @apply flex shrink-0 items-center gap-0.5; }
 
-.workspace-utilities button {
-  @apply flex h-8 items-center justify-center rounded p-0;
-  background: transparent;
-  border: 0;
-  color: var(--text-muted);
+/* 標題列的「安裝 App」：連結色外框；手機版只顯示圖示 */
+.header-install {
+  @apply flex h-8 items-center gap-1.5 px-2.5;
+  border-color: var(--link);
+  color: var(--link);
 }
-
-.workspace-utilities button:hover {
-  background: var(--tree-hover);
-  color: var(--text);
+@screen mobile {
+  .header-install { @apply px-2; }
+  .header-install span { @apply sr-only; }
 }
-
-.workspace-install span { @apply text-[11px] font-medium; }
-.workspace-utilities .workspace-install { @apply w-auto gap-1 px-1.5; }
-.workspace-utilities .workspace-icon-button { @apply w-8; }
 
 .workspace-menu {
   @apply absolute bottom-[calc(100%_+_6px)] left-2 right-2 z-[30] max-h-[min(420px,60vh)] overflow-y-auto rounded p-1.5;
@@ -435,18 +428,41 @@ button {
 }
 .workspace-empty { @apply px-2 py-3 text-center text-[12px]; color: var(--text-muted); }
 
+
 /* === SETTINGS / ABOUT DIALOGS === */
+/* 由右上角按鈕開啟，固定在標題列下方靠右顯示 */
 .app-dialog {
-  @apply w-[min(520px,calc(100vw_-_32px))] overflow-hidden rounded p-0;
+  @apply fixed w-[min(440px,calc(100vw_-_24px))] overflow-y-auto rounded p-0;
+  inset: calc(var(--header-h) + 8px) 12px auto auto;
+  margin: 0;
+  max-height: calc(100vh - var(--header-h) - 24px);
   background: var(--bg);
   border: 1px solid var(--border);
   color: var(--text);
   box-shadow: var(--shadow-lg);
+  transform-origin: top right;
+}
+
+.app-dialog[open] { animation: app-dialog-in 0.14s ease-out; }
+
+@keyframes app-dialog-in {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-dialog[open] { animation: none; }
 }
 
 .app-dialog::backdrop {
-  background: rgba(20, 14, 10, 0.56);
-  backdrop-filter: blur(2px);
+  background: rgba(20, 14, 10, 0.18);
+}
+
+@screen mobile {
+  .app-dialog {
+    inset: calc(var(--header-h) + 6px) 8px auto auto;
+    width: calc(100vw - 16px);
+  }
 }
 
 .app-dialog-header {

@@ -12,7 +12,7 @@ assert.equal(manifest.start_url, './');
 assert.deepEqual(manifest.icons.map(icon => icon.sizes), ['192x192', '512x512']);
 assert.match(index, /rel="manifest" href="manifest\.webmanifest"/);
 assert.match(index, /id="btn-install-pwa"/);
-assert.match(index, /id="btn-install-pwa"[\s\S]*?<span>安裝<\/span>/);
+assert.match(index, /id="btn-install-pwa"[\s\S]*?<span>安裝 App<\/span>/);
 assert.match(index, /id="workspace-toggle"/);
 assert.match(index, /id="settings-dialog"/);
 assert.match(index, /id="setting-cjk-font"/);

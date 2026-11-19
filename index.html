@@ -51,6 +51,18 @@
   <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
   <link rel="apple-touch-icon" href="icons/pwa-icon-192x192.png">
   <link rel="manifest" href="manifest.webmanifest">
+  <script>
+    // 在樣式套用前還原配色與深色模式，避免載入時閃爍；完整邏輯見 assets/js/theme.js
+    try {
+      var root = document.documentElement;
+      var palette = localStorage.getItem('parchment-palette');
+      if (palette) root.dataset.palette = palette;
+      var theme = localStorage.getItem('parchment-theme') || 'system';
+      if (theme === 'dark' || (theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)) {
+        root.classList.add('dark');
+      }
+    } catch (error) { /* 使用預設外觀 */ }
+  </script>
   <link rel="stylesheet" href="assets/css/style.css">
   <link rel="stylesheet" href="assets/vendor/katex/katex.min.css">
   <link id="hljs-light" rel="stylesheet"
@@ -67,6 +79,12 @@
       <span class="text-[17px] font-semibold tracking-[-0.3px] text-[color:var(--heading-h1)]">Parchment</span>
     </div>
     <div class="flex items-center gap-2 mobile:w-full mobile:justify-end mobile:gap-1">
+      <button id="btn-install-pwa" class="btn-secondary header-install" type="button"
+        aria-label="安裝 Parchment App" title="安裝 Parchment App" hidden>
+        <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3v12m-4-4 4 4 4-4M5 20h14"/></svg>
+        <span>安裝 App</span>
+      </button>
       <button id="btn-theme" class="btn-icon grid h-8 place-items-center" type="button"
         title="切換主題（目前：跟隨系統）" aria-label="切換主題（目前：跟隨系統）">
         <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -83,6 +101,16 @@
             <path d="M20.99 13.22A9 9 0 0 1 10.78 3.01a9 9 0 1 0 10.21 10.21Z"></path>
           </g>
         </svg>
+      </button>
+      <button id="btn-about" class="btn-icon grid h-8 place-items-center" type="button"
+        aria-label="關於 Parchment" title="網站與工具資訊">
+        <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>
+      </button>
+      <button id="btn-settings" class="btn-icon grid h-8 place-items-center" type="button"
+        aria-label="開啟設定" title="設定">
+        <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.09A1.7 1.7 0 0 0 8.6 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3v-4h.09A1.7 1.7 0 0 0 4.6 8.6a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3h4v.09A1.7 1.7 0 0 0 15.4 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.17.37.46.68.82.88.26.14.55.22.85.22H21v4h-.09a1.7 1.7 0 0 0-1.51.9Z"/></svg>
       </button>
       <button id="btn-open-dir" class="btn-secondary mobile:hidden">開啟資料夾</button>
       <button id="btn-open-file" class="btn-primary">開啟檔案</button>
@@ -120,18 +148,6 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 7 4-4 4 4M8 17l4 4 4-4"/></svg>
           <span id="workspace-current-name" class="workspace-current-name">Parchment</span>
         </button>
-        <div class="workspace-utilities">
-          <button id="btn-install-pwa" class="workspace-install" type="button" aria-label="安裝 Parchment App" title="安裝 Parchment App" hidden>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M5 20h14"/></svg>
-            <span>安裝</span>
-          </button>
-          <button id="btn-about" class="workspace-icon-button" type="button" aria-label="關於 Parchment" title="網站與工具資訊">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>
-          </button>
-          <button id="btn-settings" class="workspace-icon-button" type="button" aria-label="開啟設定" title="設定">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.09A1.7 1.7 0 0 0 8.6 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3v-4h.09A1.7 1.7 0 0 0 4.6 8.6a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3h4v.09A1.7 1.7 0 0 0 15.4 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.17.37.46.68.82.88.26.14.55.22.85.22H21v4h-.09a1.7 1.7 0 0 0-1.51.9Z"/></svg>
-          </button>
-        </div>
       </div>
     </aside>
 
@@ -280,8 +296,18 @@
           <option value="mono">Consolas / 等寬</option>
         </select>
       </label>
+      <label class="setting-row" for="setting-palette">
+        <span><strong>配色</strong><small>每套配色皆有淺色與深色版本</small></span>
+        <select id="setting-palette">
+          <option value="parchment">羊皮紙（預設）</option>
+          <option value="amethyst">紫晶</option>
+          <option value="ink">墨白</option>
+          <option value="lake">湖藍</option>
+          <option value="aluminum">鋁銀</option>
+        </select>
+      </label>
       <label class="setting-row" for="setting-theme">
-        <span><strong>色彩主題</strong><small>可跟隨作業系統外觀</small></span>
+        <span><strong>明暗模式</strong><small>可跟隨作業系統外觀</small></span>
         <select id="setting-theme">
           <option value="system">跟隨系統</option>
           <option value="light">淺色</option>
