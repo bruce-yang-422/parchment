@@ -16,6 +16,7 @@ const required = [
 const discovered = [
   ...await walk('assets/css', file => file.endsWith('.css')),
   ...await walk('assets/js', file => file.endsWith('.js')),
+  ...await walk('samples', file => file.endsWith('.md')),
   ...await walk('assets/vendor', file => {
     if (file.includes('/licenses/')) return false;
     if (file.includes('/katex/fonts/')) return file.endsWith('.woff2');

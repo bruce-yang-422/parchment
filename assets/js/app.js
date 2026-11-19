@@ -119,6 +119,7 @@ document.getElementById('btn-open-file').addEventListener('click', handleOpenFil
 document.getElementById('btn-open-dir').addEventListener('click', handleOpenDir);
 document.getElementById('welcome-btn-file').addEventListener('click', handleOpenFile);
 document.getElementById('welcome-btn-dir').addEventListener('click', handleOpenDir);
+document.getElementById('welcome-btn-sample')?.addEventListener('click', _openSampleDocument);
 workspaceToggle.addEventListener('click', () => _setWorkspaceMenu(workspaceMenu.hidden));
 workspaceOpenNew.addEventListener('click', () => {
   _setWorkspaceMenu(false);
@@ -415,6 +416,51 @@ function _initWelcomeLogo() {
   }
   img.addEventListener('load', showImage, { once: true });
   img.addEventListener('error', hideImage, { once: true });
+}
+
+/* ──────────────────── 範例文件 ──────────────────── */
+
+const SAMPLE_NOTES = ['samples/parchment-guide.md', 'samples/linked-note.md'];
+const SAMPLE_ASSETS = ['image/parchment-logo-transparent.png'];
+
+/**
+ * 開啟隨網站提供的範例文件。兩份範例筆記與標誌圖片組成一個小型資料夾，
+ * 讓 Wiki Links、內嵌、相對圖片與雙向連結也能示範；檔案以 fetch 從網站讀取，離線時由 Service Worker 提供。
+ */
+async function _openSampleDocument() {
+  const fetchFile = async path => {
+    const parts = normalizeRelativePath(path);
+    const url = new URL(parts.map(encodeURIComponent).join('/'), document.baseURI);
+    const response = await fetch(url);
+    if (!response.ok) throw new DOMException(`找不到檔案：${parts.join('/')}`, 'NotFoundError');
+    return new File([await response.blob()], parts.at(-1));
+  };
+  const notePaths = SAMPLE_NOTES.map(file => file.split('/'));
+  const entries = notePaths.map(path => ({
+    type: 'file',
+    name: path.at(-1),
+    path,
+    handle: { getFile: () => fetchFile(path) },
+  }));
+  const folder = {
+    rootName: '範例',
+    entries,
+    files: [...notePaths, ...SAMPLE_ASSETS.map(file => file.split('/'))],
+    notePaths,
+    getFileByPath: fetchFile,
+    documentIndex: null,
+    documentIndexPromise: null,
+    indexGeneration: 0,
+  };
+
+  try {
+    const [entry] = entries;
+    const file = await entry.handle.getFile();
+    await _displayFile({ ...entry, content: await file.text(), folder });
+    _enterSingleMode();
+  } catch (err) {
+    _showToast(`無法開啟範例文件：${err.message}`, 'error');
+  }
 }
 
 /* ──────────────────── 以網址開啟本機檔案（瀏覽器外掛） ──────────────────── */

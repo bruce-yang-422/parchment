@@ -91,7 +91,7 @@ Each palette has light and dark variants and its own reading layout — column w
 ### Use it online
 
 1. Open **[Parchment](https://parchment.stack-base.com/)**.
-2. Choose **開啟檔案** (Open file), or drag a `.md` / `.txt` file onto the page.
+2. If it's your first time, click **開啟範例文件** (Open sample document) to see how each syntax is rendered. Otherwise choose **開啟檔案** (Open file), or drag a `.md` / `.txt` file onto the page.
 3. To browse a notes folder, use Wiki Links or full-text search, choose **開啟資料夾** (Open folder).
 
 ### Install as an app
@@ -209,6 +209,7 @@ parchment/
 │   ├── css/style.css      # Compiled styles
 │   └── vendor/            # Bundled third-party libraries and their licenses
 ├── src/styles/            # Tailwind style sources, including palettes and reading layouts
+├── samples/               # Sample notes opened by the home page's sample button
 ├── browser-extension/     # Chrome / Edge extension sources, build script and store listing
 ├── scripts/               # Build scripts for third-party bundles and the PWA
 └── tests/                 # Unit tests and the browser rendering test page

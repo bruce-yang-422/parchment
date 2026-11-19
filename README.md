@@ -88,7 +88,7 @@ Parchment 是一個本機優先（local-first）的靜態網頁應用程式，�
 ### 線上使用
 
 1. 開啟 **[Parchment](https://parchment.stack-base.com/)**。
-2. 選擇 **開啟檔案**，或把 `.md`／`.txt` 檔案拖進頁面。
+2. 第一次使用可以按 **開啟範例文件**，看看各種語法的顯示效果；或選擇 **開啟檔案**，把 `.md`／`.txt` 檔案拖進頁面。
 3. 要瀏覽整個筆記資料夾、使用 Wiki Links 或全文搜尋時，選擇 **開啟資料夾**。
 
 ### 安裝為應用程式
@@ -206,6 +206,7 @@ parchment/
 │   ├── css/style.css      # 編譯後的樣式
 │   └── vendor/            # 打包後的第三方套件與授權
 ├── src/styles/            # Tailwind 樣式原始碼（含配色與閱讀版面）
+├── samples/               # 首頁「開啟範例文件」使用的範例筆記
 ├── browser-extension/     # Chrome／Edge 外掛的原始碼、建置腳本與上架資料
 ├── scripts/               # 第三方套件與 PWA 的建置腳本
 └── tests/                 # 單元測試與瀏覽器渲染測試頁

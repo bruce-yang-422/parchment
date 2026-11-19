@@ -30,7 +30,7 @@ await mkdir(appDir, { recursive: true });
 await cp(srcDir, distDir, { recursive: true });
 
 // 2. 網站
-for (const entry of ['assets', 'icons', 'image']) {
+for (const entry of ['assets', 'icons', 'image', 'samples']) {
   await cp(path.join(projectRoot, entry), path.join(appDir, entry), { recursive: true });
 }
 let indexHtml = await readFile(path.join(projectRoot, 'index.html'), 'utf8');
