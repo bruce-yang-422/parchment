@@ -3,6 +3,8 @@
  * 僅儲存文件識別、任務文字指紋與布林值，不會寫回來源檔案。
  */
 
+import { t } from './i18n.js';
+
 const STORAGE_PREFIX = 'parchment:tasks:v1:';
 
 export function taskDocumentKey(document) {
@@ -65,7 +67,7 @@ export function wireTaskCheckboxes(container, document, { onStorageError } = {})
     checkbox.disabled = false;
     checkbox.classList.add('local-task-checkbox');
     checkbox.dataset.taskIdentity = identity;
-    checkbox.title = '檢核狀態只儲存在此瀏覽器，不會修改 Markdown 文件';
+    checkbox.title = t('檢核狀態只儲存在此瀏覽器，不會修改 Markdown 文件');
 
     if (Object.hasOwn(state, identity)) {
       checkbox.checked = state[identity] === true;

@@ -5,6 +5,7 @@
  */
 
 import { noteSyntaxPlugin, parseFrontmatter, frontmatterTags, renderPropertiesHtml } from './noteSyntax.js';
+import { t } from './i18n.js';
 
 let _ready = false;
 let _markdown = null;
@@ -58,7 +59,7 @@ export function setupRenderer() {
       closing.meta = { ...closing.meta, tagsProperty: true };
       const tagMarkup = new state.Token('html_inline', '', 0);
       tagMarkup.content = tags
-        .map(tag => `<button type="button" class="metadata-tag" data-tag="${_escapeHtml(tag)}" aria-label="以標籤 ${_escapeHtml(tag)} 篩選文件">#${_escapeHtml(tag)}</button>`)
+        .map(tag => `<button type="button" class="metadata-tag" data-tag="${_escapeHtml(tag)}" aria-label="${_escapeHtml(t('以標籤 {tag} 篩選文件', { tag }))}">#${_escapeHtml(tag)}</button>`)
         .join('');
       inline.children = [tagMarkup];
     }
@@ -68,7 +69,7 @@ export function setupRenderer() {
   const defaultHeadingClose = _markdown.renderer.rules.heading_close;
   _markdown.renderer.rules.heading_open = (tokens, index, options, env, self) => {
     if (tokens[index].meta?.tagsProperty) {
-      return '<div class="metadata-property metadata-property-tags" role="group" aria-label="標籤">'
+      return `<div class="metadata-property metadata-property-tags" role="group" aria-label="${_escapeHtml(t('標籤'))}">`
         + '<span class="metadata-property-key">tags</span>'
         + '<div class="metadata-property-value">';
     }

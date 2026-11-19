@@ -9,7 +9,7 @@
 | 名稱 | 由 `_locales` 提供：`Parchment – 本機 Markdown 閱讀器`／`Parchment – Local Markdown Reader` |
 | 簡短描述 | 由 `_locales` 提供（上限 132 字元，建置時會檢查） |
 | 類別 | 建議選擇「工具」類別（Productivity → Tools） |
-| 語言 | 中文（台灣）、英文 |
+| 語言 | 中文（台灣）、中文（簡體）、英文、日文、韓文、法文、德文、西班牙文 |
 | 官方網址 | <https://parchment.stack-base.com/> |
 | 支援網址 | <https://github.com/bruce-yang-422/parchment/issues> |
 
@@ -72,7 +72,7 @@ APPEARANCE
 PRIVACY
 No data collection, no tracking code, and no connections to any developer server. Files are read in your browser only to display them.
 
-The app's interface is in Traditional Chinese.
+The interface is available in Traditional Chinese, Simplified Chinese, English, Japanese, Korean, French, German and Spanish.
 
 Open source (MIT): https://github.com/bruce-yang-422/parchment
 ```

@@ -17,6 +17,15 @@
   "openApp": {
     "message": "Open Parchment"
   },
+  "languageHeading": {
+    "message": "Interface language"
+  },
+  "languageLabel": {
+    "message": "Language"
+  },
+  "languageHelp": {
+    "message": "The browser language is used until you choose a language here."
+  },
   "autoOpenHeading": {
     "message": "Open local Markdown files with Parchment"
   },

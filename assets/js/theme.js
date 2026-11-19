@@ -5,7 +5,8 @@
  */
 
 const THEMES = ['system', 'light', 'dark'];
-const LABELS = { system: '跟隨系統', light: '淺色', dark: '深色' };
+import { t } from './i18n.js';
+
 const STORAGE_KEY = 'parchment-theme';
 
 export const PALETTES = ['parchment', 'amethyst', 'ink', 'lake', 'aluminum'];
@@ -43,7 +44,7 @@ export function applyTheme(theme, { save = true } = {}) {
 
   const btn = document.getElementById('btn-theme');
   if (btn) {
-    const label = `切換主題（目前：${LABELS[theme]}）`;
+    const label = t('切換主題（目前：{theme}）', { theme: t({ system: '跟隨系統', light: '淺色', dark: '深色' }[theme]) });
     btn.setAttribute('aria-label', label);
     btn.title = label;
     for (const icon of btn.querySelectorAll('[data-theme-icon]')) {

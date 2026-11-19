@@ -1,5 +1,7 @@
 /** PWA 註冊、安裝提示與已安裝應用程式的檔案啟動處理。 */
 
+import { t } from './i18n.js';
+
 export const PWA_INSTALL_REMINDER_DELAYS = Object.freeze({
   later: 12 * 60 * 60 * 1000,
   declined: 60 * 24 * 60 * 60 * 1000,
@@ -111,7 +113,7 @@ function _setupInstallButton() {
   });
 
   if (isIos && shouldShowReminder()) {
-    message.textContent = '點選瀏覽器的分享按鈕，再選擇「加入主畫面」。';
+    message.textContent = t('點選瀏覽器的分享按鈕，再選擇「加入主畫面」。');
     cardButton.hidden = true;
     card.hidden = false;
   }

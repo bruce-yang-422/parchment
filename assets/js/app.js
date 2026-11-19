@@ -22,9 +22,11 @@ import { initRightPanel } from './rightPanel.js';
 import { resolveWikiPath, extractNoteSection, wikiDisplayText } from './noteSyntax.js';
 import { initSearchPanel } from './searchPanel.js';
 import { initSettingsPanel } from './settingsPanel.js';
+import { currentLocale, initI18n, t } from './i18n.js';
 
 /* ──────────────────── 初始化 ──────────────────── */
 
+initI18n();
 setupRenderer();
 initTheme();
 initReaderFont();
@@ -222,7 +224,7 @@ dragOverlay.addEventListener('drop', async (e) => {
   if (!file) return;
 
   if (!isSupportedFile(file.name)) {
-    _showToast(`不支援的格式：${file.name}。請使用 .md 或 .txt 檔案。`, 'error');
+    _showToast(t('不支援的格式：{name}。請使用 .md 或 .txt 檔案。', { name: file.name }), 'error');
     return;
   }
 
@@ -231,7 +233,7 @@ dragOverlay.addEventListener('drop', async (e) => {
     await _displayFile({ name: file.name, content, path: [file.name] });
     _enterSingleMode();
   } catch (err) {
-    _showToast(`無法讀取檔案：${err.message}`, 'error');
+    _showToast(t('無法讀取檔案：{message}', { message: err.message }), 'error');
   }
 });
 
@@ -362,7 +364,7 @@ function _loadModifiedTimes(context) {
 function _syncTreeCollapseButton() {
   if (!treeCollapseToggle) return;
   const expanded = hasExpandedDirectory();
-  const label = expanded ? '全部折疊' : '全部展開';
+  const label = t(expanded ? '全部折疊' : '全部展開');
   treeCollapseToggle.title = label;
   treeCollapseToggle.setAttribute('aria-label', label);
   treeCollapseToggle.querySelector('[data-tree-icon="expand"]').toggleAttribute('hidden', expanded);
@@ -420,22 +422,28 @@ function _initWelcomeLogo() {
 
 /* ──────────────────── 範例文件 ──────────────────── */
 
-const SAMPLE_NOTES = ['samples/parchment-guide.md', 'samples/linked-note.md'];
 const SAMPLE_ASSETS = ['image/parchment-logo-transparent.png'];
+
+function _sampleNotes() {
+  const locale = currentLocale();
+  const directory = locale === 'zh-TW' ? 'samples' : `samples/${locale}`;
+  return [`${directory}/parchment-guide.md`, `${directory}/linked-note.md`];
+}
 
 /**
  * 開啟隨網站提供的範例文件。兩份範例筆記與標誌圖片組成一個小型資料夾，
  * 讓 Wiki Links、內嵌、相對圖片與雙向連結也能示範；檔案以 fetch 從網站讀取，離線時由 Service Worker 提供。
  */
 async function _openSampleDocument() {
+  const sampleNotes = _sampleNotes();
   const fetchFile = async path => {
     const parts = normalizeRelativePath(path);
     const url = new URL(parts.map(encodeURIComponent).join('/'), document.baseURI);
     const response = await fetch(url);
-    if (!response.ok) throw new DOMException(`找不到檔案：${parts.join('/')}`, 'NotFoundError');
+    if (!response.ok) throw new DOMException(t('找不到檔案：{name}', { name: parts.join('/') }), 'NotFoundError');
     return new File([await response.blob()], parts.at(-1));
   };
-  const notePaths = SAMPLE_NOTES.map(file => file.split('/'));
+  const notePaths = sampleNotes.map(file => file.split('/'));
   const entries = notePaths.map(path => ({
     type: 'file',
     name: path.at(-1),
@@ -443,7 +451,7 @@ async function _openSampleDocument() {
     handle: { getFile: () => fetchFile(path) },
   }));
   const folder = {
-    rootName: '範例',
+    rootName: t('範例'),
     entries,
     files: [...notePaths, ...SAMPLE_ASSETS.map(file => file.split('/'))],
     notePaths,
@@ -459,7 +467,7 @@ async function _openSampleDocument() {
     await _displayFile({ ...entry, content: await file.text(), folder });
     _enterSingleMode();
   } catch (err) {
-    _showToast(`無法開啟範例文件：${err.message}`, 'error');
+    _showToast(t('無法開啟範例文件：{message}', { message: err.message }), 'error');
   }
 }
 
@@ -495,7 +503,7 @@ async function _openFromUrlParameter() {
       },
     };
     const file = await folder.getFileByPath(segments);
-    if (!isSupportedFile(file.name)) throw new Error(`不支援的格式：${file.name}`);
+    if (!isSupportedFile(file.name)) throw new Error(t('不支援的格式：{name}', { name: file.name }));
     await _displayFile({ name: file.name, content: await file.text(), path: segments, folder });
     _enterSingleMode();
   } catch (err) {
@@ -513,14 +521,14 @@ function _readFileUrl(url, name) {
       if ((request.status === 0 || request.status === 200) && request.response) {
         resolve(new File([request.response], name, { type: request.response.type }));
       } else {
-        reject(new DOMException(`找不到檔案：${name}`, 'NotFoundError'));
+        reject(new DOMException(t('找不到檔案：{name}', { name }), 'NotFoundError'));
       }
     };
     request.onerror = () => {
       const blocked = globalThis.chrome?.extension?.isAllowedFileSchemeAccess;
       reject(new Error(blocked
-        ? `無法讀取本機檔案：${name}。請在擴充功能詳細資料中開啟「允許存取檔案網址」。`
-        : `無法讀取本機檔案：${name}`));
+        ? t('無法讀取本機檔案：{name}。請在擴充功能詳細資料中開啟「允許存取檔案網址」。', { name })
+        : t('無法讀取本機檔案：{name}', { name })));
     };
     request.send();
   });
@@ -529,7 +537,7 @@ function _readFileUrl(url, name) {
 async function _openFileFromLaunchQueue(handle) {
   const file = await handle.getFile();
   if (!isSupportedFile(file.name)) {
-    _showToast(`不支援的格式：${file.name}。請使用 .md 或 .txt 檔案。`, 'error');
+    _showToast(t('不支援的格式：{name}。請使用 .md 或 .txt 檔案。', { name: file.name }), 'error');
     return;
   }
   await _displayFile({
@@ -554,7 +562,7 @@ async function _displayFile(doc, options = {}) {
 
   // 大檔案警告（> 5 MB）
   if (content.length > 5 * 1024 * 1024) {
-    _showToast(`檔案較大（${_formatSize(content.length)}），渲染可能較慢。`, 'info');
+    _showToast(t('檔案較大（{size}），渲染可能較慢。', { size: _formatSize(content.length) }), 'info');
   }
 
   currentFilename.textContent = name;
@@ -571,7 +579,7 @@ async function _displayFile(doc, options = {}) {
       onStorageError: () => {
         if (taskStorageWarningShown) return;
         taskStorageWarningShown = true;
-        _showToast('無法保存 TODO 檢核狀態；本次勾選不會保留。', 'error');
+        _showToast(t('無法保存 TODO 檢核狀態；本次勾選不會保留。'), 'error');
       },
     })
     : 0;
@@ -654,7 +662,7 @@ async function _filterFolderByTag(rawTag) {
   const tag = String(rawTag || '').trim().replace(/^#/, '');
   if (!tag) return;
   if (!_folderContext) {
-    _showToast('請先開啟資料夾，再用標籤篩選文件。');
+    _showToast(t('請先開啟資料夾，再用標籤篩選文件。'));
     return;
   }
 
@@ -662,7 +670,7 @@ async function _filterFolderByTag(rawTag) {
   const generation = ++_tagFilterGeneration;
   _activeTagFilter = tag;
   tagFilterStatus.hidden = false;
-  tagFilterLabel.textContent = `#${tag} · 搜尋中…`;
+  tagFilterLabel.textContent = `#${tag} · ${t('搜尋中…')}`;
   _syncActiveTagButtons();
 
   try {
@@ -672,14 +680,14 @@ async function _filterFolderByTag(rawTag) {
     const matches = index.get(_normalizedTag(tag)) || new Set();
     const filteredEntries = _filterEntriesByPath(context.entries, matches);
     _renderFolderTree(filteredEntries, { expandDirectories: true });
-    tagFilterLabel.textContent = `#${tag} · ${matches.size} 個文件`;
+    tagFilterLabel.textContent = `#${tag} · ${t('{count} 個文件', { count: matches.size })}`;
 
     const currentPath = _currentDocument?.path;
     if (currentPath && matches.has(_treePathKey(currentPath))) setActiveTreePath(currentPath);
     _syncActiveTagButtons();
   } catch (error) {
     if (generation !== _tagFilterGeneration) return;
-    _showToast(`無法建立標籤索引：${error.message}`, 'error');
+    _showToast(t('無法建立標籤索引：{message}', { message: error.message }), 'error');
     _clearTagFilter();
   }
 }
@@ -746,7 +754,7 @@ async function _openIndexedDocument(entry, options = {}) {
     setActiveTreePath(entry.path);
     folderPlaceholder.hidden = true;
   } catch (error) {
-    _showToast(`無法開啟連結文件：${error.message}`, 'error');
+    _showToast(t('無法開啟連結文件：{message}', { message: error.message }), 'error');
   }
 }
 
@@ -786,19 +794,19 @@ function _attachCopyButtons(container) {
 
     const btn = document.createElement('button');
     btn.className = 'copy-btn';
-    btn.textContent = '複製';
+    btn.textContent = t('複製');
     btn.addEventListener('click', async () => {
       try {
         await navigator.clipboard.writeText(code.textContent);
-        btn.textContent = '已複製';
+        btn.textContent = t('已複製');
         btn.classList.add('copied');
         setTimeout(() => {
-          btn.textContent = '複製';
+          btn.textContent = t('複製');
           btn.classList.remove('copied');
         }, 1500);
       } catch {
-        btn.textContent = '失敗';
-        setTimeout(() => { btn.textContent = '複製'; }, 1500);
+        btn.textContent = t('失敗');
+        setTimeout(() => { btn.textContent = t('複製'); }, 1500);
       }
     });
     wrapper.appendChild(btn);
@@ -813,8 +821,8 @@ function _createMermaidFallback(source, err) {
   error.className = 'mermaid-error';
   const message = err && typeof err.message === 'string'
     ? err.message
-    : '未知錯誤';
-  error.textContent = `Mermaid 圖表目前無法渲染，以下保留原始碼。\n錯誤：${message}`;
+    : t('未知錯誤');
+  error.textContent = t('Mermaid 圖表目前無法渲染，以下保留原始碼。\n錯誤：{message}', { message });
 
   const pre = document.createElement('pre');
   const code = document.createElement('code');
@@ -838,7 +846,7 @@ async function _retryMermaidRender(source, err) {
       const result = await window.mermaid.render(renderId, variant);
       const svg = typeof result === 'string' ? result : result?.svg;
       if (svg) return { svg };
-      lastError = new Error('Mermaid fallback 未產生 SVG 輸出');
+      lastError = new Error(t('Mermaid 備援渲染未產生 SVG 輸出'));
     } catch (retryErr) {
       lastError = retryErr;
     } finally {
@@ -898,7 +906,7 @@ function _withMermaidInit(source, config) {
 }
 
 async function _renderMermaidSource(source) {
-  const firstError = new Error('Mermaid 未開始渲染');
+  const firstError = new Error(t('Mermaid 未開始渲染'));
   const result = await _retryMermaidRender(source, firstError);
   if (result?.svg) return result.svg;
   throw result?.error ?? firstError;
@@ -926,7 +934,7 @@ function _prepareMermaidDiagram(wrapper) {
 
   // 點擊以原始尺寸在燈箱中檢視。
   wrapper.classList.add('diagram-zoomable');
-  wrapper.title = '點擊放大檢視';
+  wrapper.title = t('點擊放大檢視');
   wrapper.addEventListener('click', () => {
     const clone = svg.cloneNode(true);
     clone.removeAttribute('style');
@@ -938,7 +946,7 @@ function _prepareMermaidDiagram(wrapper) {
     const index = [...readerBody.querySelectorAll('.mermaid')].indexOf(wrapper) + 1;
     const base = pngFileName(_currentDocument?.name, 'diagram').replace(/\.png$/, '');
     _openImageLightbox(
-      { src: url, alt: 'Mermaid 圖表' },
+      { src: url, alt: t('Mermaid 圖表') },
       { downloadName: `${base}-diagram-${index || 1}.png` },
     );
   });
@@ -1004,7 +1012,7 @@ async function _saveLightboxImage() {
   try {
     await saveImageAsPng(src, lightboxImage.dataset.downloadName || 'image.png');
   } catch (err) {
-    _showToast(`無法存成 PNG：${err.message}`, 'error');
+    _showToast(t('無法存成 PNG：{message}', { message: err.message }), 'error');
   } finally {
     if (lightboxSavePng) lightboxSavePng.disabled = false;
   }
@@ -1020,7 +1028,7 @@ async function _resolveRelativeImages(container, document) {
 
     if (!document.folder?.getFileByPath) {
       img.classList.add('local-resource-unavailable');
-      img.title = '請用「開啟資料夾」授權後，才能載入本機相對圖片。';
+      img.title = t('請用「開啟資料夾」授權後，才能載入本機相對圖片。');
       return;
     }
 
@@ -1039,7 +1047,7 @@ async function _resolveRelativeImages(container, document) {
       img.src = objectUrl;
     } catch (err) {
       img.classList.add('local-resource-unavailable');
-      img.title = `找不到相對圖片：${source}`;
+      img.title = t('找不到相對圖片：{source}', { source });
       console.warn('無法載入相對圖片：', source, err);
     }
   }));
@@ -1074,7 +1082,7 @@ function _wireDocumentLinks(container, document) {
     anchor.addEventListener('click', async event => {
       event.preventDefault();
       if (!document.folder?.getFileByPath) {
-        _showToast('請用「開啟資料夾」授權後，再開啟相對文件連結。', 'error');
+        _showToast(t('請用「開啟資料夾」授權後，再開啟相對文件連結。'), 'error');
         return;
       }
       try {
@@ -1090,7 +1098,7 @@ function _wireDocumentLinks(container, document) {
         }, { hash });
         setActiveTreePath(path);
       } catch (err) {
-        _showToast(`無法開啟連結：${href}`, 'error');
+        _showToast(t('無法開啟連結：{target}', { target: href }), 'error');
         console.warn('Relative document navigation failed:', err);
       }
     });
@@ -1142,18 +1150,18 @@ function _wireWikiLink(anchor, doc) {
   const resolved = folder ? _resolveWikiTarget(target, doc.path, folder) : null;
   if (folder && !resolved) {
     anchor.classList.add('is-unresolved');
-    anchor.title = `找不到筆記：${target}`;
+    anchor.title = t('找不到筆記：{target}', { target });
   }
 
   anchor.addEventListener('click', async event => {
     event.preventDefault();
     if (!folder?.getFileByPath) {
-      _showToast('請用「開啟資料夾」授權後，再開啟 Wiki 連結。', 'error');
+      _showToast(t('請用「開啟資料夾」授權後，再開啟 Wiki 連結。'), 'error');
       return;
     }
     const result = resolved || _resolveWikiTarget(target, doc.path, folder);
     if (!result) {
-      _showToast(`找不到筆記：${target}`, 'error');
+      _showToast(t('找不到筆記：{target}', { target }), 'error');
       return;
     }
     try {
@@ -1166,7 +1174,7 @@ function _wireWikiLink(anchor, doc) {
       }
       await _openFolderDocument(folder, result.path, { hash });
     } catch (err) {
-      _showToast(`無法開啟連結：${target}`, 'error');
+      _showToast(t('無法開啟連結：{target}', { target }), 'error');
       console.warn('Wiki link navigation failed:', err);
     }
   });
@@ -1193,7 +1201,7 @@ async function _resolveWikiImages(container, doc) {
     const target = img.dataset.wikiEmbed;
     if (!doc.folder?.getFileByPath) {
       img.classList.add('local-resource-unavailable');
-      img.title = '請用「開啟資料夾」授權後，才能載入內嵌圖片。';
+      img.title = t('請用「開啟資料夾」授權後，才能載入內嵌圖片。');
       return;
     }
     const path = resolveWikiPath(target, doc.path, doc.folder.files || []);
@@ -1204,7 +1212,7 @@ async function _resolveWikiImages(container, doc) {
       img.src = objectUrl;
     } catch {
       img.classList.add('local-resource-unavailable');
-      img.title = `找不到內嵌圖片：${target}`;
+      img.title = t('找不到內嵌圖片：{target}', { target });
     }
   }));
 }
@@ -1258,17 +1266,17 @@ async function _buildNoteEmbed(meta, doc, depth, seen) {
 
   const folder = doc.folder;
   _wireWikiLink(link, doc);
-  if (meta.target && !folder?.getFileByPath) return fail('請用「開啟資料夾」授權後，才能顯示內嵌筆記。');
+  if (meta.target && !folder?.getFileByPath) return fail(t('請用「開啟資料夾」授權後，才能顯示內嵌筆記。'));
 
   // ![[#標題]] 內嵌目前筆記的段落
   const resolved = meta.target
     ? _resolveWikiTarget(meta.target, doc.path, folder)
     : { kind: 'note', path: doc.path || [doc.name] };
-  if (!resolved || resolved.kind !== 'note') return fail(`找不到內嵌筆記：${meta.target}`);
+  if (!resolved || resolved.kind !== 'note') return fail(t('找不到內嵌筆記：{target}', { target: meta.target }));
 
   const key = _treePathKey(resolved.path);
-  if (depth >= EMBED_MAX_DEPTH) return fail('內嵌層數過多，已略過。');
-  if (seen.has(key) && !meta.heading && !meta.blockId) return fail('筆記內嵌了自己（循環內嵌），已略過。');
+  if (depth >= EMBED_MAX_DEPTH) return fail(t('內嵌層數過多，已略過。'));
+  if (seen.has(key) && !meta.heading && !meta.blockId) return fail(t('筆記內嵌了自己（循環內嵌），已略過。'));
 
   try {
     const file = meta.target ? await folder.getFileByPath(resolved.path) : null;
@@ -1279,7 +1287,9 @@ async function _buildNoteEmbed(meta, doc, depth, seen) {
       ? extractNoteSection(content, { heading: meta.heading, blockId: meta.blockId })
       : content;
     if (section === null) {
-      return fail(`在「${name}」找不到${meta.blockId ? `區塊 ^${meta.blockId}` : `標題「${meta.heading}」`}。`);
+      return fail(meta.blockId
+        ? t('在「{name}」找不到區塊 ^{block}。', { name, block: meta.blockId })
+        : t('在「{name}」找不到標題「{heading}」。', { name, heading: meta.heading }));
     }
 
     body.innerHTML = isMarkdown ? renderMarkdown(section, { properties: false }) : renderText(section);
@@ -1293,7 +1303,7 @@ async function _buildNoteEmbed(meta, doc, depth, seen) {
     return wrapper;
   } catch (err) {
     console.warn('Note embed failed:', err);
-    return fail(`無法讀取內嵌筆記：${meta.target}`);
+    return fail(t('無法讀取內嵌筆記：{target}', { target: meta.target }));
   }
 }
 
@@ -1406,7 +1416,7 @@ async function _renderGraphvizDiagrams(container) {
   if (!nodes.length) return;
 
   if (!window.ParchmentViz) {
-    nodes.forEach(node => node.replaceWith(_createDiagramFallback('Graphviz', node.textContent, new Error('Graphviz 引擎未載入'))));
+    nodes.forEach(node => node.replaceWith(_createDiagramFallback('Graphviz', node.textContent, new Error(t('Graphviz 引擎未載入')))));
     return;
   }
 
@@ -1430,7 +1440,7 @@ function _createDiagramFallback(name, source, err) {
   wrapper.className = 'diagram-fallback';
   const message = document.createElement('div');
   message.className = 'mermaid-error';
-  message.textContent = `${name} 圖表無法渲染：${err?.message || '未知錯誤'}`;
+  message.textContent = t('{name} 圖表無法渲染：{message}', { name, message: err?.message || t('未知錯誤') });
   const pre = document.createElement('pre');
   const code = document.createElement('code');
   code.className = 'hljs language-plaintext';
@@ -1509,7 +1519,7 @@ function _startHotReload(document) {
         if (document.folder) _invalidateDocumentIndex(document.folder);
         await _displayFile(updated, { hotReload: true });
         searchPanel.refresh();
-        _showToast(`${file.name} 已自動更新`);
+        _showToast(t('{name} 已自動更新', { name: file.name }));
       }
     } catch (err) {
       console.warn('Hot reload stopped:', err);
@@ -1558,7 +1568,7 @@ async function _renderWorkspaceFolders(items) {
   if (!rows.length) {
     const empty = document.createElement('p');
     empty.className = 'workspace-empty';
-    empty.textContent = '尚無已開啟的資料夾';
+    empty.textContent = t('尚無已開啟的資料夾');
     workspaceList.appendChild(empty);
     return;
   }
@@ -1580,7 +1590,7 @@ async function _renderWorkspaceFolders(items) {
     name.textContent = item.handle.name;
     const status = document.createElement('span');
     status.className = `workspace-permission ${permission}`;
-    status.textContent = permission === 'granted' ? '已授權' : permission === 'denied' ? '需重新授權' : '需確認';
+    status.textContent = t(permission === 'granted' ? '已授權' : permission === 'denied' ? '需重新授權' : '需確認');
     button.append(icon, name, status);
     button.addEventListener('click', () => {
       _setWorkspaceMenu(false);
@@ -1609,7 +1619,7 @@ function _renderRecents(items) {
     btn.innerHTML =
       `<span class="recent-icon">${icon}</span>` +
       `<span class="recent-name">${_esc(item.handle.name)}</span>` +
-      `<span class="recent-type">${item.type === 'dir' ? '資料夾' : '檔案'}</span>`;
+      `<span class="recent-type">${t(item.type === 'dir' ? '資料夾' : '檔案')}</span>`;
 
     btn.addEventListener('click', () => _openRecent(item));
     li.appendChild(btn);
@@ -1630,7 +1640,7 @@ async function _openRecent(item) {
     saveRecent(item.type, item.handle).then(_refreshRecents).catch(() => {}); // 更新 timestamp
   } catch (err) {
     if (err.name === 'NotAllowedError') {
-      _showToast('存取被拒絕，請重新從「開啟」按鈕選擇。', 'error');
+      _showToast(t('存取被拒絕，請重新從「開啟」按鈕選擇。'), 'error');
     } else if (err.name !== 'AbortError') {
       _showToast(err.message, 'error');
     }

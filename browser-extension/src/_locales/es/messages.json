@@ -1,0 +1,21 @@
+{
+  "extName": { "message": "Parchment – Lector Markdown local" },
+  "extDescription": { "message": "Lee notas Markdown y de texto locales en modo de solo lectura, con Wiki Links, avisos, diagramas, fórmulas y búsqueda. Sin cargas." },
+  "actionTitle": { "message": "Abrir Parchment" },
+  "optionsTitle": { "message": "Configuración de Parchment" },
+  "optionsIntro": { "message": "Parchment abre archivos Markdown y de texto locales en modo de solo lectura. Todo se procesa en el navegador y no se carga contenido." },
+  "openApp": { "message": "Abrir Parchment" },
+  "languageHeading": { "message": "Idioma de la interfaz" },
+  "languageLabel": { "message": "Idioma" },
+  "languageHelp": { "message": "Se usa automáticamente el idioma del navegador hasta que elijas uno." },
+  "autoOpenHeading": { "message": "Abrir archivos Markdown locales con Parchment" },
+  "autoOpenLabel": { "message": "Mostrar en Parchment los archivos .md locales abiertos en el navegador" },
+  "autoOpenHelp": { "message": "Las imágenes relativas y los enlaces a otros archivos .md de la misma carpeta siguen funcionando. Pulsa Atrás para ver el texto original." },
+  "fileAccessHeading": { "message": "Acceso a URL de archivo" },
+  "fileAccessEnabled": { "message": "Activado. Los archivos .md locales se abrirán en Parchment." },
+  "fileAccessDisabled": { "message": "No activado. Activa “Permitir acceso a URL de archivo” en los detalles de la extensión." },
+  "fileAccessButton": { "message": "Abrir detalles de la extensión" },
+  "fileAccessNote": { "message": "Debes activar esta opción manualmente. No es necesaria para abrir archivos o carpetas desde Parchment." },
+  "privacyHeading": { "message": "Privacidad" },
+  "privacyNote": { "message": "Parchment no recopila ni transmite tus documentos ni los almacena fuera de este navegador. Solo lee los archivos que abres." }
+}

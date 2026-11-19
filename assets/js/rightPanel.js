@@ -1,5 +1,6 @@
 import { extractMarkdownTags } from './renderer.js';
 import { getDocumentRelations } from './noteLinks.js';
+import { formatList, t } from './i18n.js';
 
 /** 初始化右側資訊面板。 */
 export function initRightPanel({ sidebar, onSelectTag, onOpenDocument }) {
@@ -52,13 +53,13 @@ export function initRightPanel({ sidebar, onSelectTag, onOpenDocument }) {
       _renderTags(tagsContainer, extractMarkdownTags(document.content), onSelectTag);
 
       if (!indexPromise || !document.path) {
-        _renderMessage(linksContainer, '開啟資料夾後可解析連結筆記。');
-        _renderMessage(backlinksContainer, '開啟資料夾後可分析雙向連結。');
+        _renderMessage(linksContainer, t('開啟資料夾後可解析連結筆記。'));
+        _renderMessage(backlinksContainer, t('開啟資料夾後可分析雙向連結。'));
         return;
       }
 
-      _renderMessage(linksContainer, '正在分析筆記連結…');
-      _renderMessage(backlinksContainer, '正在分析筆記連結…');
+      _renderMessage(linksContainer, t('正在分析筆記連結…'));
+      _renderMessage(backlinksContainer, t('正在分析筆記連結…'));
       try {
         const index = await indexPromise;
         if (generation !== renderGeneration) return;
@@ -67,8 +68,8 @@ export function initRightPanel({ sidebar, onSelectTag, onOpenDocument }) {
         _renderBacklinks(backlinksContainer, relations.backlinks, onOpenDocument);
       } catch (error) {
         if (generation !== renderGeneration) return;
-        _renderMessage(linksContainer, `無法分析筆記連結：${error.message}`);
-        _renderMessage(backlinksContainer, `無法分析雙向連結：${error.message}`);
+        _renderMessage(linksContainer, t('無法分析筆記連結：{message}', { message: error.message }));
+        _renderMessage(backlinksContainer, t('無法分析雙向連結：{message}', { message: error.message }));
       }
     },
   };
@@ -76,12 +77,12 @@ export function initRightPanel({ sidebar, onSelectTag, onOpenDocument }) {
 
 function _renderOutlineEmpty(container) {
   if (container.children.length) return;
-  _renderMessage(container, '這份文件沒有標題。');
+  _renderMessage(container, t('這份文件沒有標題。'));
 }
 
 function _renderTags(container, tags, onSelectTag) {
   container.innerHTML = '';
-  if (!tags.length) { _renderMessage(container, '這份文件沒有標籤。'); return; }
+  if (!tags.length) { _renderMessage(container, t('這份文件沒有標籤。')); return; }
   const wrapper = document.createElement('div');
   wrapper.className = 'right-tag-list';
   tags.forEach(tag => {
@@ -89,7 +90,7 @@ function _renderTags(container, tags, onSelectTag) {
     button.type = 'button';
     button.className = 'right-tag';
     button.textContent = `#${tag}`;
-    button.title = `以 #${tag} 篩選文件`;
+    button.title = t('以 #{tag} 篩選文件', { tag });
     button.addEventListener('click', () => onSelectTag(tag));
     wrapper.appendChild(button);
   });
@@ -98,7 +99,7 @@ function _renderTags(container, tags, onSelectTag) {
 
 function _renderLinkedNotes(container, records, onOpenDocument) {
   container.innerHTML = '';
-  if (!records.length) { _renderMessage(container, '這份文件沒有連到其他筆記。'); return; }
+  if (!records.length) { _renderMessage(container, t('這份文件沒有連到其他筆記。')); return; }
   const list = _createList();
   records.forEach(record => {
     const item = document.createElement('li');
@@ -110,12 +111,12 @@ function _renderLinkedNotes(container, records, onOpenDocument) {
 
 function _renderBacklinks(container, backlinks, onOpenDocument) {
   container.innerHTML = '';
-  if (!backlinks.length) { _renderMessage(container, '目前沒有其他筆記連到這份文件。'); return; }
+  if (!backlinks.length) { _renderMessage(container, t('目前沒有其他筆記連到這份文件。')); return; }
   const list = _createList();
   backlinks.forEach(({ record, links }) => {
     const item = document.createElement('li');
     const button = _documentButton(record.entry, record.entry.name, onOpenDocument);
-    button.title = `由「${links.map(link => link.label).join('、')}」連入`;
+    button.title = t('由「{labels}」連入', { labels: formatList(links.map(link => link.label)) });
     item.appendChild(button);
     list.appendChild(item);
   });

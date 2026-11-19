@@ -7,8 +7,23 @@
 
 const APP_URL = chrome.runtime.getURL('app/index.html');
 
+function normalizeLocale(value) {
+  const locale = String(value || '').replace('_', '-').toLowerCase();
+  if (locale === 'zh' || /^(zh-(tw|hk|mo|hant))/.test(locale)) return 'zh-TW';
+  if (/^zh-(cn|sg|hans)/.test(locale)) return 'zh-CN';
+  return ['en', 'ja', 'ko', 'fr', 'de', 'es'].find(item => locale.startsWith(item)) || 'en';
+}
+
+async function appUrl(file = null) {
+  const { uiLocale } = await chrome.storage.local.get({ uiLocale: null });
+  const url = new URL(APP_URL);
+  url.searchParams.set('lang', normalizeLocale(uiLocale || chrome.i18n.getUILanguage()));
+  if (file) url.searchParams.set('file', file);
+  return url.href;
+}
+
 chrome.action.onClicked.addListener(() => {
-  chrome.tabs.create({ url: APP_URL });
+  appUrl().then(url => chrome.tabs.create({ url }));
 });
 
 chrome.runtime.onMessage.addListener((message, sender) => {
@@ -17,9 +32,7 @@ chrome.runtime.onMessage.addListener((message, sender) => {
   if (sender.id !== chrome.runtime.id || !sender.tab?.id) return;
   if (!/^file:\/\//i.test(message.url) || !/^file:\/\//i.test(sender.url || '')) return;
 
-  chrome.tabs.update(sender.tab.id, {
-    url: `${APP_URL}?file=${encodeURIComponent(message.url)}`,
-  });
+  appUrl(message.url).then(url => chrome.tabs.update(sender.tab.id, { url }));
 });
 
 chrome.runtime.onInstalled.addListener(({ reason }) => {

@@ -1,0 +1,21 @@
+{
+  "extName": { "message": "Parchment – 本地 Markdown 阅读器" },
+  "extDescription": { "message": "以只读方式阅读本地 Markdown 和纯文本笔记，支持 Wiki 链接、提示块、图表、公式和全文搜索，文件不会离开设备。" },
+  "actionTitle": { "message": "打开 Parchment" },
+  "optionsTitle": { "message": "Parchment 设置" },
+  "optionsIntro": { "message": "Parchment 以只读方式打开本地 Markdown 和纯文本文件。所有处理均在浏览器中完成，不会上传任何内容。" },
+  "openApp": { "message": "打开 Parchment" },
+  "languageHeading": { "message": "界面语言" },
+  "languageLabel": { "message": "语言" },
+  "languageHelp": { "message": "手动选择前，将自动使用浏览器语言。" },
+  "autoOpenHeading": { "message": "使用 Parchment 打开本地 Markdown 文件" },
+  "autoOpenLabel": { "message": "在浏览器中打开本地 .md 文件时，自动使用 Parchment 显示" },
+  "autoOpenHelp": { "message": "同一文件夹中的相对图片和其他 .md 文件链接仍可使用。按“返回”可查看原始纯文本。" },
+  "fileAccessHeading": { "message": "文件网址访问权限" },
+  "fileAccessEnabled": { "message": "已启用。本地 .md 文件将使用 Parchment 打开。" },
+  "fileAccessDisabled": { "message": "尚未启用。请在扩展程序详情中打开“允许访问文件网址”。" },
+  "fileAccessButton": { "message": "打开扩展程序详情" },
+  "fileAccessNote": { "message": "此选项必须由你手动启用。在 Parchment 中打开文件或文件夹不需要此权限。" },
+  "privacyHeading": { "message": "隐私" },
+  "privacyNote": { "message": "Parchment 不会在此浏览器之外收集、传输或存储你的文档，只会读取你主动打开的文件。" }
+}

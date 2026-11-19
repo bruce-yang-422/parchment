@@ -1,0 +1,21 @@
+{
+  "extName": { "message": "Parchment – Lecteur Markdown local" },
+  "extDescription": { "message": "Lisez vos fichiers Markdown et texte locaux en lecture seule, avec Wiki Links, diagrammes, formules et recherche. Aucun envoi." },
+  "actionTitle": { "message": "Ouvrir Parchment" },
+  "optionsTitle": { "message": "Paramètres de Parchment" },
+  "optionsIntro": { "message": "Parchment ouvre vos fichiers Markdown et texte locaux en lecture seule. Tout est traité dans le navigateur, sans aucun envoi." },
+  "openApp": { "message": "Ouvrir Parchment" },
+  "languageHeading": { "message": "Langue de l’interface" },
+  "languageLabel": { "message": "Langue" },
+  "languageHelp": { "message": "La langue du navigateur est utilisée automatiquement jusqu’à votre choix." },
+  "autoOpenHeading": { "message": "Ouvrir les fichiers Markdown locaux avec Parchment" },
+  "autoOpenLabel": { "message": "Afficher dans Parchment les fichiers .md locaux ouverts dans le navigateur" },
+  "autoOpenHelp": { "message": "Les images relatives et les liens vers d’autres fichiers .md du même dossier restent disponibles. Revenez en arrière pour afficher le texte brut." },
+  "fileAccessHeading": { "message": "Accès aux URL de fichiers" },
+  "fileAccessEnabled": { "message": "Activé. Les fichiers .md locaux s’ouvriront dans Parchment." },
+  "fileAccessDisabled": { "message": "Non activé. Activez « Autoriser l’accès aux URL de fichiers » dans les détails de l’extension." },
+  "fileAccessButton": { "message": "Ouvrir les détails de l’extension" },
+  "fileAccessNote": { "message": "Vous devez activer cette option vous-même. Elle n’est pas nécessaire pour ouvrir un fichier ou dossier depuis Parchment." },
+  "privacyHeading": { "message": "Confidentialité" },
+  "privacyNote": { "message": "Parchment ne collecte ni ne transmet vos documents et ne les stocke pas hors de ce navigateur. Seuls les fichiers ouverts sont lus." }
+}

@@ -2,6 +2,8 @@
  * tree.js — 資料夾樹狀結構 UI 模組
  */
 
+import { t } from './i18n.js';
+
 let _onFileSelect = null;
 let _activeBtn = null;
 let _pathButtons = new Map();
@@ -29,7 +31,7 @@ export function renderTree(entries, onFileSelect, {
   if (!entries.length) {
     const empty = document.createElement('p');
     empty.className = 'tree-empty';
-    empty.textContent = '沒有符合此標籤的文件';
+    empty.textContent = t('沒有符合此標籤的文件');
     container.appendChild(empty);
     return;
   }

@@ -7,6 +7,8 @@
  * - 依最短路徑規則解析筆記與附件路徑
  */
 
+import { t } from './i18n.js';
+
 export const IMAGE_EXTENSIONS = /\.(?:png|jpe?g|gif|webp|svg|bmp|avif|ico)$/i;
 
 /* ──────────────────── Wiki Link 解析 ──────────────────── */
@@ -476,7 +478,7 @@ export function renderPropertiesHtml(data, { renderInline, escapeHtml }) {
     if (lower === 'tags' || lower === 'tag') {
       const tags = frontmatterTags({ tags: value });
       valueHtml = tags.length
-        ? tags.map(tag => `<button type="button" class="metadata-tag" data-tag="${escapeHtml(tag)}" aria-label="以標籤 ${escapeHtml(tag)} 篩選文件">#${escapeHtml(tag)}</button>`).join('')
+        ? tags.map(tag => `<button type="button" class="metadata-tag" data-tag="${escapeHtml(tag)}" aria-label="${escapeHtml(t('以標籤 {tag} 篩選文件', { tag }))}">#${escapeHtml(tag)}</button>`).join('')
         : '<span class="metadata-empty">—</span>';
     } else if (Array.isArray(value)) {
       valueHtml = value.length
@@ -496,5 +498,5 @@ export function renderPropertiesHtml(data, { renderInline, escapeHtml }) {
       + `<div class="metadata-property-value">${valueHtml}</div></div>`;
   });
 
-  return `<div class="metadata-properties" role="group" aria-label="筆記屬性">${rows.join('')}</div>\n`;
+  return `<div class="metadata-properties" role="group" aria-label="${escapeHtml(t('筆記屬性'))}">${rows.join('')}</div>\n`;
 }

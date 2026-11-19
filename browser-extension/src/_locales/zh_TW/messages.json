@@ -17,6 +17,15 @@
   "openApp": {
     "message": "開啟 Parchment"
   },
+  "languageHeading": {
+    "message": "介面語言"
+  },
+  "languageLabel": {
+    "message": "語言"
+  },
+  "languageHelp": {
+    "message": "尚未手動選擇時，會自動使用瀏覽器語言。"
+  },
   "autoOpenHeading": {
     "message": "以 Parchment 開啟本機 Markdown 檔"
   },

@@ -3,6 +3,8 @@
  * 支援 File System Access API（Chrome/Edge 86+）及降級方案（Firefox/Safari）
  */
 
+import { t } from './i18n.js';
+
 const SUPPORTED_EXT = /\.(md|txt)$/i;
 
 /** 判斷檔名是否為支援格式 */
@@ -51,7 +53,7 @@ function _openFileWithInput() {
       const file = input.files[0];
       if (!file) { reject(new DOMException('No file selected', 'AbortError')); return; }
       if (!isSupportedFile(file.name)) {
-        reject(new Error(`不支援的格式：${file.name}。請使用 .md 或 .txt 檔案。`));
+        reject(new Error(t('不支援的格式：{name}。請使用 .md 或 .txt 檔案。', { name: file.name })));
         return;
       }
       resolve({ name: file.name, content: await file.text(), path: [file.name] });
@@ -131,11 +133,11 @@ function _openDirWithInput() {
 
       const supported = files.filter(f => isSupportedFile(f.name));
       if (!supported.length) {
-        reject(new Error('所選資料夾中沒有 .md 或 .txt 檔案。'));
+        reject(new Error(t('所選資料夾中沒有 .md 或 .txt 檔案。')));
         return;
       }
 
-      const rootName = files[0].webkitRelativePath.split('/')[0] || '資料夾';
+      const rootName = files[0].webkitRelativePath.split('/')[0] || t('資料夾');
       const entries = _buildTreeFromFiles(supported);
       const fileMap = new Map(files.map(file => [
         _pathKey(file.webkitRelativePath.split('/').slice(1)),

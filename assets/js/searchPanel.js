@@ -3,6 +3,7 @@
  */
 
 import { searchDocuments } from './search.js';
+import { t } from './i18n.js';
 
 const RESULT_LIMIT = 100;
 
@@ -39,19 +40,19 @@ export function initSearchPanel({ input, status, results, tree, getIndex, onOpen
     tree.hidden = true;
     results.hidden = false;
     status.hidden = false;
-    status.textContent = '搜尋中…';
+    status.textContent = t('搜尋中…');
 
     try {
       const index = await indexPromise;
       if (current !== generation) return;
       const { terms, total, results: matches } = searchDocuments(index.records.values(), query, { limit: RESULT_LIMIT });
       status.textContent = total
-        ? `${total} 個文件${total > RESULT_LIMIT ? `（顯示前 ${RESULT_LIMIT} 個）` : ''}`
-        : '沒有符合的文件';
+        ? t('{count} 個文件', { count: total }) + (total > RESULT_LIMIT ? t('（顯示前 {limit} 個）', { limit: RESULT_LIMIT }) : '')
+        : t('沒有符合的文件');
       _renderResults(results, matches, terms, onOpen);
     } catch (error) {
       if (current !== generation) return;
-      status.textContent = `無法搜尋：${error.message}`;
+      status.textContent = t('無法搜尋：{message}', { message: error.message });
       results.innerHTML = '';
     }
   };
@@ -123,7 +124,7 @@ function _renderResults(container, matches, terms, onOpen) {
     const meta = document.createElement('span');
     meta.className = 'search-result-path';
     const directory = entry.path.slice(0, -1).join(' / ');
-    meta.textContent = [directory, match.matchCount ? `${match.matchCount} 處` : '']
+    meta.textContent = [directory, match.matchCount ? t('{count} 處', { count: match.matchCount }) : '']
       .filter(Boolean).join(' · ');
 
     const snippet = document.createElement('span');

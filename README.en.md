@@ -23,10 +23,14 @@
 
 Parchment is a local-first static web app for safely reading `.md` and `.txt` files. It opens files with read-only access and renders them entirely in the browser — no server, no account, no uploads. Open a whole notes folder to browse it as a file tree, search across every note, and follow Wiki Links from one note to another.
 
-> [!NOTE]
-> The user interface is currently available in Traditional Chinese only.
+The interface supports Traditional Chinese, Simplified Chinese, English, Japanese, Korean, French, German, and Spanish. Parchment detects the browser language on first use, falls back to English when it cannot find a match, and lets the user override the language in Settings.
 
 **[Try it online →](https://parchment.stack-base.com/)**
+
+<p align="center">
+  <a href="https://parchment.stack-base.com/"><img src="image/screenshots/parchment-reader-overview.png" alt="Parchment local Markdown reader with a file tree, document view, and note information panel" width="100%"></a>
+</p>
+<p align="center"><sub>Parchment folder view brings file navigation, rendered notes, and document information into one workspace.</sub></p>
 
 ## Table of contents
 
@@ -47,6 +51,7 @@ Parchment is a local-first static web app for safely reading `.md` and `.txt` fi
 - **Rich Markdown**: tables, syntax highlighting, footnotes, KaTeX math, Mermaid and Graphviz diagrams, and more.
 - **Notes folder navigation**: file tree, Wiki Links, note embeds, tag filtering, backlinks and full-text search.
 - **Comfortable reading**: five color palettes with light and dark variants, separate CJK and Latin font settings, and a switchable reading width.
+- **Eight interface languages**: Traditional Chinese, Simplified Chinese, English, Japanese, Korean, French, German and Spanish, with automatic browser-language detection and a manual selector.
 - **Browser extension**: a Chrome and Edge extension opens Parchment from the toolbar and renders local `.md` files you open in the browser.
 - **Installable and offline**: install it as a PWA to open and read local files without a network connection.
 
@@ -118,6 +123,7 @@ python -m http.server 8080
 | Drag and drop | Drop a file onto the page to read it |
 | Open folder | Shows the file tree and enables relative images, cross-document links, Wiki Links, embeds and full-text search |
 | Recent items | Reopen from the home page or the folder switcher in the bottom-left corner; read permission is requested when needed |
+| Sample documents | Opens the localized guide and linked note for the current interface language; both are available offline |
 
 > [!NOTE]
 > Wiki Links, image and note embeds, and full-text search need to know which folder a document belongs to, so they are only available in folder mode.
@@ -139,6 +145,7 @@ python -m http.server 8080
 
 The settings button in the top-right corner offers the options below. All preferences are stored in the current browser only.
 
+- Interface language: Traditional Chinese, Simplified Chinese, English, Japanese, Korean, French, German, or Spanish
 - Color palette and light/dark mode (follow system, light, dark)
 - CJK font and Latin / numeral font
 - Reading width: switch between standard and full width with the button at the right of the file name row

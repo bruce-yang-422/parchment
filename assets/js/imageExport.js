@@ -4,6 +4,8 @@
  * 污染 canvas），並以較高解析度輸出；點陣圖維持原始尺寸。
  */
 
+import { t } from './i18n.js';
+
 const MAX_CANVAS_SIDE = 16384;
 const MAX_CANVAS_AREA = 16384 * 16384 / 4;
 
@@ -27,7 +29,7 @@ export function exportScale(width, height, preferred) {
 
 export async function saveImageAsPng(src, filename, { svgScale = 2, background = '#ffffff' } = {}) {
   const response = await fetch(src);
-  if (!response.ok) throw new Error(`無法讀取圖片（HTTP ${response.status}）`);
+  if (!response.ok) throw new Error(t('無法讀取圖片（HTTP {status}）', { status: response.status }));
   const blob = await response.blob();
   const isSvg = /svg/i.test(blob.type) || /\.svg(?:[?#]|$)/i.test(src);
 
@@ -44,7 +46,7 @@ export async function saveImageAsPng(src, filename, { svgScale = 2, background =
 
     const width = image.naturalWidth || image.width;
     const height = image.naturalHeight || image.height;
-    if (!width || !height) throw new Error('無法判斷圖片尺寸');
+    if (!width || !height) throw new Error(t('無法判斷圖片尺寸'));
 
     const scale = exportScale(width, height, isSvg ? svgScale : 1);
     const canvas = document.createElement('canvas');
@@ -60,10 +62,10 @@ export async function saveImageAsPng(src, filename, { svgScale = 2, background =
 
     const png = await new Promise((resolve, reject) => {
       try {
-        canvas.toBlob(result => (result ? resolve(result) : reject(new Error('PNG 編碼失敗'))), 'image/png');
+        canvas.toBlob(result => (result ? resolve(result) : reject(new Error(t('PNG 編碼失敗')))), 'image/png');
       } catch (err) {
         reject(err.name === 'SecurityError'
-          ? new Error('瀏覽器限制此圖片匯出（跨來源或安全性限制）')
+          ? new Error(t('瀏覽器限制此圖片匯出（跨來源或安全性限制）'))
           : err);
       }
     });
@@ -79,7 +81,7 @@ function _loadImage(src) {
     const image = new Image();
     image.decoding = 'async';
     image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error('無法載入圖片以轉換為 PNG'));
+    image.onerror = () => reject(new Error(t('無法載入圖片以轉換為 PNG')));
     image.src = src;
   });
 }

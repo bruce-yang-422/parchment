@@ -1,0 +1,21 @@
+{
+  "extName": { "message": "Parchment – ローカル Markdown リーダー" },
+  "extDescription": { "message": "ローカルの Markdown・テキストノートを読み取り専用で表示。Wiki リンク、コールアウト、図、数式、全文検索に対応し、ファイルは端末外へ送信されません。" },
+  "actionTitle": { "message": "Parchment を開く" },
+  "optionsTitle": { "message": "Parchment の設定" },
+  "optionsIntro": { "message": "Parchment はローカルの Markdown・テキストファイルを読み取り専用で開きます。処理はすべてブラウザー内で行われ、内容はアップロードされません。" },
+  "openApp": { "message": "Parchment を開く" },
+  "languageHeading": { "message": "表示言語" },
+  "languageLabel": { "message": "言語" },
+  "languageHelp": { "message": "手動で選択するまでは、ブラウザーの言語が自動的に使用されます。" },
+  "autoOpenHeading": { "message": "ローカル Markdown ファイルを Parchment で開く" },
+  "autoOpenLabel": { "message": "ブラウザーでローカルの .md ファイルを開いたときに Parchment で表示する" },
+  "autoOpenHelp": { "message": "同じフォルダー内の相対画像と他の .md ファイルへのリンクも利用できます。戻るボタンで元のプレーンテキストに戻れます。" },
+  "fileAccessHeading": { "message": "ファイル URL へのアクセス" },
+  "fileAccessEnabled": { "message": "有効です。ローカルの .md ファイルは Parchment で開きます。" },
+  "fileAccessDisabled": { "message": "無効です。拡張機能の詳細で「ファイルの URL へのアクセスを許可する」を有効にしてください。" },
+  "fileAccessButton": { "message": "拡張機能の詳細を開く" },
+  "fileAccessNote": { "message": "この設定はご自身で有効にする必要があります。Parchment 内からファイルやフォルダーを開く場合は不要です。" },
+  "privacyHeading": { "message": "プライバシー" },
+  "privacyNote": { "message": "Parchment は文書を収集・送信せず、このブラウザー外に保存しません。選択したファイルだけを読み取ります。" }
+}
