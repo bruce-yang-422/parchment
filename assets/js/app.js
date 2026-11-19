@@ -8,7 +8,7 @@ import { openFile, openDirectory, openFileFromHandle, openDirectoryFromHandle, i
 import { setupRenderer, renderMarkdown, renderText } from './renderer.js';
 import { renderTree, clearTree, setActiveTreePath } from './tree.js';
 import { saveRecent, getRecents, removeRecent } from './recentFiles.js';
-import { renderTOC, clearTOC, scrollToHash } from './toc.js';
+import { renderTOC, clearTOC, scrollToHash, headingSlug } from './toc.js';
 import { initPWA } from './pwa.js';
 import { wireTaskCheckboxes } from './taskState.js';
 import { initReaderFont } from './readerFont.js';
@@ -17,12 +17,16 @@ import { initLightboxZoom } from './lightboxZoom.js';
 import { saveImageAsPng, pngFileName } from './imageExport.js';
 import { buildDocumentIndex } from './noteLinks.js';
 import { initRightPanel } from './rightPanel.js';
+import { resolveWikiPath, extractNoteSection, wikiDisplayText } from './noteSyntax.js';
+import { initSearchPanel } from './searchPanel.js';
+import { initSettingsPanel } from './settingsPanel.js';
 
 /* ──────────────────── 初始化 ──────────────────── */
 
 setupRenderer();
 initTheme();
 initReaderFont();
+initSettingsPanel();
 _refreshRecents();
 
 /* ──────────────────── DOM 參照 ──────────────────── */
@@ -49,6 +53,12 @@ const tocResizer      = document.getElementById('toc-resizer');
 const tocContainer    = document.getElementById('toc-container');
 const hotReloadStatus = document.getElementById('hot-reload-status');
 const todoLocalStatus = document.getElementById('todo-local-status');
+const workspaceSwitcher = document.getElementById('workspace-switcher');
+const workspaceToggle = document.getElementById('workspace-toggle');
+const workspaceMenu = document.getElementById('workspace-menu');
+const workspaceList = document.getElementById('workspace-list');
+const workspaceOpenNew = document.getElementById('workspace-open-new');
+const workspaceCurrentName = document.getElementById('workspace-current-name');
 
 let _folderContext = null;
 let _currentDocument = null;
@@ -57,11 +67,28 @@ let _saveScrollTimer = null;
 let _objectUrls = [];
 let _activeTagFilter = null;
 let _tagFilterGeneration = 0;
+let _workspaceRenderGeneration = 0;
 
 const rightPanel = initRightPanel({
   sidebar: tocSidebar,
   onSelectTag: _filterFolderByTag,
   onOpenDocument: _openIndexedDocument,
+});
+
+const searchPanel = initSearchPanel({
+  input: document.getElementById('folder-search-input'),
+  status: document.getElementById('folder-search-status'),
+  results: document.getElementById('search-results'),
+  tree: document.getElementById('tree-container'),
+  getIndex: () => (_folderContext ? _getFolderDocumentIndex(_folderContext) : null),
+  onOpen: (entry, terms) => _openIndexedDocument(entry, { highlight: terms }),
+});
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'F' || e.key === 'f')) {
+    if (!_folderContext || sidebarEl.hidden) return;
+    e.preventDefault();
+    searchPanel.focus();
+  }
 });
 
 initPWA({ onFileLaunch: _openFileFromLaunchQueue });
@@ -88,6 +115,20 @@ document.getElementById('btn-open-file').addEventListener('click', handleOpenFil
 document.getElementById('btn-open-dir').addEventListener('click', handleOpenDir);
 document.getElementById('welcome-btn-file').addEventListener('click', handleOpenFile);
 document.getElementById('welcome-btn-dir').addEventListener('click', handleOpenDir);
+workspaceToggle.addEventListener('click', () => _setWorkspaceMenu(workspaceMenu.hidden));
+workspaceOpenNew.addEventListener('click', () => {
+  _setWorkspaceMenu(false);
+  handleOpenDir();
+});
+document.addEventListener('click', event => {
+  if (!workspaceMenu.hidden && !workspaceSwitcher.contains(event.target)) _setWorkspaceMenu(false);
+});
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && !workspaceMenu.hidden) {
+    _setWorkspaceMenu(false);
+    workspaceToggle.focus();
+  }
+});
 tagFilterClear.addEventListener('click', _clearTagFilter);
 readerBody.addEventListener('click', (event) => {
   const tagButton = event.target.closest('.metadata-tag');
@@ -194,6 +235,7 @@ dragOverlay.addEventListener('drop', async (e) => {
 
 function _enterSingleMode() {
   _resetTagFilter();
+  searchPanel.reset();
   _folderContext = null;
   mainEl.classList.replace('folder-mode', 'single-mode');
   sidebarEl.hidden = true;
@@ -207,12 +249,16 @@ function _enterFolderMode(directory) {
   _currentDocument = null;
   if (lightboxEl && !lightboxEl.hidden) _closeImageLightbox();
   _revokeObjectUrls();
-  const { rootName, entries, getFileByPath } = directory;
+  const { rootName, entries, getFileByPath, files = [], handle = null } = directory;
   _resetTagFilter();
+  searchPanel.reset();
   _folderContext = {
     rootName,
     entries,
+    files,
+    notePaths: _collectNotePaths(entries),
     getFileByPath,
+    handle,
     documentIndex: null,
     documentIndexPromise: null,
     indexGeneration: 0,
@@ -221,6 +267,9 @@ function _enterFolderMode(directory) {
   sidebarEl.hidden = false;
   sidebarResizer.hidden = false;
   treeRootName.textContent = rootName;
+  workspaceCurrentName.textContent = rootName;
+  workspaceCurrentName.title = rootName;
+  _setWorkspaceMenu(false);
 
   // 顯示 placeholder，等待使用者選擇檔案
   welcomeEl.hidden = true;
@@ -293,7 +342,9 @@ async function _displayFile(doc, options = {}) {
 
   if (isMarkdown) {
     await _resolveRelativeImages(readerBody, doc);
+    await _resolveWikiImages(readerBody, doc);
     _wireDocumentLinks(readerBody, doc);
+    await _renderNoteEmbeds(readerBody, doc);
   }
 
   // ── Mermaid 渲染 ──────────────────────────────────────────────────
@@ -340,6 +391,8 @@ async function _displayFile(doc, options = {}) {
 
   if (options.hotReload) {
     contentArea.scrollTop = previousTop;
+  } else if (options.highlight?.length && _highlightSearchTerms(readerBody, options.highlight)) {
+    if (location.hash) history.replaceState(null, '', location.pathname + location.search);
   } else if (options.hash && scrollToHash(options.hash, contentArea)) {
     history.replaceState(null, '', options.hash);
   } else {
@@ -437,12 +490,12 @@ function _invalidateDocumentIndex(context) {
   context.documentIndexPromise = null;
 }
 
-async function _openIndexedDocument(entry) {
+async function _openIndexedDocument(entry, options = {}) {
   if (!_folderContext) return;
   if (_activeTagFilter) _clearTagFilter();
   try {
     const file = await entry.handle.getFile();
-    await _displayFile({ ...entry, content: await file.text(), folder: _folderContext });
+    await _displayFile({ ...entry, content: await file.text(), folder: _folderContext }, options);
     setActiveTreePath(entry.path);
     folderPlaceholder.hidden = true;
   } catch (error) {
@@ -744,8 +797,15 @@ async function _resolveRelativeImages(container, document) {
     }
 
     try {
-      const path = _resolvePath(document.path, source);
-      const file = await document.folder.getFileByPath(path);
+      let file;
+      try {
+        file = await document.folder.getFileByPath(_resolvePath(document.path, source));
+      } catch (err) {
+        // 「最短路徑」連結格式只寫檔名，改依檔名在資料夾內尋找
+        const fallback = resolveWikiPath(_splitReference(source).pathname, document.path, document.folder.files || []);
+        if (!fallback) throw err;
+        file = await document.folder.getFileByPath(fallback);
+      }
       const objectUrl = URL.createObjectURL(file);
       _objectUrls.push(objectUrl);
       img.src = objectUrl;
@@ -759,6 +819,10 @@ async function _resolveRelativeImages(container, document) {
 
 function _wireDocumentLinks(container, document) {
   container.querySelectorAll('a[href]').forEach(anchor => {
+    if (anchor.classList.contains('wiki-link')) {
+      _wireWikiLink(anchor, document);
+      return;
+    }
     const href = anchor.getAttribute('href');
     if (!href) return;
 
@@ -803,6 +867,265 @@ function _wireDocumentLinks(container, document) {
       }
     });
   });
+}
+
+/* ──────────────────── Wiki Links 與內嵌 ──────────────────── */
+
+const EMBED_MAX_DEPTH = 4;
+
+function _collectNotePaths(entries, output = []) {
+  for (const entry of entries) {
+    if (entry.type === 'dir') _collectNotePaths(entry.children, output);
+    else output.push(entry.path);
+  }
+  return output;
+}
+
+/** 依最短路徑規則解析筆記；找不到時比對已建立索引中的 aliases，再找附件。 */
+function _resolveWikiTarget(target, sourcePath, folder) {
+  const note = resolveWikiPath(target, sourcePath, folder.notePaths || [], { markdown: true });
+  if (note) return { kind: 'note', path: note };
+
+  const wanted = target.split('/').at(-1).toLocaleLowerCase();
+  for (const record of folder.documentIndex?.records.values() || []) {
+    if ((record.aliases || []).some(alias => alias.toLocaleLowerCase() === wanted)) {
+      return { kind: 'note', path: record.entry.path };
+    }
+  }
+
+  const attachment = resolveWikiPath(target, sourcePath, folder.files || []);
+  return attachment ? { kind: 'attachment', path: attachment } : null;
+}
+
+function _wireWikiLink(anchor, doc) {
+  const target = anchor.dataset.wikiTarget || '';
+  const heading = anchor.dataset.wikiHeading || '';
+  const hash = heading ? `#${encodeURIComponent(headingSlug(heading))}` : '';
+
+  if (!target) {
+    anchor.addEventListener('click', event => {
+      event.preventDefault();
+      if (hash) scrollToHash(hash, contentArea);
+    });
+    return;
+  }
+
+  const folder = doc.folder;
+  const resolved = folder ? _resolveWikiTarget(target, doc.path, folder) : null;
+  if (folder && !resolved) {
+    anchor.classList.add('is-unresolved');
+    anchor.title = `找不到筆記：${target}`;
+  }
+
+  anchor.addEventListener('click', async event => {
+    event.preventDefault();
+    if (!folder?.getFileByPath) {
+      _showToast('請用「開啟資料夾」授權後，再開啟 Wiki 連結。', 'error');
+      return;
+    }
+    const result = resolved || _resolveWikiTarget(target, doc.path, folder);
+    if (!result) {
+      _showToast(`找不到筆記：${target}`, 'error');
+      return;
+    }
+    try {
+      if (result.kind === 'attachment' && !isSupportedFile(result.path.at(-1))) {
+        const file = await folder.getFileByPath(result.path);
+        const url = URL.createObjectURL(file);
+        _objectUrls.push(url);
+        window.open(url, '_blank', 'noopener');
+        return;
+      }
+      await _openFolderDocument(folder, result.path, { hash });
+    } catch (err) {
+      _showToast(`無法開啟連結：${target}`, 'error');
+      console.warn('Wiki link navigation failed:', err);
+    }
+  });
+}
+
+async function _openFolderDocument(folder, path, options = {}) {
+  const file = await folder.getFileByPath(path);
+  const entry = _findEntryByPath(folder.entries, path);
+  await _displayFile({
+    name: file.name,
+    content: await file.text(),
+    path,
+    handle: entry?.handle,
+    folder,
+  }, options);
+  setActiveTreePath(path);
+  folderPlaceholder.hidden = true;
+}
+
+/** ![[圖片.png]]：依檔名在資料夾內尋找附件。 */
+async function _resolveWikiImages(container, doc) {
+  const images = [...container.querySelectorAll('img[data-wiki-embed]:not([src])')];
+  await Promise.all(images.map(async img => {
+    const target = img.dataset.wikiEmbed;
+    if (!doc.folder?.getFileByPath) {
+      img.classList.add('local-resource-unavailable');
+      img.title = '請用「開啟資料夾」授權後，才能載入內嵌圖片。';
+      return;
+    }
+    const path = resolveWikiPath(target, doc.path, doc.folder.files || []);
+    try {
+      if (!path) throw new DOMException('File not found', 'NotFoundError');
+      const objectUrl = URL.createObjectURL(await doc.folder.getFileByPath(path));
+      _objectUrls.push(objectUrl);
+      img.src = objectUrl;
+    } catch {
+      img.classList.add('local-resource-unavailable');
+      img.title = `找不到內嵌圖片：${target}`;
+    }
+  }));
+}
+
+/** ![[筆記]]、![[筆記#標題]]、![[筆記#^區塊]]：讀取並渲染被內嵌的筆記。 */
+async function _renderNoteEmbeds(container, doc, depth = 0, seen = new Set([_treePathKey(doc.path || [doc.name])])) {
+  const placeholders = [...container.querySelectorAll('.note-embed-placeholder')];
+  for (const placeholder of placeholders) {
+    const meta = {
+      target: placeholder.dataset.wikiTarget || '',
+      heading: placeholder.dataset.wikiHeading || '',
+      blockId: placeholder.dataset.wikiBlock || '',
+      alias: '',
+    };
+    const embed = await _buildNoteEmbed(meta, doc, depth, seen);
+    const holder = placeholder.parentElement;
+    if (holder?.tagName === 'P' && holder.children.length === 1
+      && holder.textContent.trim() === placeholder.textContent.trim()) {
+      holder.replaceWith(embed);
+    } else {
+      placeholder.replaceWith(embed);
+    }
+  }
+}
+
+async function _buildNoteEmbed(meta, doc, depth, seen) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'note-embed';
+
+  const header = document.createElement('div');
+  header.className = 'note-embed-header';
+  const link = document.createElement('a');
+  link.className = 'wiki-link';
+  link.href = meta.target ? encodeURI(meta.target) : '#';
+  link.dataset.wikiTarget = meta.target;
+  link.dataset.wikiHeading = meta.heading;
+  link.dataset.wikiBlock = meta.blockId;
+  link.textContent = wikiDisplayText(meta) || doc.name;
+  header.appendChild(link);
+  wrapper.appendChild(header);
+
+  const body = document.createElement('div');
+  body.className = 'note-embed-body';
+  wrapper.appendChild(body);
+
+  const fail = message => {
+    wrapper.classList.add('note-embed-missing');
+    body.textContent = message;
+    return wrapper;
+  };
+
+  const folder = doc.folder;
+  _wireWikiLink(link, doc);
+  if (meta.target && !folder?.getFileByPath) return fail('請用「開啟資料夾」授權後，才能顯示內嵌筆記。');
+
+  // ![[#標題]] 內嵌目前筆記的段落
+  const resolved = meta.target
+    ? _resolveWikiTarget(meta.target, doc.path, folder)
+    : { kind: 'note', path: doc.path || [doc.name] };
+  if (!resolved || resolved.kind !== 'note') return fail(`找不到內嵌筆記：${meta.target}`);
+
+  const key = _treePathKey(resolved.path);
+  if (depth >= EMBED_MAX_DEPTH) return fail('內嵌層數過多，已略過。');
+  if (seen.has(key) && !meta.heading && !meta.blockId) return fail('筆記內嵌了自己（循環內嵌），已略過。');
+
+  try {
+    const file = meta.target ? await folder.getFileByPath(resolved.path) : null;
+    const content = file ? await file.text() : doc.content;
+    const name = file?.name || doc.name;
+    const isMarkdown = /\.md$/i.test(name);
+    const section = isMarkdown
+      ? extractNoteSection(content, { heading: meta.heading, blockId: meta.blockId })
+      : content;
+    if (section === null) {
+      return fail(`在「${name}」找不到${meta.blockId ? `區塊 ^${meta.blockId}` : `標題「${meta.heading}」`}。`);
+    }
+
+    body.innerHTML = isMarkdown ? renderMarkdown(section, { properties: false }) : renderText(section);
+    const embedDoc = { name, path: resolved.path, folder, content };
+    if (isMarkdown) {
+      await _resolveRelativeImages(body, embedDoc);
+      await _resolveWikiImages(body, embedDoc);
+      _wireDocumentLinks(body, embedDoc);
+      await _renderNoteEmbeds(body, embedDoc, depth + 1, new Set([...seen, key]));
+    }
+    return wrapper;
+  } catch (err) {
+    console.warn('Note embed failed:', err);
+    return fail(`無法讀取內嵌筆記：${meta.target}`);
+  }
+}
+
+/** 搜尋結果開啟後，標示關鍵字並捲動到第一個符合處。 */
+function _highlightSearchTerms(container, terms) {
+  const lowered = terms.map(term => term.toLocaleLowerCase()).filter(Boolean);
+  if (!lowered.length) return false;
+  const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      if (!node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+      return node.parentElement?.closest('script, style, svg, .katex, .copy-btn, mark.search-hit')
+        ? NodeFilter.FILTER_REJECT
+        : NodeFilter.FILTER_ACCEPT;
+    },
+  });
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+
+  let count = 0;
+  let first = null;
+  for (const node of nodes) {
+    if (count >= 500) break;
+    const text = node.nodeValue;
+    const lower = text.toLocaleLowerCase();
+    const ranges = [];
+    for (const term of lowered) {
+      let from = 0;
+      let found;
+      while ((found = lower.indexOf(term, from)) >= 0) {
+        ranges.push([found, found + term.length]);
+        from = found + term.length;
+      }
+    }
+    if (!ranges.length) continue;
+    ranges.sort((a, b) => a[0] - b[0]);
+
+    const fragment = document.createDocumentFragment();
+    let cursor = 0;
+    for (const [start, end] of ranges) {
+      if (start < cursor) continue;
+      if (start > cursor) fragment.append(text.slice(cursor, start));
+      const mark = document.createElement('mark');
+      mark.className = 'search-hit';
+      mark.textContent = text.slice(start, end);
+      fragment.append(mark);
+      first ??= mark;
+      cursor = end;
+      count += 1;
+    }
+    if (cursor < text.length) fragment.append(text.slice(cursor));
+    node.replaceWith(fragment);
+  }
+
+  if (!first) return false;
+  const target = first;
+  requestAnimationFrame(() => {
+    const top = target.getBoundingClientRect().top - contentArea.getBoundingClientRect().top + contentArea.scrollTop;
+    contentArea.scrollTop = Math.max(0, top - contentArea.clientHeight / 3);
+  });
+  return true;
 }
 
 function _resolvePath(currentPath, reference) {
@@ -956,6 +1279,7 @@ function _startHotReload(document) {
         const updated = { ...document, content: await file.text() };
         if (document.folder) _invalidateDocumentIndex(document.folder);
         await _displayFile(updated, { hotReload: true });
+        searchPanel.refresh();
         _showToast(`${file.name} 已自動更新`);
       }
     } catch (err) {
@@ -974,8 +1298,67 @@ function _stopHotReload() {
 /* ──────────────────── 最近開啟 ──────────────────── */
 
 async function _refreshRecents() {
-  const items = await getRecents().catch(() => []);
+  const [items, folders] = await Promise.all([
+    getRecents().catch(() => []),
+    getRecents({ type: 'dir', limit: 16 }).catch(() => []),
+  ]);
   _renderRecents(items);
+  await _renderWorkspaceFolders(folders);
+}
+
+function _setWorkspaceMenu(open) {
+  workspaceMenu.hidden = !open;
+  workspaceToggle.setAttribute('aria-expanded', String(open));
+  if (open) getRecents({ type: 'dir', limit: 16 }).then(_renderWorkspaceFolders).catch(() => {});
+}
+
+async function _renderWorkspaceFolders(items) {
+  const generation = ++_workspaceRenderGeneration;
+  const rows = await Promise.all(items.map(async item => {
+    let permission = 'prompt';
+    try {
+      if (typeof item.handle.queryPermission === 'function') {
+        permission = await item.handle.queryPermission({ mode: 'read' });
+      }
+    } catch { /* Keep the prompt state. */ }
+    return { item, permission };
+  }));
+  if (generation !== _workspaceRenderGeneration) return;
+
+  workspaceList.innerHTML = '';
+  if (!rows.length) {
+    const empty = document.createElement('p');
+    empty.className = 'workspace-empty';
+    empty.textContent = '尚無已開啟的資料夾';
+    workspaceList.appendChild(empty);
+    return;
+  }
+
+  for (const { item, permission } of rows) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'workspace-item';
+    const active = _folderContext?.rootName === item.handle.name;
+    if (active) button.classList.add('active');
+    button.setAttribute('aria-current', active ? 'true' : 'false');
+
+    const icon = document.createElement('span');
+    icon.className = 'workspace-item-icon';
+    icon.textContent = active ? '▣' : '▢';
+    icon.setAttribute('aria-hidden', 'true');
+    const name = document.createElement('span');
+    name.className = 'workspace-item-name';
+    name.textContent = item.handle.name;
+    const status = document.createElement('span');
+    status.className = `workspace-permission ${permission}`;
+    status.textContent = permission === 'granted' ? '已授權' : permission === 'denied' ? '需重新授權' : '需確認';
+    button.append(icon, name, status);
+    button.addEventListener('click', () => {
+      _setWorkspaceMenu(false);
+      _openRecent(item);
+    });
+    workspaceList.appendChild(button);
+  }
 }
 
 function _renderRecents(items) {
@@ -1015,7 +1398,7 @@ async function _openRecent(item) {
       const directory = await openDirectoryFromHandle(item.handle);
       _enterFolderMode(directory);
     }
-    saveRecent(item.type, item.handle).catch(() => {}); // 更新 timestamp
+    saveRecent(item.type, item.handle).then(_refreshRecents).catch(() => {}); // 更新 timestamp
   } catch (err) {
     if (err.name === 'NotAllowedError') {
       _showToast('存取被拒絕，請重新從「開啟」按鈕選擇。', 'error');

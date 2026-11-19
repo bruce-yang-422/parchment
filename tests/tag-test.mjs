@@ -13,4 +13,9 @@ assert.deepEqual(
 
 assert.deepEqual(extractMarkdownTags('## 不是 tags: [忽略]\n\ntags: [忽略]'), []);
 
+assert.deepEqual(
+  extractMarkdownTags('---\ntags:\n  - 專案\n  - "#工作"\n---\n\n## tags: [工作, 筆記]'),
+  ['專案', '工作', '筆記'],
+);
+
 console.log('tag-test: passed');

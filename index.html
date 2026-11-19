@@ -67,16 +67,6 @@
       <span class="text-[17px] font-semibold tracking-[-0.3px] text-[color:var(--heading-h1)]">Parchment</span>
     </div>
     <div class="flex items-center gap-2 mobile:w-full mobile:justify-end mobile:gap-1">
-      <button id="btn-install-pwa" class="btn-secondary border-[color:var(--link)] text-[color:var(--link)] mobile:px-[9px]"
-        type="button" hidden>安裝 App</button>
-      <select id="reader-font" aria-label="閱讀字型" title="閱讀字型" class="min-w-0 max-w-28 cursor-pointer rounded-[var(--radius)] border border-solid
-        border-[color:var(--btn-secondary-border)] bg-[var(--btn-secondary-bg)] px-2 py-[5px] font-[family-name:var(--font-sans)]
-        text-[13px] leading-5 text-[color:var(--btn-secondary-text)] mobile:max-w-[5.5rem] mobile:px-1 mobile:text-[12px]">
-        <option value="default">預設字型</option>
-        <option value="sans">微軟正黑體</option>
-        <option value="serif">新細明體</option>
-        <option value="kai">標楷體</option>
-      </select>
       <button id="btn-theme" class="btn-icon grid h-8 place-items-center" type="button"
         title="切換主題（目前：跟隨系統）" aria-label="切換主題（目前：跟隨系統）">
         <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -100,7 +90,7 @@
   </header>
 
   <main id="main" class="single-mode flex h-[calc(100vh_-_var(--header-h))] flex-auto overflow-hidden">
-    <aside id="sidebar" class="flex w-[var(--sidebar-w)] shrink-0 flex-col overflow-hidden bg-[var(--sidebar-bg)]
+    <aside id="sidebar" class="relative flex w-[var(--sidebar-w)] shrink-0 flex-col overflow-hidden bg-[var(--sidebar-bg)]
       [border-right:1px_solid_var(--border)]" hidden>
       <div id="tree-header" class="px-3 pb-2 pt-2.5 text-[11px] font-semibold uppercase tracking-[0.5px]
         text-[color:var(--text-muted)] [border-bottom:1px_solid_var(--border)]">
@@ -110,7 +100,39 @@
           <button id="tag-filter-clear" type="button" class="tag-filter-clear" aria-label="清除標籤篩選" title="清除標籤篩選">×</button>
         </div>
       </div>
+      <div id="folder-search" class="px-2 pb-1.5 pt-2" role="search">
+        <input id="folder-search-input" class="search-input" type="search" placeholder="搜尋筆記…（Ctrl+Shift+F）"
+          aria-label="搜尋資料夾內所有筆記" autocomplete="off" spellcheck="false">
+        <p id="folder-search-status" class="search-status" aria-live="polite" hidden></p>
+      </div>
       <div id="tree-container" class="flex-1 overflow-y-auto py-1"></div>
+      <div id="search-results" class="flex-1 overflow-y-auto py-1" aria-label="搜尋結果" hidden></div>
+      <div id="workspace-switcher" class="workspace-switcher">
+        <div id="workspace-menu" class="workspace-menu" hidden>
+          <div class="workspace-menu-header">已授權資料夾</div>
+          <div id="workspace-list" class="workspace-list"></div>
+          <button id="workspace-open-new" class="workspace-open-new" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h7l2 2h9v10H3zM12 12v5m-2.5-2.5h5"/></svg>
+            <span>開啟其他資料夾</span>
+          </button>
+        </div>
+        <button id="workspace-toggle" class="workspace-toggle" type="button" aria-expanded="false" aria-controls="workspace-menu">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 7 4-4 4 4M8 17l4 4 4-4"/></svg>
+          <span id="workspace-current-name" class="workspace-current-name">Parchment</span>
+        </button>
+        <div class="workspace-utilities">
+          <button id="btn-install-pwa" class="workspace-install" type="button" aria-label="安裝 Parchment App" title="安裝 Parchment App" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-4-4 4 4 4-4M5 20h14"/></svg>
+            <span>安裝</span>
+          </button>
+          <button id="btn-about" class="workspace-icon-button" type="button" aria-label="關於 Parchment" title="網站與工具資訊">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>
+          </button>
+          <button id="btn-settings" class="workspace-icon-button" type="button" aria-label="開啟設定" title="設定">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.09A1.7 1.7 0 0 0 8.6 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3v-4h.09A1.7 1.7 0 0 0 4.6 8.6a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3h4v.09A1.7 1.7 0 0 0 15.4 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.17.37.46.68.82.88.26.14.55.22.85.22H21v4h-.09a1.7 1.7 0 0 0-1.51.9Z"/></svg>
+          </button>
+        </div>
+      </div>
     </aside>
 
     <div id="sidebar-resizer" class="pane-resizer pane-resizer-left" role="separator" aria-orientation="vertical" aria-controls="sidebar"
@@ -230,6 +252,62 @@
     </div>
     <img id="lightbox-image" alt="" draggable="false">
   </div>
+
+  <dialog id="settings-dialog" class="app-dialog" aria-labelledby="settings-title">
+    <div class="app-dialog-header">
+      <div>
+        <h2 id="settings-title">閱讀設定</h2>
+        <p>外觀偏好只會保存在此瀏覽器。</p>
+      </div>
+      <button class="dialog-close" type="button" data-close-dialog aria-label="關閉設定">×</button>
+    </div>
+    <div class="settings-list">
+      <label class="setting-row" for="setting-cjk-font">
+        <span><strong>中文字型</strong><small>中文、日文與韓文字元</small></span>
+        <select id="setting-cjk-font">
+          <option value="system">系統預設</option>
+          <option value="jhenghei">微軟正黑體</option>
+          <option value="ming">新細明體</option>
+          <option value="kai">標楷體</option>
+        </select>
+      </label>
+      <label class="setting-row" for="setting-latin-font">
+        <span><strong>英文與數字字型</strong><small>英文字母、數字與標點</small></span>
+        <select id="setting-latin-font">
+          <option value="system">系統介面字型</option>
+          <option value="sans">Segoe UI / Arial</option>
+          <option value="serif">Georgia / Times</option>
+          <option value="mono">Consolas / 等寬</option>
+        </select>
+      </label>
+      <label class="setting-row" for="setting-theme">
+        <span><strong>色彩主題</strong><small>可跟隨作業系統外觀</small></span>
+        <select id="setting-theme">
+          <option value="system">跟隨系統</option>
+          <option value="light">淺色</option>
+          <option value="dark">深色</option>
+        </select>
+      </label>
+    </div>
+  </dialog>
+
+  <dialog id="about-dialog" class="app-dialog" aria-labelledby="about-title">
+    <div class="app-dialog-header">
+      <div>
+        <h2 id="about-title">關於 Parchment</h2>
+        <p>本機優先的 Markdown 與 TXT 唯讀閱讀器</p>
+      </div>
+      <button class="dialog-close" type="button" data-close-dialog aria-label="關閉工具資訊">×</button>
+    </div>
+    <div class="about-content">
+      <div class="about-brand">
+        <img src="icons/pwa-icon-192x192.png" alt="" width="52" height="52">
+        <div><strong>Parchment</strong><span>版本 1.1.0</span></div>
+      </div>
+      <p>文件內容留在瀏覽器中處理；只有你主動授權的檔案與資料夾能被讀取。</p>
+      <a href="https://github.com/bruce-yang-422/parchment" target="_blank" rel="noopener noreferrer">GitHub 專案網站</a>
+    </div>
+  </dialog>
 
   <div id="toast-container" class="fixed bottom-5 right-5 z-[300] flex flex-col gap-2"></div>
 

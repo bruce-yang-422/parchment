@@ -1,12 +1,19 @@
 /* Markdown and TXT elements are generated at runtime. */
-:root[data-reader-font='sans'] { --reader-font: 'Microsoft JhengHei', '微軟正黑體', var(--font-sans); }
-:root[data-reader-font='serif'] { --reader-font: 'PMingLiU', '新細明體', var(--font-serif); }
-:root[data-reader-font='kai'] { --reader-font: var(--font-kai); }
+:root {
+  --reader-latin-font: -apple-system, BlinkMacSystemFont, 'Segoe UI';
+  --reader-cjk-font: 'Microsoft JhengHei', '微軟正黑體', 'PingFang TC', sans-serif;
+}
+:root[data-reader-latin-font='sans'] { --reader-latin-font: 'Segoe UI', Arial, Helvetica; }
+:root[data-reader-latin-font='serif'] { --reader-latin-font: Georgia, 'Times New Roman', Times; }
+:root[data-reader-latin-font='mono'] { --reader-latin-font: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo; }
+:root[data-reader-cjk-font='jhenghei'] { --reader-cjk-font: 'Microsoft JhengHei', '微軟正黑體', sans-serif; }
+:root[data-reader-cjk-font='ming'] { --reader-cjk-font: 'PMingLiU', '新細明體', serif; }
+:root[data-reader-cjk-font='kai'] { --reader-cjk-font: var(--font-kai); }
 
 #reader-body {
   @apply text-[15px] leading-[1.75];
   color: var(--text);
-  font-family: var(--reader-font, var(--font-sans));
+  font-family: var(--reader-latin-font), var(--reader-cjk-font);
   word-break: break-word;
 }
 
@@ -42,7 +49,7 @@
 
 #reader-body p { @apply mb-4; }
 
-/* Obsidian-style tag property converted from `## tags: [...]`. */
+/* Tag property converted from `## tags: [...]`. */
 #reader-body .metadata-property-tags {
   @apply flex items-start gap-3 my-5 py-2 px-3 rounded;
   background: var(--surface);
@@ -114,21 +121,125 @@
 }
 #reader-body .footnote-backref { @apply ml-[0.3em]; }
 
-#reader-body .markdown-alert {
+/* Callouts（亦處理 GitHub 的 > [!NOTE] 等提示區塊）。 */
+#reader-body .callout {
+  --callout-color: var(--alert-note);
   @apply mt-0 mx-0 mb-4 py-2.5 px-4;
-  border-left: 4px solid var(--accent);
+  border-left: 4px solid var(--callout-color);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: color-mix(in srgb, var(--callout-color) 9%, var(--bg));
+}
+#reader-body .callout[data-callout='abstract'],
+#reader-body .callout[data-callout='info'],
+#reader-body .callout[data-callout='todo'] { --callout-color: var(--callout-info); }
+#reader-body .callout[data-callout='tip'],
+#reader-body .callout[data-callout='success'] { --callout-color: var(--alert-tip); }
+#reader-body .callout[data-callout='question'] { --callout-color: var(--callout-question); }
+#reader-body .callout[data-callout='warning'] { --callout-color: var(--alert-warning); }
+#reader-body .callout[data-callout='failure'],
+#reader-body .callout[data-callout='danger'],
+#reader-body .callout[data-callout='bug'] { --callout-color: var(--alert-caution); }
+#reader-body .callout[data-callout='example'] { --callout-color: var(--alert-important); }
+#reader-body .callout[data-callout='quote'] { --callout-color: var(--text-muted); }
+
+#reader-body .callout-title {
+  @apply flex items-center gap-2 font-semibold;
+  color: var(--callout-color);
+}
+#reader-body summary.callout-title {
+  @apply cursor-pointer select-none;
+  list-style: none;
+}
+#reader-body summary.callout-title::-webkit-details-marker { display: none; }
+#reader-body summary.callout-title::after {
+  @apply ml-auto text-[0.8em];
+  content: '▸';
+  transition: transform 0.15s;
+}
+#reader-body details.callout[open] > summary.callout-title::after { transform: rotate(90deg); }
+#reader-body .callout-title-inner > p { @apply m-0; }
+
+#reader-body .callout-icon::before {
+  @apply inline-block w-[1.1em] text-center leading-none;
+  font-variant-emoji: text;
+  content: '✎\FE0E';
+}
+#reader-body .callout[data-callout='abstract'] .callout-icon::before { content: '≡'; }
+#reader-body .callout[data-callout='info'] .callout-icon::before { content: 'ⓘ'; }
+#reader-body .callout[data-callout='todo'] .callout-icon::before { content: '☑\FE0E'; }
+#reader-body .callout[data-callout='tip'] .callout-icon::before { content: '✦'; }
+#reader-body .callout[data-callout='success'] .callout-icon::before { content: '✓'; }
+#reader-body .callout[data-callout='question'] .callout-icon::before { content: '?'; }
+#reader-body .callout[data-callout='warning'] .callout-icon::before { content: '⚠\FE0E'; }
+#reader-body .callout[data-callout='failure'] .callout-icon::before { content: '✕'; }
+#reader-body .callout[data-callout='danger'] .callout-icon::before { content: '⚡\FE0E'; }
+#reader-body .callout[data-callout='bug'] .callout-icon::before { content: '✱'; }
+#reader-body .callout[data-callout='example'] .callout-icon::before { content: '☰'; }
+#reader-body .callout[data-callout='quote'] .callout-icon::before { content: '❝'; }
+
+#reader-body .callout-content { @apply mt-1.5; }
+#reader-body .callout-content:empty { @apply hidden; }
+#reader-body .callout-content > :last-child { @apply mb-0; }
+
+/* YAML Frontmatter 屬性 */
+#reader-body .metadata-properties {
+  @apply my-5 py-1.5 px-3 rounded text-[0.92em];
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+#reader-body .metadata-property {
+  @apply flex items-start gap-3 py-1;
+}
+#reader-body .metadata-property + .metadata-property {
+  border-top: 1px dashed color-mix(in srgb, var(--border) 70%, transparent);
+}
+#reader-body .metadata-properties .metadata-property-key {
+  @apply w-28 truncate;
+  min-width: 0;
+}
+#reader-body .metadata-chip {
+  @apply inline-flex items-center rounded py-0 px-2 text-[0.92em];
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+}
+#reader-body .metadata-text { @apply min-w-0 break-words; }
+#reader-body .metadata-multiline { @apply whitespace-pre-wrap; }
+#reader-body .metadata-empty { color: var(--text-muted); }
+#reader-body .metadata-property-value input[type='checkbox'] {
+  @apply m-0 mt-1 w-4 h-4;
+  accent-color: var(--accent);
+}
+
+/* Wiki Links 與內嵌 */
+#reader-body a.wiki-link.is-unresolved {
+  @apply opacity-70;
+  text-decoration: underline dashed;
+  text-underline-offset: 3px;
+}
+#reader-body .note-embed {
+  @apply mt-0 mx-0 mb-4 py-2 px-4;
+  border-left: 3px solid var(--link);
   border-radius: 0 var(--radius) var(--radius) 0;
   background: var(--surface);
 }
-#reader-body .markdown-alert-title {
-  @apply mb-1.5 font-semibold;
-  color: var(--accent);
+#reader-body .note-embed-header {
+  @apply mb-1 truncate text-[0.82em] font-semibold;
 }
-#reader-body .markdown-alert-note { border-left-color: var(--alert-note); }
-#reader-body .markdown-alert-tip { border-left-color: var(--alert-tip); }
-#reader-body .markdown-alert-important { border-left-color: var(--alert-important); }
-#reader-body .markdown-alert-warning { border-left-color: var(--alert-warning); }
-#reader-body .markdown-alert-caution { border-left-color: var(--alert-caution); }
+#reader-body .note-embed-body > :last-child { @apply mb-0; }
+#reader-body .note-embed-missing {
+  border-left-color: var(--error-border);
+}
+#reader-body .note-embed-missing .note-embed-body {
+  @apply text-[0.9em];
+  color: var(--text-muted);
+}
+#reader-body .note-embed-placeholder { @apply block; color: var(--text-muted); }
+
+#reader-body mark.search-hit {
+  @apply rounded-sm;
+  background: var(--mark-bg);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
 
 /* Inline code and fenced blocks retain the monospace face. */
 #reader-body :not(pre) > code {
@@ -271,7 +382,7 @@
 
 .txt-view {
   @apply p-0 text-[13px] leading-[1.6] whitespace-pre-wrap break-all bg-transparent;
-  font-family: var(--reader-font, var(--font-mono));
+  font-family: var(--reader-latin-font), var(--reader-cjk-font);
   color: var(--text);
   border: none;
 }

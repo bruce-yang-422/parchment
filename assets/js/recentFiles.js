@@ -31,13 +31,16 @@ export async function saveRecent(type, handle) {
   });
 }
 
-/** 取得所有紀錄，依時間倒序，最多 MAX 筆 */
-export async function getRecents() {
+/** 取得紀錄，依時間倒序，可依類型篩選。 */
+export async function getRecents({ type = null, limit = MAX } = {}) {
   const db = await _db();
   return new Promise((resolve, reject) => {
     const req = db.transaction(STORE, 'readonly').objectStore(STORE).getAll();
-    req.onsuccess = () =>
-      resolve(req.result.sort((a, b) => b.ts - a.ts).slice(0, MAX));
+    req.onsuccess = () => {
+      const sorted = req.result.sort((a, b) => b.ts - a.ts);
+      const filtered = type ? sorted.filter(item => item.type === type) : sorted;
+      resolve(filtered.slice(0, limit));
+    };
     req.onerror = ({ target: { error } }) => reject(error);
   });
 }

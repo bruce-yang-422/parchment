@@ -79,10 +79,12 @@ export async function openDirectory() {
 
 async function _openDirWithFSA() {
   const handle = await window.showDirectoryPicker({ mode: 'read' });
-  const entries = await _buildTree(handle);
+  const files = [];
+  const entries = await _buildTree(handle, [], files);
   return {
     rootName: handle.name,
     entries,
+    files,
     handle,
     getFileByPath: path => _getFileFromDirectory(handle, path),
   };
@@ -91,18 +93,23 @@ async function _openDirWithFSA() {
 /**
  * 遞迴建立樹狀結構
  * @param {FileSystemDirectoryHandle} dirHandle
+ * @param {string[]} parentPath
+ * @param {string[][]} files 收集所有檔案路徑（含附件），供 Wiki 內嵌依檔名解析
  * @returns {Promise<TreeEntry[]>}
  */
-async function _buildTree(dirHandle, parentPath = []) {
+async function _buildTree(dirHandle, parentPath = [], files = []) {
   const entries = [];
 
   for await (const [name, handle] of dirHandle.entries()) {
     if (handle.kind === 'directory') {
       const path = [...parentPath, name];
-      const children = await _buildTree(handle, path);
+      const children = await _buildTree(handle, path, _isHiddenName(name) ? [] : files);
       entries.push({ type: 'dir', name, path, children });
-    } else if (isSupportedFile(name)) {
-      entries.push({ type: 'file', name, path: [...parentPath, name], handle });
+    } else {
+      if (!_isHiddenName(name)) files.push([...parentPath, name]);
+      if (isSupportedFile(name)) {
+        entries.push({ type: 'file', name, path: [...parentPath, name], handle });
+      }
     }
   }
 
@@ -137,6 +144,9 @@ function _openDirWithInput() {
       resolve({
         rootName,
         entries,
+        files: files
+          .map(file => file.webkitRelativePath.split('/').slice(1))
+          .filter(path => path.length && !path.some(_isHiddenName)),
         getFileByPath: async path => {
           const file = fileMap.get(_pathKey(path));
           if (!file) throw new DOMException('File not found', 'NotFoundError');
@@ -206,10 +216,12 @@ export async function openFileFromHandle(handle) {
  */
 export async function openDirectoryFromHandle(handle) {
   await _ensureReadPermission(handle);
-  const entries = await _buildTree(handle);
+  const files = [];
+  const entries = await _buildTree(handle, [], files);
   return {
     rootName: handle.name,
     entries,
+    files,
     handle,
     getFileByPath: path => _getFileFromDirectory(handle, path),
   };
@@ -246,13 +258,23 @@ export function normalizeRelativePath(path) {
 }
 
 async function _ensureReadPermission(handle) {
+  // Origin Private File System handles are already scoped to this origin and
+  // do not expose the user-file permission methods used by picker handles.
+  if (typeof handle.queryPermission !== 'function') return;
   if ((await handle.queryPermission({ mode: 'read' })) === 'granted') return;
+  if (typeof handle.requestPermission !== 'function')
+    throw new DOMException('Permission denied', 'NotAllowedError');
   const result = await handle.requestPermission({ mode: 'read' });
   if (result !== 'granted')
     throw new DOMException('Permission denied', 'NotAllowedError');
 }
 
 /* ──────────────────── Helpers ──────────────────── */
+
+/** 以點開頭的隱藏檔案或資料夾不列入附件索引。 */
+function _isHiddenName(name) {
+  return String(name).startsWith('.');
+}
 
 function _sortEntries(entries) {
   return entries.sort((a, b) => {

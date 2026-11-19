@@ -1,7 +1,7 @@
 import { extractMarkdownTags } from './renderer.js';
 import { getDocumentRelations } from './noteLinks.js';
 
-/** 初始化 Obsidian 式右側資訊面板。 */
+/** 初始化右側資訊面板。 */
 export function initRightPanel({ sidebar, onSelectTag, onOpenDocument }) {
   const tabs = [...sidebar.querySelectorAll('[data-right-tab]')];
   const panels = [...sidebar.querySelectorAll('[data-right-panel]')];

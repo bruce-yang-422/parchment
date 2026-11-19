@@ -1,6 +1,7 @@
 import { extractMarkdownTags } from './renderer.js';
+import { parseFrontmatter, frontmatterAliases } from './noteSyntax.js';
 
-/** 擷取一般 Markdown 連結與 Obsidian Wiki Links（排除圖片與頁內錨點）。 */
+/** 擷取一般 Markdown 連結與 Wiki Links（排除圖片與頁內錨點）。 */
 export function extractDocumentLinks(markdown) {
   const links = [];
   const seen = new Set();
@@ -38,7 +39,7 @@ export async function buildDocumentIndex(entries) {
   const files = [];
   const collect = items => items.forEach(entry => {
     if (entry.type === 'dir') collect(entry.children);
-    else if (/\.md$/i.test(entry.name)) files.push(entry);
+    else if (/\.(md|txt)$/i.test(entry.name)) files.push(entry);
   });
   collect(entries);
 
@@ -51,12 +52,14 @@ export async function buildDocumentIndex(entries) {
       try {
         const content = await (await entry.handle.getFile()).text();
         const key = pathKey(entry.path);
+        const isMarkdown = /\.md$/i.test(entry.name);
         const record = {
           key,
           entry,
           content,
-          tags: extractMarkdownTags(content),
-          links: extractDocumentLinks(content),
+          tags: isMarkdown ? extractMarkdownTags(content) : [],
+          links: isMarkdown ? extractDocumentLinks(content) : [],
+          aliases: isMarkdown ? frontmatterAliases(parseFrontmatter(content).data) : [],
         };
         records.set(key, record);
         record.tags.forEach(tag => {
@@ -115,10 +118,15 @@ export function normalizeTag(tag) {
 
 function _buildLookup(records) {
   const byStem = new Map();
+  const add = (name, record) => {
+    const key = name.toLocaleLowerCase();
+    if (!byStem.has(key)) byStem.set(key, []);
+    if (!byStem.get(key).includes(record)) byStem.get(key).push(record);
+  };
   for (const record of records.values()) {
-    const filename = record.entry.name.replace(/\.md$/i, '').toLocaleLowerCase();
-    if (!byStem.has(filename)) byStem.set(filename, []);
-    byStem.get(filename).push(record);
+    if (!/\.md$/i.test(record.entry.name)) continue;
+    add(record.entry.name.replace(/\.md$/i, ''), record);
+    (record.aliases || []).forEach(alias => add(alias, record));
   }
   return { byStem };
 }

@@ -11,7 +11,11 @@
   import { setupRenderer, renderMarkdown } from '../assets/js/renderer.js';
   import { taskDocumentKey, wireTaskCheckboxes } from '../assets/js/taskState.js';
 
-  const sample = String.raw`# Smoke Test
+  const sample = String.raw`---
+status: draft
+aliases: [煙霧測試]
+---
+# Smoke Test
 
 ## tags: [住院, 陪病, 清單]
 
@@ -27,6 +31,13 @@ Footnote.[^one]
 
 > [!NOTE]
 > Alert body.
+
+> [!faq]- Foldable callout
+> Hidden body.
+
+Wiki [[Other note#Section|alias]] and ![[pic.png|200]].
+
+![[Embedded note]]
 
 - [ ] Pending task
 - [x] Completed task
@@ -49,7 +60,9 @@ digraph { A -> B }
     const taskDocument = { name: 'renderer-smoke.md' };
     const taskCount = wireTaskCheckboxes(result, taskDocument);
 
-    const required = ['.katex', '.footnote-item', '.markdown-alert', '.mermaid', '.graphviz', '.local-task-checkbox'];
+    const required = ['.katex', '.footnote-item', '.callout[data-callout="note"]', 'details.callout[data-callout="question"]',
+      '.metadata-properties', 'a.wiki-link[data-wiki-heading="Section"]', 'img.wiki-embed-image[width="200"]',
+      '.note-embed-placeholder', '.mermaid', '.graphviz', '.local-task-checkbox'];
     const missing = required.filter(selector => !result.querySelector(selector));
     if (taskCount !== 2) missing.push('interactive task count');
     if (result.querySelector('.local-task-checkbox')?.disabled) missing.push('interactive task disabled');
@@ -61,9 +74,9 @@ digraph { A -> B }
     if (result.innerHTML.includes('onerror=')) missing.push('XSS sanitizer');
     if (result.textContent.includes(':rocket:')) missing.push('emoji');
     const renderedTags = [...result.querySelectorAll('.metadata-tag')].map(tag => tag.textContent);
-    if (renderedTags.join(',') !== '#住院,#陪病,#清單') missing.push('Obsidian tags');
+    if (renderedTags.join(',') !== '#住院,#陪病,#清單') missing.push('tags property');
     if (![...result.querySelectorAll('.metadata-tag')].every(tag => tag.matches('button[type="button"]'))) {
-      missing.push('interactive Obsidian tags');
+      missing.push('interactive tags property');
     }
     if ([...result.querySelectorAll('h2')].some(heading => heading.textContent.startsWith('tags:'))) {
       missing.push('tags rendered as heading');

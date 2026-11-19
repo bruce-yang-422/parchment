@@ -4,6 +4,8 @@
  * （由 index.html 的本機 <script> 標籤載入）
  */
 
+import { noteSyntaxPlugin, parseFrontmatter, frontmatterTags, renderPropertiesHtml } from './noteSyntax.js';
+
 let _ready = false;
 let _markdown = null;
 
@@ -38,7 +40,11 @@ export function setupRenderer() {
     },
   });
 
-  _markdown.core.ruler.after('inline', 'obsidian-tags-property', (state) => {
+  // 筆記擴充語法；> [!type] 改由 callout 規則處理（相容 GitHub 提示區塊）
+  try { _markdown.block.ruler.disable('alert'); } catch { /* 外掛未載入 */ }
+  _markdown.use(noteSyntaxPlugin);
+
+  _markdown.core.ruler.after('inline', 'tags-property', (state) => {
     for (let index = 0; index < state.tokens.length - 2; index += 1) {
       const opening = state.tokens[index];
       const inline = state.tokens[index + 1];
@@ -49,8 +55,8 @@ export function setupRenderer() {
       const tags = _parseTagsProperty(inline.content);
       if (!tags) continue;
 
-      opening.meta = { ...opening.meta, obsidianTags: true };
-      closing.meta = { ...closing.meta, obsidianTags: true };
+      opening.meta = { ...opening.meta, tagsProperty: true };
+      closing.meta = { ...closing.meta, tagsProperty: true };
       const tagMarkup = new state.Token('html_inline', '', 0);
       tagMarkup.content = tags
         .map(tag => `<button type="button" class="metadata-tag" data-tag="${_escapeHtml(tag)}" aria-label="以標籤 ${_escapeHtml(tag)} 篩選文件">#${_escapeHtml(tag)}</button>`)
@@ -62,7 +68,7 @@ export function setupRenderer() {
   const defaultHeadingOpen = _markdown.renderer.rules.heading_open;
   const defaultHeadingClose = _markdown.renderer.rules.heading_close;
   _markdown.renderer.rules.heading_open = (tokens, index, options, env, self) => {
-    if (tokens[index].meta?.obsidianTags) {
+    if (tokens[index].meta?.tagsProperty) {
       return '<div class="metadata-property metadata-property-tags" role="group" aria-label="標籤">'
         + '<span class="metadata-property-key">tags</span>'
         + '<div class="metadata-property-value">';
@@ -72,7 +78,7 @@ export function setupRenderer() {
       : self.renderToken(tokens, index, options);
   };
   _markdown.renderer.rules.heading_close = (tokens, index, options, env, self) => {
-    if (tokens[index].meta?.obsidianTags) return '</div></div>\n';
+    if (tokens[index].meta?.tagsProperty) return '</div></div>\n';
     return defaultHeadingClose
       ? defaultHeadingClose(tokens, index, options, env, self)
       : self.renderToken(tokens, index, options);
@@ -97,8 +103,15 @@ export function setupRenderer() {
  * @param {string} content
  * @returns {string} 安全的 HTML 字串
  */
-export function renderMarkdown(content) {
-  const rawHtml = _markdown.render(content);
+export function renderMarkdown(content, { properties = true } = {}) {
+  const { data, body } = parseFrontmatter(content);
+  const propertiesHtml = properties
+    ? renderPropertiesHtml(data, {
+      renderInline: text => _markdown.renderInline(text),
+      escapeHtml: _escapeHtml,
+    })
+    : '';
+  const rawHtml = propertiesHtml + _markdown.render(body);
   return window.DOMPurify.sanitize(rawHtml, {
     USE_PROFILES: { html: true, svg: true, svgFilters: true, mathMl: true },
     ADD_ATTR: ['class', 'target'],
@@ -124,7 +137,7 @@ function _escapeHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
-/** 將 `## tags: [標籤一, 標籤二]` 解析成 Obsidian 風格標籤屬性。 */
+/** 將 `## tags: [標籤一, 標籤二]` 解析成標籤屬性。 */
 function _parseTagsProperty(content) {
   const match = String(content).match(/^\s*tags\s*:\s*(.*?)\s*$/i);
   if (!match) return null;
@@ -139,10 +152,16 @@ function _parseTagsProperty(content) {
   return tags.length ? tags : null;
 }
 
-/** 擷取 Markdown 內所有 `## tags:` 屬性，供資料夾標籤篩選使用。 */
+/** 擷取 YAML Frontmatter 與 `## tags:` 屬性中的標籤，供資料夾標籤篩選使用。 */
 export function extractMarkdownTags(content) {
   const tags = [];
   const seen = new Set();
+  for (const tag of frontmatterTags(parseFrontmatter(content).data)) {
+    const key = tag.toLocaleLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    tags.push(tag);
+  }
   const pattern = /^##[\t ]+tags[\t ]*:[\t ]*(.*)$/gmi;
   for (const match of String(content).matchAll(pattern)) {
     for (const tag of _parseTagsProperty(`tags: ${match[1]}`) || []) {

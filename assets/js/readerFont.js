@@ -1,30 +1,58 @@
-const STORAGE_KEY = 'parchment-reader-font';
-const DEFAULT_FONT = 'default';
+const CJK_STORAGE_KEY = 'parchment-reader-cjk-font';
+const LATIN_STORAGE_KEY = 'parchment-reader-latin-font';
+const LEGACY_STORAGE_KEY = 'parchment-reader-font';
+const DEFAULT_CJK_FONT = 'system';
+const DEFAULT_LATIN_FONT = 'system';
+const CJK_FONTS = new Set(['system', 'jhenghei', 'ming', 'kai']);
+const LATIN_FONTS = new Set(['system', 'sans', 'serif', 'mono']);
 
 export function initReaderFont() {
-  const select = document.getElementById('reader-font');
-  if (!select) return;
+  const cjkSelect = document.getElementById('setting-cjk-font');
+  const latinSelect = document.getElementById('setting-latin-font');
+  if (!cjkSelect || !latinSelect) return;
 
-  let savedFont = DEFAULT_FONT;
-  try {
-    savedFont = localStorage.getItem(STORAGE_KEY) ?? DEFAULT_FONT;
-  } catch {
-    // The selector still works when storage is unavailable.
-  }
-  applyReaderFont(select, savedFont);
+  const saved = _loadFonts();
+  applyReaderFonts(saved.cjk, saved.latin);
+  cjkSelect.value = document.documentElement.dataset.readerCjkFont;
+  latinSelect.value = document.documentElement.dataset.readerLatinFont;
 
-  select.addEventListener('change', () => {
-    applyReaderFont(select, select.value);
-    try {
-      localStorage.setItem(STORAGE_KEY, select.value);
-    } catch {
-      // The current choice remains active until the page is closed.
-    }
+  cjkSelect.addEventListener('change', () => {
+    applyReaderFonts(cjkSelect.value, latinSelect.value);
+    _saveFonts(cjkSelect.value, latinSelect.value);
+  });
+  latinSelect.addEventListener('change', () => {
+    applyReaderFonts(cjkSelect.value, latinSelect.value);
+    _saveFonts(cjkSelect.value, latinSelect.value);
   });
 }
 
-function applyReaderFont(select, font) {
-  select.value = font;
-  if (select.selectedIndex === -1) select.value = DEFAULT_FONT;
-  document.documentElement.dataset.readerFont = select.value;
+export function applyReaderFonts(cjk, latin) {
+  const validCjk = CJK_FONTS.has(cjk) ? cjk : DEFAULT_CJK_FONT;
+  const validLatin = LATIN_FONTS.has(latin) ? latin : DEFAULT_LATIN_FONT;
+  document.documentElement.dataset.readerCjkFont = validCjk;
+  document.documentElement.dataset.readerLatinFont = validLatin;
+}
+
+function _loadFonts() {
+  try {
+    const cjk = localStorage.getItem(CJK_STORAGE_KEY);
+    const latin = localStorage.getItem(LATIN_STORAGE_KEY);
+    if (cjk || latin) return { cjk: cjk || DEFAULT_CJK_FONT, latin: latin || DEFAULT_LATIN_FONT };
+
+    const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
+    const legacyMap = { sans: 'jhenghei', serif: 'ming', kai: 'kai' };
+    return { cjk: legacyMap[legacy] || DEFAULT_CJK_FONT, latin: DEFAULT_LATIN_FONT };
+  } catch {
+    return { cjk: DEFAULT_CJK_FONT, latin: DEFAULT_LATIN_FONT };
+  }
+}
+
+function _saveFonts(cjk, latin) {
+  try {
+    localStorage.setItem(CJK_STORAGE_KEY, cjk);
+    localStorage.setItem(LATIN_STORAGE_KEY, latin);
+    localStorage.removeItem(LEGACY_STORAGE_KEY);
+  } catch {
+    // The active choices still work for the current page.
+  }
 }

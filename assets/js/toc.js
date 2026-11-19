@@ -10,7 +10,7 @@ export function renderTOC(content, sidebar, container, scrollContainer) {
   clearTOC(sidebar, container);
 
   const headings = [...content.querySelectorAll('h1, h2, h3, h4, h5, h6')]
-    .filter(heading => heading.textContent.trim());
+    .filter(heading => heading.textContent.trim() && !heading.closest('.note-embed'));
   if (!headings.length) return;
 
   const used = new Map();
@@ -92,6 +92,11 @@ function _headingTop(heading, scrollContainer) {
     - scrollContainer.getBoundingClientRect().top
     + scrollContainer.scrollTop
     - 20);
+}
+
+/** 與文章目錄相同的標題錨點規則，供 [[筆記#標題]] 跳轉使用。 */
+export function headingSlug(value) {
+  return _slug(String(value || '')) || 'section';
 }
 
 function _slug(value) {
