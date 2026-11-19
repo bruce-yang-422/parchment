@@ -2,6 +2,22 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
 
+/* 文件內的寬內容應由表格或程式碼區塊自行捲動，不能推寬整個應用程式。 */
+#main,
+#content-area,
+#reader,
+#reader-body {
+  min-width: 0;
+}
+
+#content-area {
+  overflow-x: hidden;
+}
+
+#reader {
+  width: 100%;
+}
+
 /* Ensure [hidden] always wins over any display rule */
 [hidden] { display: none !important; }
 
@@ -172,6 +188,50 @@ button {
 .pane-resizing,
 .pane-resizing * {
   @apply !cursor-col-resize select-none;
+}
+
+/* === DESKTOP BACK TO TOP === */
+.back-to-top-dock {
+  @apply fixed bottom-3 z-40 flex size-[72px] items-end justify-end;
+}
+
+.back-to-top-button {
+  @apply grid size-10 translate-y-1 place-items-center rounded-full p-0 opacity-0 pointer-events-none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--link);
+  box-shadow: var(--shadow-sm);
+  transition: opacity 100ms ease, transform 100ms ease, background 100ms ease;
+}
+
+.back-to-top-button svg {
+  @apply size-[18px];
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.back-to-top-dock:hover .back-to-top-button,
+.back-to-top-button:focus-visible {
+  @apply translate-y-0 opacity-100 pointer-events-auto;
+}
+
+.back-to-top-button:hover { background: var(--tree-hover); }
+.back-to-top-button:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .back-to-top-dock {
+    @apply size-14;
+  }
+
+  .back-to-top-button {
+    @apply translate-y-0 opacity-100 pointer-events-auto;
+  }
 }
 
 /* === DOCUMENT TOC === */
@@ -439,6 +499,12 @@ button {
   color: var(--link);
 }
 @screen mobile {
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
   .header-install { @apply px-2; }
   .header-install span { @apply sr-only; }
 }
@@ -563,6 +629,14 @@ button {
 .about-brand span { @apply block text-[11px]; color: var(--text-muted); }
 .about-content p { @apply mb-4; color: var(--text-muted); }
 .about-content a { color: var(--link); }
+.about-meta {
+  @apply mb-4 grid gap-1.5 rounded px-3 py-2.5;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.about-meta > div { @apply grid grid-cols-[88px_minmax(0,1fr)] gap-3; }
+.about-meta dt { @apply text-[12px] font-medium; color: var(--text-muted); }
+.about-meta dd { @apply min-w-0 text-[13px]; color: var(--text); }
 .about-links { @apply flex flex-wrap items-center gap-2; }
 
 /* === 全文搜尋 === */
@@ -890,8 +964,7 @@ button {
     padding-inline: 8px;
   }
 
-  #btn-theme,
-  #btn-about { display: none; }
+  #btn-theme { display: none; }
 
   #header .btn-icon,
   #header .header-install {
@@ -908,7 +981,11 @@ button {
 
   .mobile-pane-toggle svg { @apply size-[18px]; }
 
-  #main { @apply relative; }
+  #main {
+    @apply relative;
+    overflow-x: clip;
+    overflow-y: hidden;
+  }
 
   #sidebar,
   #toc-sidebar {
@@ -942,9 +1019,18 @@ button {
 
   .pane-resizer { display: none !important; }
 
-  #content-area { @apply w-full; }
+  #content-area {
+    @apply w-full;
+    max-width: 100%;
+    overscroll-behavior-x: none;
+  }
 
-  #reader { padding-inline: 16px; }
+  #reader {
+    max-width: 100% !important;
+    padding-inline: 16px;
+  }
+
+  #reader-body { max-width: 100%; }
 
   #reader-header {
     @apply mb-5 min-w-0 gap-2;

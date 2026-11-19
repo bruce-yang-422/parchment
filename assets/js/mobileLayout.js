@@ -23,6 +23,9 @@ export function initMobileLayout({
     const mobile = media.matches;
     if (!mobile || (activePane && !paneAvailable(activePane))) activePane = null;
 
+    // 離屏抽屜不可讓主 flex 容器保留水平捲動偏移。
+    layout.scrollLeft = 0;
+
     layout.classList.toggle('mobile-tree-open', mobile && activePane === 'tree');
     layout.classList.toggle('mobile-info-open', mobile && activePane === 'info');
     backdrop.hidden = !mobile || activePane === null;

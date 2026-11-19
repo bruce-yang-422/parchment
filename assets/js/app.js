@@ -25,6 +25,7 @@ import { initSettingsPanel } from './settingsPanel.js';
 import { currentLocale, initI18n, t } from './i18n.js';
 import { enhanceTableReadability } from './tableLayout.js';
 import { initMobileLayout } from './mobileLayout.js';
+import { initBackToTop } from './backToTop.js';
 
 /* ──────────────────── 初始化 ──────────────────── */
 
@@ -70,6 +71,8 @@ const workspaceCurrentName = document.getElementById('workspace-current-name');
 const mobileTreeToggle = document.getElementById('btn-mobile-tree');
 const mobileInfoToggle = document.getElementById('btn-mobile-info');
 const mobilePaneBackdrop = document.getElementById('mobile-pane-backdrop');
+const backToTopDock = document.getElementById('back-to-top-dock');
+const backToTopButton = document.getElementById('back-to-top-button');
 
 let _folderContext = null;
 let _currentDocument = null;
@@ -87,6 +90,12 @@ initMobileLayout({
   infoPane: tocSidebar,
   infoToggle: mobileInfoToggle,
   backdrop: mobilePaneBackdrop,
+});
+initBackToTop({
+  scrollContainer: contentArea,
+  reader: readerEl,
+  dock: backToTopDock,
+  button: backToTopButton,
 });
 
 const rightPanel = initRightPanel({
@@ -569,6 +578,8 @@ async function _openFileFromLaunchQueue(handle) {
 async function _displayFile(doc, options = {}) {
   const { name, content } = doc;
   const previousTop = contentArea.scrollTop;
+  // 寬表格與程式碼只允許在元件內捲動，切換文件時閱讀主容器必須回到水平原點。
+  contentArea.scrollLeft = 0;
   if (!options.hotReload) _saveReadingPosition();
   _currentDocument = doc;
   if (lightboxEl && !lightboxEl.hidden) _closeImageLightbox();
