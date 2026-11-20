@@ -13,6 +13,7 @@
   <a href="LICENSE"><img alt="授權：MIT" src="https://img.shields.io/badge/license-MIT-blue"></a>
   <img alt="PWA：可離線使用" src="https://img.shields.io/badge/PWA-offline%20ready-5a0fc8">
   <img alt="版本 1.1.1" src="https://img.shields.io/badge/version-1.1.1-lightgrey">
+  <a href="https://github.com/bruce-yang-422/parchment/releases/download/v1.1.1/parchment-extension-1.1.1.zip"><img alt="下載瀏覽器外掛 v1.1.1" src="https://img.shields.io/badge/extension-download-8b4513"></a>
 </p>
 
 <p align="center">
@@ -238,6 +239,8 @@ parchment/
 - 點擊工具列圖示，在新分頁開啟完整的 Parchment，所有功能皆可離線使用。
 - 在瀏覽器中開啟本機 `.md` 檔時，自動以 Parchment 顯示。需要在擴充功能詳細資料中開啟「允許存取檔案網址」。
 - 只要求 `storage` 與 `file:///*` 權限，不存取任何網站。
+
+使用者可下載 [Parchment Browser Extension v1.1.1](https://github.com/bruce-yang-422/parchment/releases/download/v1.1.1/parchment-extension-1.1.1.zip)，解壓縮後透過 Chrome 或 Edge 的開發人員模式載入。完整步驟請參閱 [外掛安裝說明](browser-extension/README.md#安裝已發布版本)。
 
 先執行 `npm run pwa`，再執行 `npm run extension` 即可建置。載入測試、上架 Chrome Web Store 與隱私權政策，請參閱 [browser-extension/README.md](browser-extension/README.md)。
 

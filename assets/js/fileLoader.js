@@ -6,6 +6,11 @@
 import { t } from './i18n.js';
 
 const SUPPORTED_EXT = /\.(md|txt)$/i;
+const PICKER_MIME_TYPES = {
+  'text/markdown': ['.md'],
+  'text/plain': ['.txt'],
+};
+const PICKER_EXTENSIONS = Object.values(PICKER_MIME_TYPES).flat();
 
 /** 判斷檔名是否為支援格式 */
 export function isSupportedFile(name) {
@@ -19,44 +24,39 @@ export function isSupportedFile(name) {
  * @returns {Promise<{ name: string, content: string }>}
  */
 export async function openFile() {
-  if ('showOpenFilePicker' in window) {
-    return _openFileWithFSA();
+  const handle = 'showOpenFilePicker' in window ? await _pickFileHandle() : null;
+  const file = handle ? await handle.getFile() : await _pickFileWithInput();
+  if (!isSupportedFile(file.name)) {
+    throw new Error(t('不支援的格式：{name}。請使用 .md 或 .txt 檔案。', { name: file.name }));
   }
-  return _openFileWithInput();
+  const document = { name: file.name, content: await file.text(), path: [file.name] };
+  return handle ? { ...document, handle, getFileByPath: null } : document;
 }
 
-async function _openFileWithFSA() {
+async function _pickFileHandle() {
+  const isAndroid = navigator.userAgentData?.platform === 'Android' || /\bAndroid\b/i.test(navigator.userAgent);
   const [handle] = await window.showOpenFilePicker({
     types: [{
-      description: 'Markdown / Text files',
-      accept: { 'text/*': ['.md', '.txt'] },
+      description: 'Markdown / Text (.md, .txt)',
+      // Desktop Chromium expands known MIME types into extra extensions. Android filters by MIME type.
+      accept: isAndroid ? PICKER_MIME_TYPES : { 'application/x-parchment-document': PICKER_EXTENSIONS },
     }],
+    excludeAcceptAllOption: true,
     multiple: false,
   });
-  const file = await handle.getFile();
-  return {
-    name: file.name,
-    content: await file.text(),
-    handle,
-    path: [file.name],
-    getFileByPath: null,
-  };
+  return handle;
 }
 
-function _openFileWithInput() {
+function _pickFileWithInput() {
   return new Promise((resolve, reject) => {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = '.md,.txt';
+    input.accept = PICKER_EXTENSIONS.join(',');
 
-    input.addEventListener('change', async () => {
+    input.addEventListener('change', () => {
       const file = input.files[0];
       if (!file) { reject(new DOMException('No file selected', 'AbortError')); return; }
-      if (!isSupportedFile(file.name)) {
-        reject(new Error(t('不支援的格式：{name}。請使用 .md 或 .txt 檔案。', { name: file.name })));
-        return;
-      }
-      resolve({ name: file.name, content: await file.text(), path: [file.name] });
+      resolve(file);
     });
 
     input.addEventListener('cancel', () =>

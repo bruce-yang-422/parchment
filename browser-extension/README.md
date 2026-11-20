@@ -1,6 +1,6 @@
 # Parchment 瀏覽器外掛
 
-把 Parchment 包裝成 Chrome 與 Edge 外掛（Manifest V3），並上架 Chrome Web Store。
+把 Parchment 包裝成 Chrome 與 Edge 外掛（Manifest V3），透過 GitHub Releases 提供手動安裝套件，並預備上架 Chrome Web Store。
 
 - **工具列圖示**：在新分頁開啟完整的 Parchment，可開啟檔案、資料夾、全文搜尋等，所有功能都可離線使用。
 - **本機 `.md` 檔**：在瀏覽器中直接開啟 `file:///…/筆記.md` 時，自動以 Parchment 排版顯示。
@@ -8,6 +8,17 @@
 - **智慧回頂**：手機上的長文章在超過四個畫面且捲動兩個畫面後顯示回頂按鈕；短文章不顯示。
 
 外掛內的網站程式碼在建置時從專案根目錄複製，不另外維護一份；這個資料夾只放外掛專屬的檔案。
+
+## 安裝已發布版本
+
+目前版本：[下載 Parchment Browser Extension v1.1.1](https://github.com/bruce-yang-422/parchment/releases/download/v1.1.1/parchment-extension-1.1.1.zip)
+
+1. 下載並解壓縮 ZIP。
+2. 開啟 `chrome://extensions` 或 `edge://extensions`，啟用**開發人員模式**。
+3. 選擇**載入未封裝項目**或**載入解壓縮**，再選取解壓縮後的資料夾。
+4. 如需自動顯示瀏覽器開啟的本機 `.md` 檔，請在外掛詳細資料中開啟**允許存取檔案網址**。
+
+GitHub Release 提供的是手動安裝套件，不是 Chrome Web Store 的一鍵安裝版本。瀏覽器可能會在重新啟動後提醒開發人員模式外掛；待商店版本發布後，一般使用者應優先使用商店版本。
 
 ## 運作方式
 

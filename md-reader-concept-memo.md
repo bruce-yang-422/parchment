@@ -218,7 +218,7 @@ parchment/
 
 ### 8.8 瀏覽器外掛
 
-`browser-extension/` 以 Manifest V3 將網站包裝為 Chrome 與 Edge 外掛，建置時把 `index.html`、`assets/`、`icons/`、`image/` 複製到 `dist/app/`，並移除 PWA manifest 連結；外掛頁面的 CSP 為 `script-src 'self' 'wasm-unsafe-eval'`，因此網站不使用內嵌腳本與內嵌事件屬性（配色還原與 `btoa` 修補分別位於 `boot.js`、`btoa-patch.js`），Service Worker 只在 http(s) 註冊。
+`browser-extension/` 以 Manifest V3 將網站包裝為 Chrome 與 Edge 外掛，建置時把 `index.html`、`assets/`、`icons/`、`image/` 複製到 `dist/app/`，並移除 PWA manifest 連結；外掛頁面的 CSP 為 `script-src 'self' 'wasm-unsafe-eval'`，因此網站不使用內嵌腳本與內嵌事件屬性（配色還原與 `btoa` 修補分別位於 `boot.js`、`btoa-patch.js`），Service Worker 只在 http(s) 註冊。正式 ZIP 以 GitHub Release 提供手動下載與解壓載入，網站、README 與外掛文件連至特定版本的資產；Chrome Web Store 上架後再以商店安裝為主要管道。
 
 使用者在瀏覽器開啟本機 `.md` 檔時，內容腳本通知背景腳本，將分頁導向 `app/index.html?file=<file URL>`；`app.js` 以 XMLHttpRequest 唯讀讀取檔案，並提供以該檔案資料夾為根的 `getFileByPath`，讓相對圖片與相對 `.md` 連結沿用既有流程。從檢視器按「上一頁」時，內容腳本偵測到 `back_forward` 導覽便不再跳轉。建置腳本會檢查 Manifest V3、引用檔案、名稱與描述長度及內嵌腳本，並輸出上架用 zip。
 
@@ -263,7 +263,7 @@ GitHub Pages 以發布分支的儲存庫根目錄提供靜態檔案。修改執�
 | 配色主題 | 羊皮紙、紫晶、墨白、湖藍、鋁銀五套配色，各含淺色與深色版本 | 已實作 |
 | 檔案樹工具 | 依名稱或編輯時間排序、全部折疊／展開 | 已實作 |
 | 響應式閱讀 | 手機左右側欄抽屜、水平溢位隔離、手機工具資訊入口與依文件長度／閱讀進度顯示的智慧回頂 | 已實作 |
-| 瀏覽器外掛 | Chrome／Edge 外掛（Manifest V3）：工具列開啟 Parchment、以 Parchment 顯示本機 `.md` 檔；上架資料與隱私權政策 | 已實作，待上架 Chrome Web Store |
+| 瀏覽器外掛 | Chrome／Edge 外掛（Manifest V3）：工具列開啟 Parchment、以 Parchment 顯示本機 `.md` 檔；上架資料與隱私權政策 | 已發布 GitHub Release v1.1.1，待上架 Chrome Web Store |
 
 ## 十一、已知風險與對策（Risks）
 

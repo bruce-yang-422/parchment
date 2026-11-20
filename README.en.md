@@ -13,6 +13,7 @@
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue"></a>
   <img alt="PWA: offline ready" src="https://img.shields.io/badge/PWA-offline%20ready-5a0fc8">
   <img alt="Version 1.1.1" src="https://img.shields.io/badge/version-1.1.1-lightgrey">
+  <a href="https://github.com/bruce-yang-422/parchment/releases/download/v1.1.1/parchment-extension-1.1.1.zip"><img alt="Download browser extension v1.1.1" src="https://img.shields.io/badge/extension-download-8b4513"></a>
 </p>
 
 <p align="center">
@@ -240,6 +241,8 @@ For architecture, browser API usage and design decisions, see the [concept memo]
 - Click the toolbar icon to open the full Parchment app in a new tab; everything works offline.
 - Open a local `.md` file in the browser and it is rendered by Parchment automatically. This needs "Allow access to file URLs" turned on in the extension's details page.
 - It only requests the `storage` and `file:///*` permissions and never accesses websites.
+
+Download [Parchment Browser Extension v1.1.1](https://github.com/bruce-yang-422/parchment/releases/download/v1.1.1/parchment-extension-1.1.1.zip), extract the archive, and load it through Chrome or Edge developer mode. See the [extension installation guide](browser-extension/README.md#安裝已發布版本) for the complete steps.
 
 Run `npm run pwa` and then `npm run extension` to build it. See [browser-extension/README.md](browser-extension/README.md) (in Traditional Chinese) for loading it for testing, publishing to the Chrome Web Store, and the privacy policy.
 
