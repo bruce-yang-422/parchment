@@ -56,7 +56,7 @@ Parchment 是一個本機優先（local-first）的靜態網頁應用程式，�
 - **八語介面**：支援繁體中文、簡體中文、英文、日文、韓文、法文、德文與西班牙文；首次使用時自動偵測瀏覽器語言，無法匹配時使用英文，也可在設定中自行切換。
 - **瀏覽器外掛**：Chrome 與 Edge 外掛可從工具列開啟 Parchment，並以 Parchment 顯示你在瀏覽器中開啟的本機 `.md` 檔。
 - **可安裝、可離線**：安裝為 PWA 後，即使沒有網路也能開啟並閱讀本機文件。
-- **原生手機 App**：`mobile-app/` 提供 Flutter Android／iOS 核心；Android 可開啟整個筆記資料夾、接收其他 App 分享的文件，並在確認後安全寫回 TODO 勾選。
+- **原生手機 App**：`mobile-app/` 提供 Flutter Android／iOS 核心；Android 可開啟整個筆記資料夾、從 LINE 等 App 的「開啟方式」直接閱讀收到的 `.md`，並在確認後安全寫回 TODO 勾選。
 
 ### 閱讀
 
@@ -251,14 +251,19 @@ parchment/
 
 `mobile-app/` 是共用 Dart 核心的 Android／iOS App，定位同樣是開源、唯讀優先、本機運作與相容 Obsidian Markdown。Mermaid、Graphviz、KaTeX 及相關資產全部隨 App 封裝，沒有網路也能渲染。
 
-- 單檔與整個資料夾模式皆支援 `.md`／`.txt`，選檔器會限制可開啟的文件類型。
-- Android 資料夾模式提供檔案樹、Wiki Links、內嵌筆記與圖片、全文搜尋、標籤及雙向連結。
-- 圖表使用清理後的 SVG 顯示，燈箱縮放不失真；語法錯誤會保留原始碼與錯誤訊息。
+- 定位：讓收到 `.md` 檔的一般人也能直接閱讀，或在電腦編輯、手機閱讀。介面用語避免技術名詞，歡迎畫面以白話說明 Markdown。
+- 單檔與整個資料夾模式皆支援 `.md`／`.txt`；選檔器中其他檔案會變灰色無法選取。
+- Android 可從 LINE、Gmail 等 App 的「開啟方式」或分享選單直接以 Parchment 開啟文件。
+- 語法與網頁版一致：Frontmatter 屬性、Callouts、註腳、縮寫、上下標、螢光標記、KaTeX、程式碼高亮與 Wiki Links。
+- Android 資料夾模式提供檔案樹、Wiki Links、內嵌筆記與圖片、全文搜尋、標籤、雙向連結，並記住最近的資料夾。
+- 圖表使用清理後的 SVG 顯示，燈箱縮放不失真，可另存 4 倍解析度 PNG；語法錯誤會保留原始碼與錯誤訊息。
+- 表格依欄數、文字長度與列數自動判斷：放得下就滿版換行，放不下才左右滑動，且滑動時仍會換行。
+- 「資訊」面板顯示字數、大小、修改時間、位置與待辦進度，並可一鍵複製檔名、位置或全文。
 - TODO 勾選是唯讀原則的唯一例外：只有使用者明確儲存時才寫回，且只修改勾選字元並檢查外部變更。
 - 介面採用 iOS／macOS 風格的半圓膠囊按鈕、輕量 Dock 與圓角面板，支援五套深淺配色、文字大小及行距。
 - Android 最低支援 7.0（API 24）；Google Play AAB 會依手機自動提供合適內容，直接下載版為包含 ARM32、ARM64 與 x86_64 的 Universal APK。
 
-開發、平台差異、測試與 Android 封裝方式請參閱 [手機 App README](mobile-app/README.md)。`mobile-app/apk/` 在本機保留 Google Play 上架 AAB 與可供各品牌 Android 手機直接安裝的 Universal APK；封裝檔不提交至 Git。
+開發、平台差異、測試與 Android 封裝方式請參閱 [手機 App README](mobile-app/README.md)。`mobile-app/apk/` 在本機保留 Google Play 上架 AAB 與可供各品牌 Android 手機直接安裝的 Universal APK（目前為 v1.1.1，雜湊值與簽署資訊見 [apk/README.md](mobile-app/apk/README.md)）；封裝檔不提交至 Git。
 
 ## 部署
 

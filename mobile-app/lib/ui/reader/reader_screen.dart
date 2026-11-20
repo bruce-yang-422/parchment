@@ -23,6 +23,7 @@ import '../localization/reader_strings.dart';
 import 'about_section.dart';
 import 'document_info_sheet.dart';
 import 'notes_sheet.dart';
+import 'readable_table.dart';
 import 'note_markdown.dart';
 
 class ReaderScreen extends StatefulWidget {
@@ -1466,7 +1467,11 @@ class _DocumentViewState extends State<_DocumentView> {
           decoration: TextDecoration.underline,
           decorationColor: colors.primary.withValues(alpha: 0.4),
         ),
-        tableColumnWidth: const IntrinsicColumnWidth(),
+        // Tables decide between fitting the screen and scrolling sideways.
+        tableColumnWidth: ReadableColumnWidth(
+          availableWidth:
+              MediaQuery.sizeOf(context).width - widget.padding.horizontal,
+        ),
         tableScrollbarThumbVisibility: true,
         tableCellsPadding: const EdgeInsets.symmetric(
           horizontal: 12,
