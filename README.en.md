@@ -258,9 +258,9 @@ Run `npm run pwa` and then `npm run extension` to build it. See [browser-extensi
 - Diagrams use sanitized SVG, remain sharp when zoomed in the lightbox, and preserve source plus an error message when syntax is invalid.
 - TODO checkboxes are the sole exception to read-only behavior: changes are written only after explicit confirmation, only checkbox markers are changed, and external modifications are detected first.
 - The interface uses restrained iOS/macOS-inspired capsule buttons, a lightweight dock, and rounded sheets, with five light/dark palettes plus text-size and line-spacing controls.
-- Android 7.0 (API 24) is the minimum. Google Play serves the appropriate ARM32/ARM64 content from the AAB; the direct Samsung build is ARM64 only.
+- Android 7.0 (API 24) is the minimum. Google Play serves the appropriate content from the AAB; the direct-download Universal APK contains ARM32, ARM64, and x86_64 and is not tied to any phone brand.
 
-See the [mobile app README](mobile-app/README.md) (Traditional Chinese) for development, platform differences, tests, and Android packaging. `mobile-app/apk/` contains only the Google Play AAB and the ARM64 APK for Samsung Galaxy A/S phones.
+See the [mobile app README](mobile-app/README.md) (Traditional Chinese) for development, platform differences, tests, and Android packaging. `mobile-app/apk/` locally contains the Google Play AAB and a Universal APK for direct installation on supported Android devices; release binaries are not committed to Git.
 
 ## Deployment
 

@@ -95,7 +95,7 @@
 | 位置驗證 | 原始文字中掃描到的工作項目數必須與畫面一致，否則拒絕寫入 |
 | 衝突保護 | 寫入前重新讀取原檔，內容與開啟時不同即拒絕寫入，避免覆蓋其他程式的修改 |
 | 編碼保護 | 原檔含非 UTF-8 內容時無法無損重新編碼，只提供另存新檔 |
-| 平台 | Android 最低 7.0／API 24，以 Storage Access Framework 的讀寫授權開啟檔案（僅 App 執行期間有效，不持久保留）；Google Play AAB 由商店分送 ARM32／ARM64，三星直接下載版只封裝 ARM64；iOS 選檔器以副本開啟，目前只提供另存新檔 |
+| 平台 | Android 最低 7.0／API 24，以 Storage Access Framework 的讀寫授權開啟檔案（僅 App 執行期間有效，不持久保留）；Google Play AAB 由商店依裝置分送，直接下載版為包含 ARM32、ARM64 與 x86_64 的 Universal APK，不綁定手機品牌；iOS 選檔器以副本開啟，目前只提供另存新檔 |
 
 ### 5.4 主題與閱讀字型
 
@@ -279,7 +279,7 @@ GitHub Pages 以發布分支的儲存庫根目錄提供靜態檔案。修改執�
 | 檔案樹工具 | 依名稱或編輯時間排序、全部折疊／展開 | 已實作 |
 | 響應式閱讀 | 手機左右側欄抽屜、水平溢位隔離、手機工具資訊入口與依文件長度／閱讀進度顯示的智慧回頂 | 已實作 |
 | 瀏覽器外掛 | Chrome／Edge 外掛（Manifest V3）：工具列開啟 Parchment、以 Parchment 顯示本機 `.md` 檔；上架資料與隱私權政策 | 已發布 GitHub Release v1.1.1，待上架 Chrome Web Store |
-| 手機 App | `mobile-app/` Flutter（Android／iOS）：與網頁版一致的筆記擴充語法、完全離線的 Mermaid／Graphviz、清理後的 SVG 向量燈箱與 PNG 匯出、TODO 勾選寫回、資料夾模式（檔案樹、Wiki Links 跳轉、內嵌筆記與圖片、最近資料夾、全文搜尋、標籤篩選、雙向連結）、從其他 App 以「開啟方式」或分享開啟 `.md`／`.txt`；介面採半圓膠囊按鈕、輕量 Dock、圓角面板及一致的深淺配色 | 開發中，Android 已於模擬器驗證；發佈產物限定為 Google Play AAB 與三星 Galaxy A／S 系列 ARM64 APK，使用獨立 Upload Key 簽章；iOS 資料夾模式、外部開啟與實機驗收待實作 |
+| 手機 App | `mobile-app/` Flutter（Android／iOS）：與網頁版一致的筆記擴充語法、完全離線的 Mermaid／Graphviz、清理後的 SVG 向量燈箱與 PNG 匯出、TODO 勾選寫回、資料夾模式（檔案樹、Wiki Links 跳轉、內嵌筆記與圖片、最近資料夾、全文搜尋、標籤篩選、雙向連結）、從其他 App 以「開啟方式」或分享開啟 `.md`／`.txt`；介面採半圓膠囊按鈕、輕量 Dock、圓角面板及一致的深淺配色 | 開發中，Android 已於模擬器驗證；發佈產物為 Google Play AAB 與適用各品牌支援裝置的 Universal APK，使用獨立 Upload Key 簽章且封裝檔不提交 Git；iOS 資料夾模式、外部開啟與實機驗收待實作 |
 
 ## 十一、已知風險與對策（Risks）
 

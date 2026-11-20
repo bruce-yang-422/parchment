@@ -256,9 +256,9 @@ parchment/
 - 圖表使用清理後的 SVG 顯示，燈箱縮放不失真；語法錯誤會保留原始碼與錯誤訊息。
 - TODO 勾選是唯讀原則的唯一例外：只有使用者明確儲存時才寫回，且只修改勾選字元並檢查外部變更。
 - 介面採用 iOS／macOS 風格的半圓膠囊按鈕、輕量 Dock 與圓角面板，支援五套深淺配色、文字大小及行距。
-- Android 最低支援 7.0（API 24）；Google Play AAB 會依手機自動提供 ARM32／ARM64 內容，三星直接下載版只提供 ARM64。
+- Android 最低支援 7.0（API 24）；Google Play AAB 會依手機自動提供合適內容，直接下載版為包含 ARM32、ARM64 與 x86_64 的 Universal APK。
 
-開發、平台差異、測試與 Android 封裝方式請參閱 [手機 App README](mobile-app/README.md)。`mobile-app/apk/` 只保留 Google Play 上架 AAB 與三星 Galaxy A／S 系列使用的 ARM64 APK。
+開發、平台差異、測試與 Android 封裝方式請參閱 [手機 App README](mobile-app/README.md)。`mobile-app/apk/` 在本機保留 Google Play 上架 AAB 與可供各品牌 Android 手機直接安裝的 Universal APK；封裝檔不提交至 Git。
 
 ## 部署
 

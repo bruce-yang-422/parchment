@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../app/app_info.dart';
+import 'open_source_licenses_page.dart';
 
 /// "關於 Parchment" block at the bottom of the settings sheet.
 class AboutSection extends StatelessWidget {
@@ -107,12 +108,10 @@ class AboutSection extends StatelessWidget {
             size: 20,
             color: colors.onSurfaceVariant,
           ),
-          onTap: () => showLicensePage(
-            context: context,
-            applicationName: AppInfo.name,
-            applicationVersion: AppInfo.version,
-            applicationLegalese:
-                '© 2026 ${AppInfo.author}・${AppInfo.license} License',
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => const OpenSourceLicensesPage(),
+            ),
           ),
         ),
       ],

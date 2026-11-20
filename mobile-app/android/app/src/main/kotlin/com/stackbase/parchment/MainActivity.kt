@@ -1,5 +1,6 @@
 package com.stackbase.parchment
 
+import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -25,6 +26,7 @@ class MainActivity : FlutterActivity() {
     private val main = Handler(Looper.getMainLooper())
     private var channel: MethodChannel? = null
     private var pendingIncoming: Map<String, Any?>? = null
+    private var pendingPickResult: MethodChannel.Result? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -44,6 +46,7 @@ class MainActivity : FlutterActivity() {
 
     private fun handle(call: io.flutter.plugin.common.MethodCall, result: MethodChannel.Result) {
         when (call.method) {
+            "pickDocument" -> pickDocument(result)
             "takeIncomingDocument" -> {
                 result.success(pendingIncoming)
                 pendingIncoming = null
@@ -92,6 +95,96 @@ class MainActivity : FlutterActivity() {
             }
             else -> result.notImplemented()
         }
+    }
+
+    /**
+     * Uses a text MIME type as the primary filter. Some document providers
+     * ignore EXTRA_MIME_TYPES when the primary type is a wildcard; using a
+     * text wildcard here
+     * keeps images, PDFs and archives out of the picker before selection.
+     */
+    private fun pickDocument(result: MethodChannel.Result) {
+        if (pendingPickResult != null) {
+            result.error("pick_in_progress", "A document picker is already open", null)
+            return
+        }
+        pendingPickResult = result
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "text/*"
+            putExtra(
+                Intent.EXTRA_MIME_TYPES,
+                arrayOf("text/plain", "text/markdown", "text/x-markdown"),
+            )
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+        }
+        try {
+            startActivityForResult(intent, PICK_DOCUMENT_REQUEST)
+        } catch (error: Exception) {
+            pendingPickResult = null
+            result.error("pick_failed", error.message, null)
+        }
+    }
+
+    @Deprecated("Android activity result callback used by the document picker")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode != PICK_DOCUMENT_REQUEST) {
+            super.onActivityResult(requestCode, resultCode, data)
+            return
+        }
+        val result = pendingPickResult ?: return
+        pendingPickResult = null
+        if (resultCode != Activity.RESULT_OK) {
+            result.success(null)
+            return
+        }
+        val uri = data?.data
+        if (uri == null) {
+            result.error("pick_failed", "The picker returned no document", null)
+            return
+        }
+        val description = describeDocument(uri)
+        val name = description["name"] as String
+        if (!name.endsWith(".md", ignoreCase = true) &&
+            !name.endsWith(".txt", ignoreCase = true)
+        ) {
+            result.error("unsupported_type", "Only .md and .txt documents are supported", null)
+            return
+        }
+        result.success(description)
+    }
+
+    private fun describeDocument(uri: Uri): Map<String, Any?> {
+        var name: String? = null
+        var size: Long? = null
+        contentResolver.query(
+            uri,
+            arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE),
+            null,
+            null,
+            null,
+        )?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
+                if (nameIndex >= 0 && !cursor.isNull(nameIndex)) name = cursor.getString(nameIndex)
+                if (sizeIndex >= 0 && !cursor.isNull(sizeIndex)) size = cursor.getLong(sizeIndex)
+            }
+        }
+        val displayName = name ?: uri.lastPathSegment?.substringAfterLast('/') ?: "document"
+        val writable = checkUriPermission(
+            uri,
+            android.os.Process.myPid(),
+            android.os.Process.myUid(),
+            Intent.FLAG_GRANT_WRITE_URI_PERMISSION,
+        ) == PackageManager.PERMISSION_GRANTED
+        return mapOf(
+            "uri" to uri.toString(),
+            "name" to displayName,
+            "size" to size,
+            "writable" to writable,
+        )
     }
 
     private fun withUri(
@@ -266,5 +359,6 @@ class MainActivity : FlutterActivity() {
 
     private companion object {
         const val MAX_TREE_ENTRIES = 20000
+        const val PICK_DOCUMENT_REQUEST = 4102
     }
 }

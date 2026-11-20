@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'app/parchment_app.dart';
@@ -11,7 +14,9 @@ void main() {
   final documents = AndroidDocumentChannel();
   runApp(
     ParchmentApp(
-      documentPicker: FilePickerDocumentPicker(),
+      documentPicker: !kIsWeb && Platform.isAndroid
+          ? documents
+          : FilePickerDocumentPicker(),
       documentWriter: PlatformDocumentWriter(),
       folderSource: documents,
       incomingSource: documents,

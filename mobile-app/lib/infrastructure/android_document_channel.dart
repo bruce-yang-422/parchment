@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import '../core/models/local_document.dart';
 import '../core/models/note_folder.dart';
 import '../core/services/document_inspector.dart';
+import '../core/services/document_picker.dart';
 import '../core/services/folder_source.dart';
 import '../core/services/incoming_documents.dart';
 import '../core/services/large_document_policy.dart';
@@ -17,7 +18,11 @@ import '../core/services/large_document_policy.dart';
 /// Android implementation backed by `MainActivity.kt`'s
 /// `com.stackbase.parchment/documents` channel.
 class AndroidDocumentChannel
-    implements FolderSource, IncomingDocumentSource, DocumentInspector {
+    implements
+        DocumentPicker,
+        FolderSource,
+        IncomingDocumentSource,
+        DocumentInspector {
   AndroidDocumentChannel() {
     if (_supported) _channel.setMethodCallHandler(_handleCall);
   }
@@ -26,6 +31,35 @@ class AndroidDocumentChannel
   static bool get _supported => !kIsWeb && Platform.isAndroid;
 
   final _incoming = StreamController<IncomingDocument>.broadcast();
+
+  /* ──────────────── Single document picker ──────────────── */
+
+  @override
+  Future<LocalDocument?> pickDocument() async {
+    if (!_supported) return null;
+    final picked = await _channel.invokeMapMethod<String, Object?>(
+      'pickDocument',
+    );
+    if (picked == null) return null;
+    final name = picked['name'] as String? ?? 'document';
+    if (!LocalDocument.supportsFileName(name)) {
+      throw FormatException('不支援的格式：$name。請使用 .md 或 .txt 檔案。');
+    }
+    final size = picked['size'] as int?;
+    if (size == null) throw const FileSizeUnavailableException();
+    if (LargeDocumentPolicy.requiresPagedReading(size)) {
+      throw PagedReadingRequiredException(size);
+    }
+    final uri = picked['uri'] as String?;
+    if (uri == null) throw const FormatException('沒有收到可開啟的檔案');
+    final bytes = await _read(uri);
+    return LocalDocument.decode(
+      name: name,
+      bytes: bytes,
+      format: LocalDocument.formatForFileName(name),
+      sourceUri: (picked['writable'] as bool? ?? false) ? uri : null,
+    );
+  }
 
   Future<Object?> _handleCall(MethodCall call) async {
     if (call.method == 'incomingDocument') {

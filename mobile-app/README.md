@@ -21,6 +21,7 @@ Parchment 的 Android／iOS 版本，以 Flutter 開發。畫面、文件模型�
 | 最近的資料夾 | 記住最近 16 個並保留系統授權，重開 App 一點即可切換；授權失效時提示重新選擇，移除時釋放授權 | `lib/core/services/recent_folders.dart`、`lib/infrastructure/preferences_recent_folders.dart` |
 | 搜尋、標籤、雙向連結 | 第一次使用時讀取所有筆記並顯示進度（單檔超過 2 MiB 略過）；全文搜尋不分大小寫、標題相符優先、顯示片段並捲到關鍵字段落；點標籤列出相同標籤的筆記；「關聯」面板列出連到本篇的筆記 | `lib/core/notes/note_index.dart`、`lib/ui/reader/notes_sheet.dart` |
 | 從其他 App 開啟（Android） | 「開啟方式」與分享選單列出 Parchment，接受 `text/markdown`、`text/x-markdown`、`text/plain` 與 `application/octet-stream`；後者僅在檔名為 `.md`／`.txt` 時開啟 | `AndroidManifest.xml`、`lib/infrastructure/android_document_channel.dart` |
+| 單檔選擇過濾（Android） | 以原生 SAF 的文字 MIME 類型開啟選檔器，在選取前隱藏圖片、PDF、壓縮檔與二進位檔；回到 App 後再依副檔名驗證，只接受 `.md`／`.txt` | `MainActivity.kt`、`lib/infrastructure/android_document_channel.dart` |
 | TODO 勾選寫回 | 勾選視為編輯，底部顯示未儲存數量，可捨棄、存回原檔或另存新檔；離開或開啟其他文件前會詢問。只替換 `[ ]` ↔ `[x]` 字元；掃描到的項目數須與畫面一致；寫入前重新讀取原檔，已被外部修改則拒絕；含非 UTF-8 內容只能另存 | `lib/core/markdown/task_markers.dart`、`lib/infrastructure/platform_document_writer.dart` |
 | 文件資訊 | 檔名、可讀位置、資料夾內路徑、大小、修改時間（Android 不提供建立時間）、能否存回；字數、字元、行數、段落、閱讀時間；標題、連結、圖片、程式碼與圖表、附註、待辦進度、標籤；進階資訊；複製檔名、位置、筆記連結與全文 | `lib/core/notes/document_stats.dart`、`lib/core/services/document_inspector.dart`、`lib/ui/reader/document_info_sheet.dart` |
 | 關於 | 設定最下方：版本、最後更新、作者、授權、官方網站、隱私權政策、開放原始碼元件授權 | `lib/app/app_info.dart`、`lib/ui/reader/about_section.dart` |
@@ -29,7 +30,7 @@ Parchment 的 Android／iOS 版本，以 Flutter 開發。畫面、文件模型�
 
 ## 平台支援
 
-Android 最低版本為 **Android 7.0（API 24，2016 年）**。Google Play AAB 會依裝置自動提供相符的 ARM32／ARM64 安裝內容；直接下載的三星 Galaxy A／S 系列 APK 僅封裝 ARM64。為維持 Flutter、WebView、Storage Access Framework 與離線圖表的穩定性，不支援 Android 6.0 或更舊版本。
+Android 最低版本為 **Android 7.0（API 24，2016 年）**。Google Play AAB 會依裝置自動提供相符的安裝內容；直接下載版使用 Universal APK，同時包含 ARM32、ARM64 與 x86_64。為維持 Flutter、WebView、Storage Access Framework 與離線圖表的穩定性，不支援 Android 6.0 或更舊版本。
 
 | 功能 | Android | iOS |
 | --- | --- | --- |
@@ -129,17 +130,17 @@ flutter build ipa                # iOS，需 macOS / Xcode
 
 ### Android Release APK
 
-建立 Google Play AAB 與三星 Galaxy A／S 系列使用的 ARM64 Release APK：
+建立 Google Play AAB 與適用所有支援架構 Android 裝置的 Universal Release APK：
 
 ```powershell
 cd mobile-app
 flutter build appbundle --release
-flutter build apk --release --target-platform android-arm64
+flutter build apk --release
 ```
 
 完成後將需要發佈的檔案放入 `apk/`：
 
 - `parchment-v版本-google-play.aab`：Google Play Console 上架
-- `parchment-v版本-samsung-arm64-v8a.apk`：三星 Galaxy A／S 系列直接安裝
+- `parchment-v版本-android-universal.apk`：Android 7.0 以上裝置直接安裝
 
-不產生 x86_64 模擬器版或舊式 32 位元 APK。Release 使用 `android/keystore/` 的 Upload Key；`android/key.properties` 與 keystore 已由 Git 忽略，兩者必須另外安全備份，否則未來可能無法用同一簽章更新 App。
+Universal APK 包含 ARM32、ARM64 與 x86_64，不綁定手機品牌。Release 使用 `android/keystore/` 的 Upload Key；`android/key.properties` 與 keystore 已由 Git 忽略，兩者必須另外安全備份，否則未來可能無法用同一簽章更新 App。
