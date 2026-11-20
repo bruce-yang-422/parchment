@@ -734,37 +734,58 @@ class _ReaderToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BottomAppBar(
-      height: 72,
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: Row(
-        children: [
-          _ToolbarButton(
-            icon: Icons.account_tree_outlined,
-            label: strings.notes,
-            onTap: onNotes,
-          ),
-          _ToolbarButton(
-            icon: Icons.hub_outlined,
-            label: strings.relations,
-            onTap: onRelations,
-          ),
-          _ToolbarButton(
-            icon: Icons.format_list_bulleted,
-            label: strings.outline,
-            onTap: onOutline,
-          ),
-          _ToolbarButton(
-            icon: Icons.info_outline,
-            label: strings.info,
-            onTap: onInfo,
-          ),
-          _ToolbarButton(
-            icon: Icons.settings_outlined,
-            label: strings.settings,
-            onTap: onSettings,
+    final colors = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.surface.withValues(alpha: 0.96),
+        border: Border(
+          top: BorderSide(color: colors.outlineVariant, width: 0.5),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: colors.shadow.withValues(alpha: 0.08),
+            blurRadius: 18,
+            offset: const Offset(0, -4),
           ),
         ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 70,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(8, 5, 8, 4),
+            child: Row(
+              children: [
+                _ToolbarButton(
+                  icon: Icons.account_tree_outlined,
+                  label: strings.notes,
+                  onTap: onNotes,
+                ),
+                _ToolbarButton(
+                  icon: Icons.hub_outlined,
+                  label: strings.relations,
+                  onTap: onRelations,
+                ),
+                _ToolbarButton(
+                  icon: Icons.format_list_bulleted_rounded,
+                  label: strings.outline,
+                  onTap: onOutline,
+                ),
+                _ToolbarButton(
+                  icon: Icons.info_outline_rounded,
+                  label: strings.info,
+                  onTap: onInfo,
+                ),
+                _ToolbarButton(
+                  icon: Icons.settings_outlined,
+                  label: strings.settings,
+                  onTap: onSettings,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -1026,7 +1047,7 @@ class _SettingDropdown<T extends Enum> extends StatelessWidget {
   }
 }
 
-class _ToolbarButton extends StatelessWidget {
+class _ToolbarButton extends StatefulWidget {
   const _ToolbarButton({
     required this.icon,
     required this.label,
@@ -1038,18 +1059,73 @@ class _ToolbarButton extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  State<_ToolbarButton> createState() => _ToolbarButtonState();
+}
+
+class _ToolbarButtonState extends State<_ToolbarButton> {
+  bool _hovered = false;
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final emphasized = _hovered || _pressed;
     return Expanded(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 23),
-            const SizedBox(height: 3),
-            Text(label, style: Theme.of(context).textTheme.labelSmall),
-          ],
+      child: Semantics(
+        button: true,
+        label: widget.label,
+        child: AnimatedScale(
+          scale: _pressed ? 0.95 : 1,
+          duration: const Duration(milliseconds: 100),
+          curve: Curves.easeOut,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+            splashFactory: NoSplash.splashFactory,
+            hoverColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+            onHover: (value) => setState(() => _hovered = value),
+            onHighlightChanged: (value) => setState(() => _pressed = value),
+            onTap: widget.onTap,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              curve: Curves.easeOutCubic,
+              decoration: BoxDecoration(
+                color: emphasized
+                    ? colors.primaryContainer.withValues(alpha: 0.55)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    widget.icon,
+                    size: 22,
+                    color: emphasized
+                        ? colors.primary
+                        : colors.onSurfaceVariant,
+                    opticalSize: 22,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    widget.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: emphasized
+                          ? colors.primary
+                          : colors.onSurfaceVariant,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0.1,
+                      height: 1.15,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );

@@ -25,7 +25,11 @@ Parchment 的 Android／iOS 版本，以 Flutter 開發。畫面、文件模型�
 | 文件資訊 | 檔名、可讀位置、資料夾內路徑、大小、修改時間（Android 不提供建立時間）、能否存回；字數、字元、行數、段落、閱讀時間；標題、連結、圖片、程式碼與圖表、附註、待辦進度、標籤；進階資訊；複製檔名、位置、筆記連結與全文 | `lib/core/notes/document_stats.dart`、`lib/core/services/document_inspector.dart`、`lib/ui/reader/document_info_sheet.dart` |
 | 關於 | 設定最下方：版本、最後更新、作者、授權、官方網站、隱私權政策、開放原始碼元件授權 | `lib/app/app_info.dart`、`lib/ui/reader/about_section.dart` |
 
+介面採用接近 iOS／macOS 的低干擾設計語言：半圓膠囊操作按鈕、輕量底部 Dock、圓角面板、細分隔線與一致的按壓／滑鼠懸停回饋。所有元件沿用五套配色並支援深色模式。介面語言選擇會立即更新設定與主要導覽文字；文件內容不會被翻譯。
+
 ## 平台支援
+
+Android 最低版本為 **Android 7.0（API 24，2016 年）**。Google Play AAB 會依裝置自動提供相符的 ARM32／ARM64 安裝內容；直接下載的三星 Galaxy A／S 系列 APK 僅封裝 ARM64。為維持 Flutter、WebView、Storage Access Framework 與離線圖表的穩定性，不支援 Android 6.0 或更舊版本。
 
 | 功能 | Android | iOS |
 | --- | --- | --- |
@@ -45,6 +49,7 @@ Parchment 的 Android／iOS 版本，以 Flutter 開發。畫面、文件模型�
 
 ```text
 mobile-app/
+├── apk/                       已封裝的 Android APK 與命名說明
 ├── lib/
 │   ├── app/                  App 組裝與 App 資訊（app_info.dart）
 │   ├── core/
@@ -121,3 +126,20 @@ flutter build appbundle          # Android Play Store AAB
 flutter build apk                # Android 測試 APK
 flutter build ipa                # iOS，需 macOS / Xcode
 ```
+
+### Android Release APK
+
+建立 Google Play AAB 與三星 Galaxy A／S 系列使用的 ARM64 Release APK：
+
+```powershell
+cd mobile-app
+flutter build appbundle --release
+flutter build apk --release --target-platform android-arm64
+```
+
+完成後將需要發佈的檔案放入 `apk/`：
+
+- `parchment-v版本-google-play.aab`：Google Play Console 上架
+- `parchment-v版本-samsung-arm64-v8a.apk`：三星 Galaxy A／S 系列直接安裝
+
+不產生 x86_64 模擬器版或舊式 32 位元 APK。Release 使用 `android/keystore/` 的 Upload Key；`android/key.properties` 與 keystore 已由 Git 忽略，兩者必須另外安全備份，否則未來可能無法用同一簽章更新 App。

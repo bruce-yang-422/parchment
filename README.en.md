@@ -42,6 +42,7 @@ The interface supports Traditional Chinese, Simplified Chinese, English, Japanes
 - [Privacy](#privacy)
 - [Development](#development)
 - [Browser extension](#browser-extension)
+- [Flutter mobile app](#flutter-mobile-app)
 - [Deployment](#deployment)
 - [Contributing](#contributing)
 - [License](#license)
@@ -57,6 +58,7 @@ The interface supports Traditional Chinese, Simplified Chinese, English, Japanes
 - **Eight interface languages**: Traditional Chinese, Simplified Chinese, English, Japanese, Korean, French, German and Spanish, with automatic browser-language detection and a manual selector.
 - **Browser extension**: a Chrome and Edge extension opens Parchment from the toolbar and renders local `.md` files you open in the browser.
 - **Installable and offline**: install it as a PWA to open and read local files without a network connection.
+- **Native mobile app**: `mobile-app/` contains the shared Flutter Android/iOS core. Android can open a whole notes folder, receive documents shared by other apps, and safely write back confirmed TODO checkbox changes.
 
 ### Reading
 
@@ -228,6 +230,7 @@ parchment/
 ├── src/styles/            # Tailwind style sources, including palettes and reading layouts
 ├── samples/               # Sample notes opened by the home page's sample button
 ├── browser-extension/     # Chrome / Edge extension sources, build script and store listing
+├── mobile-app/            # Flutter Android / iOS reader and packaged APK output
 ├── scripts/               # Build scripts for third-party bundles and the PWA
 └── tests/                 # Unit tests and the browser rendering test page
 ```
@@ -245,6 +248,19 @@ For architecture, browser API usage and design decisions, see the [concept memo]
 Download [Parchment Browser Extension v1.1.1](https://github.com/bruce-yang-422/parchment/releases/download/v1.1.1/parchment-extension-1.1.1.zip), extract the archive, and load it through Chrome or Edge developer mode. See the [extension installation guide](browser-extension/README.md#安裝已發布版本) for the complete steps.
 
 Run `npm run pwa` and then `npm run extension` to build it. See [browser-extension/README.md](browser-extension/README.md) (in Traditional Chinese) for loading it for testing, publishing to the Chrome Web Store, and the privacy policy.
+
+## Flutter mobile app
+
+`mobile-app/` is the Android/iOS app built on a shared Dart core. It keeps the same open-source, read-only-first, local-first, and Obsidian-compatible positioning. Mermaid, Graphviz, KaTeX, and their assets ship inside the app, so rendering works without a network connection.
+
+- Single-file and whole-folder modes accept `.md` and `.txt` documents.
+- Android folder mode provides a file tree, Wiki Links, note and image embeds, full-text search, tags, and backlinks.
+- Diagrams use sanitized SVG, remain sharp when zoomed in the lightbox, and preserve source plus an error message when syntax is invalid.
+- TODO checkboxes are the sole exception to read-only behavior: changes are written only after explicit confirmation, only checkbox markers are changed, and external modifications are detected first.
+- The interface uses restrained iOS/macOS-inspired capsule buttons, a lightweight dock, and rounded sheets, with five light/dark palettes plus text-size and line-spacing controls.
+- Android 7.0 (API 24) is the minimum. Google Play serves the appropriate ARM32/ARM64 content from the AAB; the direct Samsung build is ARM64 only.
+
+See the [mobile app README](mobile-app/README.md) (Traditional Chinese) for development, platform differences, tests, and Android packaging. `mobile-app/apk/` contains only the Google Play AAB and the ARM64 APK for Samsung Galaxy A/S phones.
 
 ## Deployment
 

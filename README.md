@@ -40,6 +40,7 @@ Parchment 是一個本機優先（local-first）的靜態網頁應用程式，�
 - [隱私](#隱私)
 - [開發](#開發)
 - [瀏覽器外掛](#瀏覽器外掛)
+- [Flutter 手機 App](#flutter-手機-app)
 - [部署](#部署)
 - [參與貢獻](#參與貢獻)
 - [授權](#授權)
@@ -55,6 +56,7 @@ Parchment 是一個本機優先（local-first）的靜態網頁應用程式，�
 - **八語介面**：支援繁體中文、簡體中文、英文、日文、韓文、法文、德文與西班牙文；首次使用時自動偵測瀏覽器語言，無法匹配時使用英文，也可在設定中自行切換。
 - **瀏覽器外掛**：Chrome 與 Edge 外掛可從工具列開啟 Parchment，並以 Parchment 顯示你在瀏覽器中開啟的本機 `.md` 檔。
 - **可安裝、可離線**：安裝為 PWA 後，即使沒有網路也能開啟並閱讀本機文件。
+- **原生手機 App**：`mobile-app/` 提供 Flutter Android／iOS 核心；Android 可開啟整個筆記資料夾、接收其他 App 分享的文件，並在確認後安全寫回 TODO 勾選。
 
 ### 閱讀
 
@@ -226,6 +228,7 @@ parchment/
 ├── src/styles/            # Tailwind 樣式原始碼（含配色與閱讀版面）
 ├── samples/               # 首頁「開啟範例文件」使用的範例筆記
 ├── browser-extension/     # Chrome／Edge 外掛的原始碼、建置腳本與上架資料
+├── mobile-app/            # Flutter Android／iOS 閱讀器與 APK 封裝輸出
 ├── scripts/               # 第三方套件與 PWA 的建置腳本
 └── tests/                 # 單元測試與瀏覽器渲染測試頁
 ```
@@ -243,6 +246,19 @@ parchment/
 使用者可下載 [Parchment Browser Extension v1.1.1](https://github.com/bruce-yang-422/parchment/releases/download/v1.1.1/parchment-extension-1.1.1.zip)，解壓縮後透過 Chrome 或 Edge 的開發人員模式載入。完整步驟請參閱 [外掛安裝說明](browser-extension/README.md#安裝已發布版本)。
 
 先執行 `npm run pwa`，再執行 `npm run extension` 即可建置。載入測試、上架 Chrome Web Store 與隱私權政策，請參閱 [browser-extension/README.md](browser-extension/README.md)。
+
+## Flutter 手機 App
+
+`mobile-app/` 是共用 Dart 核心的 Android／iOS App，定位同樣是開源、唯讀優先、本機運作與相容 Obsidian Markdown。Mermaid、Graphviz、KaTeX 及相關資產全部隨 App 封裝，沒有網路也能渲染。
+
+- 單檔與整個資料夾模式皆支援 `.md`／`.txt`，選檔器會限制可開啟的文件類型。
+- Android 資料夾模式提供檔案樹、Wiki Links、內嵌筆記與圖片、全文搜尋、標籤及雙向連結。
+- 圖表使用清理後的 SVG 顯示，燈箱縮放不失真；語法錯誤會保留原始碼與錯誤訊息。
+- TODO 勾選是唯讀原則的唯一例外：只有使用者明確儲存時才寫回，且只修改勾選字元並檢查外部變更。
+- 介面採用 iOS／macOS 風格的半圓膠囊按鈕、輕量 Dock 與圓角面板，支援五套深淺配色、文字大小及行距。
+- Android 最低支援 7.0（API 24）；Google Play AAB 會依手機自動提供 ARM32／ARM64 內容，三星直接下載版只提供 ARM64。
+
+開發、平台差異、測試與 Android 封裝方式請參閱 [手機 App README](mobile-app/README.md)。`mobile-app/apk/` 只保留 Google Play 上架 AAB 與三星 Galaxy A／S 系列使用的 ARM64 APK。
 
 ## 部署
 
