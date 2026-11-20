@@ -1,10 +1,15 @@
 # Dependencies
 node_modules/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
 
 # Build output
 dist/
 build/
 browser-extension/release/
+mobile-app/android/.gradle/
+mobile-app/ios/Pods/
 
 # Environment
 .env

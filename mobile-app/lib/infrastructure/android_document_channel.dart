@@ -1,0 +1,195 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:android_file_picker/android_file_picker.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+
+import '../core/models/local_document.dart';
+import '../core/models/note_folder.dart';
+import '../core/services/document_inspector.dart';
+import '../core/services/folder_source.dart';
+import '../core/services/incoming_documents.dart';
+import '../core/services/large_document_policy.dart';
+
+/// Android implementation backed by `MainActivity.kt`'s
+/// `com.stackbase.parchment/documents` channel.
+class AndroidDocumentChannel
+    implements FolderSource, IncomingDocumentSource, DocumentInspector {
+  AndroidDocumentChannel() {
+    if (_supported) _channel.setMethodCallHandler(_handleCall);
+  }
+
+  static const _channel = MethodChannel('com.stackbase.parchment/documents');
+  static bool get _supported => !kIsWeb && Platform.isAndroid;
+
+  final _incoming = StreamController<IncomingDocument>.broadcast();
+
+  Future<Object?> _handleCall(MethodCall call) async {
+    if (call.method == 'incomingDocument') {
+      final map = (call.arguments as Map).cast<String, Object?>();
+      _incoming.add(_incomingFromMap(map));
+    }
+    return null;
+  }
+
+  /* ──────────────── Folder mode ──────────────── */
+
+  @override
+  bool get isSupported => _supported;
+
+  @override
+  Future<NoteFolder?> pickFolder() async {
+    if (!_supported) return null;
+    final tree = await FilePicker.pickDirectory(
+      dialogTitle: '選擇筆記資料夾',
+      // Write access lets task-list edits be saved back; the grant is kept
+      // so the folder can be reopened later.
+      androidOptions: const FilePickerAndroidOptions(
+        safOptions: AndroidSAFOptions(
+          grant: AndroidSAFGrant.lifetime,
+          accessMode: AndroidSAFAccessMode.readWrite,
+        ),
+      ),
+    );
+    if (tree == null) return null;
+    return openFolderUri(tree.toString(), _folderName(tree));
+  }
+
+  @override
+  Future<NoteFolder> openFolderUri(String uri, String name) async {
+    final raw = await _channel.invokeListMethod<Map>('listTree', {'uri': uri});
+    final entries = [
+      for (final item in raw ?? const <Map>[])
+        FolderEntry(
+          path: (item['path'] as String).split('/'),
+          uri: item['uri'] as String,
+          directory: item['directory'] as bool,
+          size: item['size'] as int?,
+          modified: item['modified'] == null
+              ? null
+              : DateTime.fromMillisecondsSinceEpoch(item['modified'] as int),
+        ),
+    ];
+    return NoteFolder(name: name, uri: uri, entries: entries);
+  }
+
+  @override
+  Future<Set<String>> grantedFolderUris() async {
+    if (!_supported) return const {};
+    final uris = await _channel.invokeListMethod<String>('persistedTrees');
+    return {...?uris};
+  }
+
+  @override
+  Future<void> releaseFolder(String uri) async {
+    if (!_supported) return;
+    await _channel.invokeMethod<void>('releaseTree', {'uri': uri});
+  }
+
+  static String _folderName(Uri tree) {
+    // Tree document ids look like `primary:Download/Notes`.
+    final id = Uri.decodeComponent(tree.pathSegments.last);
+    final path = id.contains(':') ? id.substring(id.indexOf(':') + 1) : id;
+    final name = path.split('/').where((part) => part.isNotEmpty).lastOrNull;
+    return name ?? '資料夾';
+  }
+
+  @override
+  Future<Uint8List> readFile(FolderEntry entry) => _read(entry.uri);
+
+  Future<Uint8List> _read(String uri) async {
+    final bytes = await _channel.invokeMethod<Uint8List>('read', {'uri': uri});
+    if (bytes == null) throw StateError('無法讀取檔案');
+    return bytes;
+  }
+
+  /* ──────────────── Metadata ──────────────── */
+
+  @override
+  Future<DocumentStat?> stat(String uri) async {
+    if (!_supported || !uri.startsWith('content:')) return null;
+    final map = await _channel.invokeMapMethod<String, Object?>('stat', {
+      'uri': uri,
+    });
+    if (map == null) return null;
+    final modified = map['modified'] as int?;
+    return DocumentStat(
+      size: map['size'] as int?,
+      modified: modified == null || modified <= 0
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch(modified),
+      documentId: map['documentId'] as String?,
+      authority: map['authority'] as String?,
+    );
+  }
+
+  /* ──────────────── Incoming files ──────────────── */
+
+  @override
+  Stream<IncomingDocument> get documents => _incoming.stream;
+
+  @override
+  Future<IncomingDocument?> takeInitial() async {
+    if (!_supported) return null;
+    final map = await _channel.invokeMapMethod<String, Object?>(
+      'takeIncomingDocument',
+    );
+    return map == null ? null : _incomingFromMap(map);
+  }
+
+  static IncomingDocument _incomingFromMap(Map<String, Object?> map) {
+    return IncomingDocument(
+      name: map['name'] as String? ?? 'document',
+      uri: map['uri'] as String?,
+      mimeType: map['mimeType'] as String?,
+      size: map['size'] as int?,
+      writable: map['writable'] as bool? ?? false,
+      text: map['text'] as String?,
+    );
+  }
+
+  @override
+  Future<LocalDocument> load(IncomingDocument incoming) async {
+    if (incoming.text case final text?) {
+      final bytes = utf8.encode(text);
+      if (LargeDocumentPolicy.requiresPagedReading(bytes.length)) {
+        throw PagedReadingRequiredException(bytes.length);
+      }
+      return LocalDocument(
+        name: incoming.name,
+        content: text,
+        format: LocalDocument.supportsFileName(incoming.name)
+            ? LocalDocument.formatForFileName(incoming.name)
+            : DocumentFormat.plainText,
+      );
+    }
+    final uri = incoming.uri;
+    if (uri == null) throw const FormatException('沒有收到可開啟的檔案');
+    final format = LocalDocument.formatForIncoming(
+      incoming.name,
+      incoming.mimeType,
+    );
+    if (incoming.size case final size?
+        when LargeDocumentPolicy.requiresPagedReading(size)) {
+      throw PagedReadingRequiredException(size);
+    }
+    final Uint8List bytes;
+    if (uri.startsWith('file:')) {
+      bytes = await File.fromUri(Uri.parse(uri)).readAsBytes();
+    } else {
+      bytes = await _read(uri);
+    }
+    if (LargeDocumentPolicy.requiresPagedReading(bytes.length)) {
+      throw PagedReadingRequiredException(bytes.length);
+    }
+    return LocalDocument.decode(
+      name: incoming.name,
+      bytes: bytes,
+      format: format,
+      sourceUri: incoming.writable ? uri : null,
+    );
+  }
+}
