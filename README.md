@@ -24,7 +24,7 @@
 
 Parchment 是一個本機優先（local-first）的靜態網頁應用程式，用來安全地閱讀 `.md` 與 `.txt` 文件。它以唯讀權限開啟檔案，在瀏覽器內完成渲染，不需要伺服器、帳號或上傳。開啟整個筆記資料夾後，可以用檔案樹瀏覽、全文搜尋，並跟隨 Wiki Links 在筆記之間跳轉。
 
-**[立即線上使用 →](ㄏ)**
+**[立即線上使用 →](https://parchment.stack-base.com/)**
 
 <p align="center">
   <a href="https://parchment.stack-base.com/"><img src="image/screenshots/parchment-reader-overview-zh-tw.png" alt="Parchment 繁體中文介面：檔案樹、Markdown 閱讀區與文章目錄" width="100%"></a>
@@ -249,22 +249,20 @@ parchment/
 
 ## Flutter 手機 App
 
-`mobile-app/` 是共用 Dart 核心的 Android／iOS App，定位同樣是開源、唯讀優先、本機運作與相容 Obsidian Markdown。Mermaid、Graphviz、KaTeX、內建字型及相關資產全部隨 App 封裝，使用系統或內建字型時沒有網路也能閱讀與渲染；只有選用 Google Fonts 字型、開啟外部連結或遠端圖片時才需要連線。
+`mobile-app/` 是共用 Dart 核心的 Android／iOS App，定位同樣是開源、唯讀優先、本機運作與相容 Obsidian Markdown。Mermaid、Graphviz、KaTeX 及相關資產全部隨 App 封裝，沒有網路也能渲染。
 
 - 定位：讓收到 `.md` 檔的一般人也能直接閱讀，或在電腦編輯、手機閱讀。介面用語避免技術名詞，歡迎畫面以白話說明 Markdown。
 - 單檔與整個資料夾模式皆支援 `.md`／`.txt`；選檔器中其他檔案會變灰色無法選取。
 - Android 可從 LINE、Gmail 等 App 的「開啟方式」或分享選單直接以 Parchment 開啟文件。
-- 語法與網頁版一致：Frontmatter 屬性、Callouts、註腳（中文名稱也能點開，文末返回鍵為自繪向量圖示）、縮寫、上下標、螢光標記、KaTeX、程式碼高亮與 Wiki Links；常用 HTML（`<kbd>`、`<details>`、`<u>`、置中等）以白名單轉成原生排版，`<script>` 等一律移除。
+- 語法與網頁版一致：Frontmatter 屬性、Callouts、註腳、縮寫、上下標、螢光標記、KaTeX、程式碼高亮與 Wiki Links。
 - Android 資料夾模式提供檔案樹、Wiki Links、內嵌筆記與圖片、全文搜尋、標籤、雙向連結，並記住最近的資料夾。
 - 圖表使用清理後的 SVG 顯示，燈箱縮放不失真，可另存 4 倍解析度 PNG；語法錯誤會保留原始碼與錯誤訊息。
 - 表格依欄數、文字長度與列數自動判斷：放得下就滿版換行，放不下才左右滑動，且滑動時仍會換行。
-- 「資訊」面板依常用程度排序，顯示字數、大小、修改時間、待辦進度、白話位置與手機內完整路徑；進階區提供編碼、換行與 SHA-256，可一鍵複製。
+- 「資訊」面板顯示字數、大小、修改時間、位置與待辦進度，並可一鍵複製檔名、位置或全文。
 - 「開放原始碼元件」以摘要、搜尋和可收合卡片整理，完整授權文字按需展開，不再一次顯示整頁長文。
 - TODO 勾選是唯讀原則的唯一例外：只有使用者明確儲存時才寫回，且只修改勾選字元並檢查外部變更。
 - 中英文[隱私權政策](privacy.html)同時涵蓋網站、PWA、瀏覽器外掛及 Android／iOS App，說明檔案授權、本機偏好、離線圖表與外部連結行為。
-- 五套配色各自模仿一種環境：羊皮紙、紫晶（Obsidian）、墨白（Notion）、湖藍（Windows 11）、鋁銀（iOS／macOS）；除色票外，按鈕、面板、引用、勾選框、表格、提示框圖示與程式碼區塊都依配色不同。
-- 字型：內建台北黑體、jf 粉圓、芫荽、內海、源柔哥德體、LINE Seed JP、Pretendard，Google Fonts 選了才下載；清單依介面語言只列收錄該語言文字的字型，並附範例文字。
-- 介面支援 8 種語言（繁中、簡中、英、日、韓、法、德、西）；語言、字型、配色、明暗、文字大小與行距會記住。
+- 介面採用 iOS／macOS 風格的半圓膠囊按鈕、輕量 Dock 與圓角面板，支援五套深淺配色、文字大小及行距。
 - Android 最低支援 7.0（API 24）；Google Play AAB 會依手機自動提供合適內容，直接下載版為包含 ARM32、ARM64 與 x86_64 的 Universal APK。
 
 開發、平台差異、測試與 Android 封裝方式請參閱 [手機 App README](mobile-app/README.md)。`mobile-app/apk/` 在本機保留 Google Play 上架 AAB 與可供各品牌 Android 手機直接安裝的 Universal APK（目前為 v1.1.1，雜湊值與簽署資訊見 [apk/README.md](mobile-app/apk/README.md)）；封裝檔不提交至 Git。

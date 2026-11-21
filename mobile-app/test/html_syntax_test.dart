@@ -62,8 +62,8 @@ void main() {
       expect(html, contains('<br />'));
       expect(html, contains('<html-img src="a.png" alt="圖" width="120" />'));
       final lone = blocks('<img src="a.png" width="120">').single;
-      expect(lone.tag, 'html-block');
-      expect(lone.attributes['markdown'], '<img src="a.png" width="120">');
+      expect(lone.tag, 'html-img');
+      expect(render('<img src="a.png" width="120">'), contains('html-img'));
       expect(render('<img src="javascript:x">'), isNot(contains('html-img')));
     });
 
@@ -102,6 +102,12 @@ void main() {
       expect(
         nodes.first.attributes['markdown'],
         '<img src="logo.png" width="80">',
+      );
+      // The nested renderer receives the wrapper's Markdown. It must resolve
+      // the image in one pass instead of producing the same html-block again.
+      expect(
+        render(nodes.first.attributes['markdown']!),
+        contains('html-img'),
       );
       expect(nodes.last.textContent, '內文');
     });

@@ -230,4 +230,34 @@ void main() {
     expect(scrollbar.trackVisibility, isTrue);
     expect(scrollbar.scrollbarOrientation, ScrollbarOrientation.bottom);
   });
+
+  testWidgets('程式碼行號預設隱藏，設定後顯示在左側', (tester) async {
+    Future<void> pump({required bool lineNumbers}) => tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: CodeBlockView(
+            source: 'first();\nsecond();\nthird();',
+            language: 'dart',
+            showLineNumbers: lineNumbers,
+          ),
+        ),
+      ),
+    );
+
+    await pump(lineNumbers: false);
+    expect(find.text('1\n2\n3'), findsNothing);
+
+    await pump(lineNumbers: true);
+    expect(find.text('1\n2\n3'), findsOneWidget);
+    expect(find.byType(RawScrollbar), findsOneWidget);
+    final numbers = tester.widget<Text>(
+      find.byKey(const ValueKey('code-line-numbers')),
+    );
+    final source = tester.widget<Text>(
+      find.byKey(const ValueKey('code-source')),
+    );
+    expect(numbers.strutStyle, source.strutStyle);
+    expect(numbers.strutStyle?.forceStrutHeight, isTrue);
+    expect(numbers.textHeightBehavior, source.textHeightBehavior);
+  });
 }

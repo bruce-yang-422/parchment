@@ -12,6 +12,8 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.StandardMethodCodec
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 /**
  * Document access for the reader:
@@ -24,6 +26,7 @@ class MainActivity : FlutterActivity() {
     private var channel: MethodChannel? = null
     private var pendingIncoming: Map<String, Any?>? = null
     private var pendingPickResult: MethodChannel.Result? = null
+    private val documentMetadataExecutor: ExecutorService = Executors.newSingleThreadExecutor()
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -173,15 +176,37 @@ class MainActivity : FlutterActivity() {
             result.error("pick_failed", "The picker returned no document", null)
             return
         }
-        val description = describeDocument(uri)
-        val name = description["name"] as String
-        if (!name.endsWith(".md", ignoreCase = true) &&
-            !name.endsWith(".txt", ignoreCase = true)
-        ) {
-            result.error("unsupported_type", "Only .md and .txt documents are supported", null)
-            return
+        // A document provider may need disk, cloud or IPC work to answer a
+        // metadata query. Never do that work in this UI-thread callback: slow
+        // providers (notably some vendor file managers) can otherwise trigger
+        // Android's "App isn't responding" dialog immediately after picking.
+        documentMetadataExecutor.execute {
+            try {
+                val description = describeDocument(uri)
+                val name = description["name"] as String
+                runOnUiThread {
+                    if (!name.endsWith(".md", ignoreCase = true) &&
+                        !name.endsWith(".txt", ignoreCase = true)
+                    ) {
+                        result.error(
+                            "unsupported_type",
+                            "Only .md and .txt documents are supported",
+                            null,
+                        )
+                    } else {
+                        result.success(description)
+                    }
+                }
+            } catch (error: Throwable) {
+                runOnUiThread {
+                    result.error(
+                        "pick_failed",
+                        error.message ?: error.javaClass.simpleName,
+                        null,
+                    )
+                }
+            }
         }
-        result.success(description)
     }
 
     private fun describeDocument(uri: Uri): Map<String, Any?> {
@@ -259,29 +284,15 @@ class MainActivity : FlutterActivity() {
                 )
             }
         }
-        var name: String? = null
-        var size: Long? = null
-        if (uri.scheme == "content") {
-            try {
-                contentResolver.query(
-                    uri,
-                    arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE),
-                    null,
-                    null,
-                    null,
-                )?.use { cursor ->
-                    if (cursor.moveToFirst()) {
-                        val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                        val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
-                        if (nameIndex >= 0 && !cursor.isNull(nameIndex)) name = cursor.getString(nameIndex)
-                        if (sizeIndex >= 0 && !cursor.isNull(sizeIndex)) size = cursor.getLong(sizeIndex)
-                    }
-                }
-            } catch (_: Exception) {
-                // Some providers reject metadata queries; fall back to the path.
-            }
-        }
-        if (name == null) name = uri.lastPathSegment?.substringAfterLast('/')
+        // This method runs while Flutter is starting and from onNewIntent,
+        // both on Android's UI thread. Do not query the sending app's content
+        // provider here: a slow or stalled file manager would make Android
+        // report Parchment as not responding before the first frame appears.
+        // The actual file read and size enforcement happen on documents_io.
+        val name = uri.lastPathSegment
+            ?.substringAfterLast('/')
+            ?.substringAfterLast(':')
+            ?.takeIf { it.isNotBlank() }
         val writable = uri.scheme == "content" && checkUriPermission(
             uri,
             android.os.Process.myPid(),
@@ -291,8 +302,9 @@ class MainActivity : FlutterActivity() {
         return mapOf(
             "uri" to uri.toString(),
             "name" to (name ?: "document"),
-            "mimeType" to (intent.type ?: contentResolver.getType(uri)),
-            "size" to size,
+            // getType() is another provider IPC and must not block startup.
+            "mimeType" to intent.type,
+            "size" to null,
             "writable" to writable,
         )
     }

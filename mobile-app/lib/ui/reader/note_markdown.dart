@@ -11,6 +11,7 @@ import 'package:highlight/highlight.dart' show highlight, Node;
 import 'package:markdown/markdown.dart' as md;
 
 import '../../core/markdown/frontmatter.dart';
+import '../../core/markdown/html_syntax.dart';
 import '../../core/markdown/note_syntax.dart';
 import '../../infrastructure/diagram_render_service.dart';
 import '../theme/parchment_theme.dart';
@@ -53,6 +54,7 @@ class NoteMarkdownConfig {
     this.resolver,
     this.onTagTap,
     required this.taskStates,
+    this.codeLineNumbers = false,
   });
 
   final PreparedNote note;
@@ -70,6 +72,7 @@ class NoteMarkdownConfig {
   /// Task toggles keyed by task order. The file only changes when the user
   /// explicitly saves.
   final TaskStateStore taskStates;
+  final bool codeLineNumbers;
 
   /// Task indexes waiting for their list item's checkbox. Inputs are visited
   /// before their `li` finishes, and nested items finish first, so a stack
@@ -100,6 +103,7 @@ class NoteMarkdownConfig {
     _taskCount++;
     return index;
   }
+
   final Map<String, GlobalKey> _footnoteReferenceKeys = {};
   final Map<String, double> _footnoteReferenceOffsets = {};
   ScrollController? _documentController;
@@ -277,7 +281,11 @@ class _CodeBlockBuilder extends MarkdownElementBuilder {
       propertiesFenceLanguage => PropertiesView(
         properties: parseYamlSubset(source),
       ),
-      _ => CodeBlockView(source: source, language: language),
+      _ => CodeBlockView(
+        source: source,
+        language: language,
+        showLineNumbers: NoteMarkdownScope.of(context).codeLineNumbers,
+      ),
     };
   }
 }
@@ -982,13 +990,70 @@ class _HtmlBlockBuilder extends MarkdownElementBuilder {
     TextStyle? preferredStyle,
     TextStyle? parentStyle,
   ) {
-    final body = NoteMarkdownScope.of(
-      context,
-    ).body(element.attributes['markdown'] ?? '');
+    final config = NoteMarkdownScope.of(context);
+    final markdown = element.attributes['markdown'] ?? '';
+    if (element.attributes['center'] == 'true') {
+      final images = _centeredImages(config, markdown);
+      if (images != null) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 6,
+            runSpacing: 6,
+            children: images,
+          ),
+        );
+      }
+    }
+    final body = config.body(markdown);
     if (element.attributes['center'] != 'true') return body;
     return Align(
       child: DefaultTextStyle.merge(textAlign: TextAlign.center, child: body),
     );
+  }
+
+  /// GitHub-style README headers commonly use a centered `<p>` containing
+  /// one logo or several linked badge images. Rendering that HTML through a
+  /// nested Markdown list turns every image into a separate full-width row.
+  /// Keep an image-only wrapper as one compact, centered wrapping group.
+  static List<Widget>? _centeredImages(
+    NoteMarkdownConfig config,
+    String markdown,
+  ) {
+    final matches = RegExp(
+      r'<img\b([^<>]*)>',
+      caseSensitive: false,
+    ).allMatches(markdown).toList();
+    if (matches.isEmpty) return null;
+    final remainder = markdown
+        .replaceAll(RegExp(r'<img\b[^<>]*>', caseSensitive: false), '')
+        .replaceAll(RegExp(r'</?a\b[^<>]*>', caseSensitive: false), '')
+        .trim();
+    if (remainder.isNotEmpty) return null;
+    final widgets = <Widget>[];
+    for (final match in matches) {
+      final attributes = parseHtmlAttributes(match.group(1)!);
+      final uri = Uri.tryParse(attributes['src'] ?? '');
+      if (uri == null) continue;
+      widgets.add(
+        ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth:
+                double.tryParse(attributes['width'] ?? '') ?? double.infinity,
+            maxHeight:
+                double.tryParse(attributes['height'] ?? '') ?? double.infinity,
+          ),
+          child: config.imageBuilder(
+            uri,
+            attributes['title'],
+            attributes['alt'],
+          ),
+        ),
+      );
+    }
+    return widgets.isEmpty ? null : widgets;
   }
 }
 
@@ -1335,7 +1400,7 @@ class _EmbedPlaceholder extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   image
-                      ? tr('開啟整個筆記資料夾後，這張圖片才會顯示')
+                      ? tr('缺圖：無法存取相對路徑圖片，或圖片不存在')
                       : tr('這裡引用了另一份筆記，開啟整個筆記資料夾後才會顯示'),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: colors.onSurfaceVariant,
@@ -1772,11 +1837,13 @@ class CodeBlockView extends StatelessWidget {
   const CodeBlockView({
     required this.source,
     required this.language,
+    this.showLineNumbers = false,
     super.key,
   });
 
   final String source;
   final String language;
+  final bool showLineNumbers;
 
   @override
   Widget build(BuildContext context) {
@@ -1790,6 +1857,20 @@ class CodeBlockView extends StatelessWidget {
       fontSize: 13.5,
       height: 1.5,
       color: look.text,
+    );
+    // The gutter and highlighted source are separate paragraphs. A forced
+    // strut makes every line use the exact same font metrics even when a
+    // syntax span is italic/bold or falls back to another glyph font.
+    const codeStrut = StrutStyle(
+      fontFamily: 'monospace',
+      fontFamilyFallback: ['Menlo', 'Roboto Mono', 'Courier'],
+      fontSize: 13.5,
+      height: 1.5,
+      forceStrutHeight: true,
+    );
+    const codeHeightBehavior = TextHeightBehavior(
+      applyHeightToFirstAscent: true,
+      applyHeightToLastDescent: true,
     );
     final label = Text(
       language.isEmpty
@@ -1814,21 +1895,57 @@ class CodeBlockView extends StatelessWidget {
       },
       icon: const Icon(Icons.copy_rounded),
     );
+    final codeTop = style == CodeLook.framed || style == CodeLook.card
+        ? 10.0
+        : 0.0;
     final code = _OverflowCodeScroller(
-      padding: EdgeInsets.fromLTRB(
-        16,
-        style == CodeLook.framed || style == CodeLook.card ? 10 : 0,
-        16,
-        14,
-      ),
+      padding: EdgeInsets.fromLTRB(showLineNumbers ? 12 : 16, codeTop, 16, 14),
       child: Text.rich(
+        key: const ValueKey('code-source'),
         TextSpan(
           style: codeStyle,
           children: _highlight(source, language, dark),
         ),
         softWrap: false,
+        strutStyle: codeStrut,
+        textHeightBehavior: codeHeightBehavior,
       ),
     );
+    final codeBody = showLineNumbers
+        ? Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ExcludeSemantics(
+                child: Container(
+                  padding: EdgeInsets.fromLTRB(10, codeTop, 10, 14),
+                  decoration: BoxDecoration(
+                    color: look.text.withValues(alpha: dark ? 0.055 : 0.035),
+                    border: Border(
+                      right: BorderSide(
+                        color: look.codeBorder.withValues(alpha: 0.75),
+                      ),
+                    ),
+                  ),
+                  child: Text(
+                    key: const ValueKey('code-line-numbers'),
+                    List.generate(
+                      source.split('\n').length,
+                      (index) => '${index + 1}',
+                    ).join('\n'),
+                    textAlign: TextAlign.right,
+                    style: codeStyle.copyWith(
+                      color: look.muted.withValues(alpha: 0.78),
+                      fontFeatures: const [FontFeature.tabularFigures()],
+                    ),
+                    strutStyle: codeStrut,
+                    textHeightBehavior: codeHeightBehavior,
+                  ),
+                ),
+              ),
+              Expanded(child: code),
+            ],
+          )
+        : code;
 
     // Header: label and copy button, arranged per palette.
     final header = switch (style) {
@@ -1888,7 +2005,7 @@ class CodeBlockView extends StatelessWidget {
             )
           else
             header,
-          code,
+          codeBody,
         ],
       ),
     );

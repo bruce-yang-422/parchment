@@ -2,10 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../core/markdown/frontmatter.dart';
 import '../../core/markdown/note_syntax.dart';
@@ -222,6 +224,7 @@ class _ReaderScreenState extends State<ReaderScreen>
                         scrollController: _scrollController,
                         textScale: controller.textScale,
                         lineHeight: controller.lineHeight,
+                        codeLineNumbers: controller.codeLineNumbers,
                         cjkFont: controller.cjkFont,
                         latinFont: controller.latinFont,
                         locale: controller.locale,
@@ -880,6 +883,13 @@ class _ReaderScreenState extends State<ReaderScreen>
                         max: 2.2,
                         divisions: 9,
                         onChanged: controller.setLineHeight,
+                      ),
+                      SwitchListTile.adaptive(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(strings.codeLineNumbers),
+                        subtitle: Text(strings.codeLineNumbersHint),
+                        value: controller.codeLineNumbers,
+                        onChanged: controller.setCodeLineNumbers,
                       ),
                       SwitchListTile.adaptive(
                         contentPadding: EdgeInsets.zero,
@@ -1708,6 +1718,7 @@ class _DocumentView extends StatefulWidget {
     required this.scrollController,
     required this.textScale,
     required this.lineHeight,
+    required this.codeLineNumbers,
     required this.cjkFont,
     required this.locale,
     required this.latinFont,
@@ -1724,6 +1735,7 @@ class _DocumentView extends StatefulWidget {
   final ScrollController scrollController;
   final double textScale;
   final double lineHeight;
+  final bool codeLineNumbers;
   final ReaderCjkFont cjkFont;
   final ReaderLatinFont latinFont;
 
@@ -2003,6 +2015,7 @@ class _DocumentViewState extends State<_DocumentView> {
       MediaQuery.sizeOf(context).width - widget.padding.horizontal,
       widget.resolver,
       widget.taskStore,
+      widget.codeLineNumbers,
       widget.onTagTap != null,
     );
     final cached = _config;
@@ -2023,6 +2036,7 @@ class _DocumentViewState extends State<_DocumentView> {
           ? null
           : (tag) => widget.onTagTap?.call(tag),
       taskStates: widget.taskStore,
+      codeLineNumbers: widget.codeLineNumbers,
     );
     _configKey = key;
     return _config = config;
@@ -2304,6 +2318,7 @@ class _ZoomableMarkdownImage extends StatefulWidget {
 
 class _ZoomableMarkdownImageState extends State<_ZoomableMarkdownImage> {
   Future<Uint8List>? _folderBytes;
+  Future<Uint8List>? _networkBytes;
   bool _isFolderImage = false;
 
   @override
@@ -2322,6 +2337,9 @@ class _ZoomableMarkdownImageState extends State<_ZoomableMarkdownImage> {
     final uri = widget.uri;
     _isFolderImage = uri.scheme == 'parchment-wiki' || !uri.hasScheme;
     _folderBytes = _isFolderImage ? widget.loadFolderImage(uri) : null;
+    _networkBytes = uri.scheme == 'http' || uri.scheme == 'https'
+        ? _loadNetworkImage(uri)
+        : null;
   }
 
   double? _dimension(String name) =>
@@ -2330,13 +2348,13 @@ class _ZoomableMarkdownImageState extends State<_ZoomableMarkdownImage> {
   @override
   Widget build(BuildContext context) {
     final uri = widget.uri;
-    if (_isFolderImage) {
-      final bytes = _folderBytes;
+    if (_isFolderImage || _networkBytes != null) {
+      final bytes = _isFolderImage ? _folderBytes : _networkBytes;
       if (bytes == null) {
         return _ImageUnavailable(
           message: uri.scheme == 'parchment-wiki'
               ? tr('找不到圖片「{name}」', {'name': uri.queryParameters['target']})
-              : tr('開啟整個筆記資料夾後，這張圖片才會顯示'),
+              : tr('缺圖：無法存取相對路徑圖片，或圖片不存在'),
         );
       }
       return FutureBuilder<Uint8List>(
@@ -2357,18 +2375,33 @@ class _ZoomableMarkdownImageState extends State<_ZoomableMarkdownImage> {
               child: Center(child: LinearProgressIndicator()),
             );
           }
-          return _zoomable(context, MemoryImage(data));
+          return _bytesImage(context, data);
         },
       );
     }
-    if (uri.scheme == 'http' || uri.scheme == 'https') {
-      return _zoomable(context, NetworkImage(uri.toString()));
-    }
     if (uri.scheme == 'data' &&
         uri.data?.mimeType.startsWith('image/') == true) {
-      return _zoomable(context, MemoryImage(uri.data!.contentAsBytes()));
+      return _bytesImage(context, uri.data!.contentAsBytes());
     }
     return _ImageUnavailable(message: tr('圖片無法顯示'));
+  }
+
+  Widget _bytesImage(BuildContext context, Uint8List data) {
+    if (_looksLikeSvg(data)) {
+      final picture = SvgPicture.memory(
+        data,
+        width: _dimension('width'),
+        height: _dimension('height'),
+        fit: BoxFit.contain,
+        semanticsLabel: widget.semanticLabel,
+      );
+      return _zoomableWidget(
+        context,
+        picture,
+        SvgPicture.memory(data, fit: BoxFit.contain),
+      );
+    }
+    return _zoomable(context, MemoryImage(data));
   }
 
   Widget _zoomable(BuildContext context, ImageProvider<Object> provider) {
@@ -2383,14 +2416,28 @@ class _ZoomableMarkdownImageState extends State<_ZoomableMarkdownImage> {
       errorBuilder: (context, error, stackTrace) =>
           _ImageUnavailable(message: tr('圖片無法顯示')),
     );
+    return _zoomableWidget(
+      context,
+      image,
+      Image(image: provider, fit: BoxFit.contain),
+    );
+  }
+
+  Widget _zoomableWidget(
+    BuildContext context,
+    Widget image,
+    Widget lightboxImage,
+  ) {
     final label = widget.semanticLabel;
     return Semantics(
       button: true,
       label: label == null ? tr('開啟圖片') : tr('開啟圖片：{label}', {'label': label}),
       child: GestureDetector(
-        onTap: () => _showImageLightbox(context, provider),
+        onTap: () => _showImageLightbox(context, lightboxImage),
         child: Align(
           alignment: Alignment.centerLeft,
+          widthFactor: 1,
+          heightFactor: 1,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: image,
@@ -2400,10 +2447,7 @@ class _ZoomableMarkdownImageState extends State<_ZoomableMarkdownImage> {
     );
   }
 
-  void _showImageLightbox(
-    BuildContext context,
-    ImageProvider<Object> provider,
-  ) {
+  void _showImageLightbox(BuildContext context, Widget image) {
     showDialog<void>(
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.94),
@@ -2415,9 +2459,7 @@ class _ZoomableMarkdownImageState extends State<_ZoomableMarkdownImage> {
               child: InteractiveViewer(
                 minScale: 0.8,
                 maxScale: 8,
-                child: Center(
-                  child: Image(image: provider, fit: BoxFit.contain),
-                ),
+                child: Center(child: image),
               ),
             ),
             Positioned(
@@ -2436,6 +2478,50 @@ class _ZoomableMarkdownImageState extends State<_ZoomableMarkdownImage> {
       ),
     );
   }
+
+  static bool _looksLikeSvg(Uint8List bytes) {
+    final prefix = utf8.decode(
+      bytes.take(math.min(bytes.length, 1024)).toList(),
+      allowMalformed: true,
+    );
+    return RegExp(r'<svg\b', caseSensitive: false).hasMatch(prefix);
+  }
+
+  static Future<Uint8List> _loadNetworkImage(Uri uri) async {
+    // Shields' SVGs rely on textLength/transform details that are rendered
+    // inconsistently by mobile SVG engines (oversized, clipped label text).
+    // The service provides an equivalent PNG when `.png` is appended.
+    final requestUri =
+        uri.host.toLowerCase() == 'img.shields.io' &&
+            !uri.path.toLowerCase().endsWith('.png')
+        ? uri.replace(path: '${uri.path}.png')
+        : uri;
+    final client = HttpClient()
+      ..connectionTimeout = const Duration(seconds: 12);
+    try {
+      final request = await client
+          .getUrl(requestUri)
+          .timeout(const Duration(seconds: 15));
+      request.headers.set(HttpHeaders.acceptHeader, 'image/*');
+      final response = await request.close().timeout(
+        const Duration(seconds: 15),
+      );
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw HttpException('HTTP ${response.statusCode}', uri: requestUri);
+      }
+      const maximumBytes = 20 * 1024 * 1024;
+      final builder = BytesBuilder(copy: false);
+      await for (final chunk in response.timeout(const Duration(seconds: 20))) {
+        builder.add(chunk);
+        if (builder.length > maximumBytes) {
+          throw const FormatException('Image is larger than 20 MB');
+        }
+      }
+      return builder.takeBytes();
+    } finally {
+      client.close(force: true);
+    }
+  }
 }
 
 class _ImageUnavailable extends StatelessWidget {
@@ -2445,20 +2531,53 @@ class _ImageUnavailable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.broken_image_outlined),
-          const SizedBox(width: 10),
-          Expanded(child: Text(message)),
-        ],
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact =
+            constraints.hasBoundedWidth && constraints.maxWidth < 180;
+        return Tooltip(
+          message: message,
+          child: GestureDetector(
+            onTap: compact
+                ? () {
+                    ScaffoldMessenger.maybeOf(context)
+                      ?..hideCurrentSnackBar()
+                      ..showSnackBar(SnackBar(content: Text(message)));
+                  }
+                : null,
+            child: Container(
+              width: compact ? constraints.maxWidth : double.infinity,
+              height: compact ? 80 : null,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: compact
+                  ? Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.broken_image_outlined),
+                        const SizedBox(height: 4),
+                        Text(
+                          tr('缺圖'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.labelSmall,
+                        ),
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        const Icon(Icons.broken_image_outlined),
+                        const SizedBox(width: 10),
+                        Expanded(child: Text(message)),
+                      ],
+                    ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

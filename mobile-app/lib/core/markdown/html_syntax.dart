@@ -261,8 +261,11 @@ final RegExp _blockStart = RegExp(
   caseSensitive: false,
 );
 
-/// HTML that starts a line: `<details>`, `<div align="center">`, comments,
-/// `<script>` … Other tags fall through to the default Markdown handling.
+/// Block HTML that starts a line: `<details>`, `<div align="center">`,
+/// comments, `<script>` … Inline and void tags such as a lone `<img>` must
+/// fall through to [InlineHtmlSyntax]. Wrapping those in another `html-block`
+/// would feed the identical source back into the nested Markdown renderer and
+/// recurse until the app runs out of stack.
 class HtmlBlockSyntax extends md.BlockSyntax {
   const HtmlBlockSyntax();
 
@@ -279,9 +282,7 @@ class HtmlBlockSyntax extends md.BlockSyntax {
         _droppedTags.contains(tag) ||
         _transparentTags.contains(tag) && !_inlineWrappers.contains(tag) ||
         tag == 'hr' ||
-        // A line holding only one tag (`<img …>`, `<br>`) would otherwise
-        // become raw HTML text.
-        _loneTag.hasMatch(parser.current.content);
+        _voidTags.contains(tag) && _loneTag.hasMatch(parser.current.content);
   }
 
   static final _loneTag = RegExp(r'^ {0,3}<[^<>]+>\s*$');
@@ -310,6 +311,20 @@ class HtmlBlockSyntax extends md.BlockSyntax {
     if (tag == 'hr') {
       parser.advance();
       return md.Element.empty('hr');
+    }
+    // A void tag on its own line is a block to CommonMark, so the inline
+    // parser never sees it. Convert it directly; do not wrap its unchanged
+    // source in `html-block`, which would recursively render forever.
+    if (_voidTags.contains(tag) && _loneTag.hasMatch(first)) {
+      final rawAttributes = RegExp(
+        '<$tag(?=[\\s/>])([^<>]*)>',
+        caseSensitive: false,
+      ).firstMatch(first)?.group(1) ?? '';
+      parser.advance();
+      return InlineHtmlSyntax._voidElement(
+        tag,
+        parseHtmlAttributes(rawAttributes.replaceFirst(RegExp(r'/\s*$'), '')),
+      );
     }
 
     // Other wrappers: up to the next blank line (CommonMark HTML block).

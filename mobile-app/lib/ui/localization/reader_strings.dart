@@ -133,6 +133,26 @@ class ReaderStrings {
     de: 'Vollbildlesen',
     es: 'Lectura a pantalla completa',
   );
+  String get codeLineNumbers => _pick(
+    zhTw: '顯示行號',
+    zhCn: '显示行号',
+    en: 'Show line numbers',
+    ja: '行番号を表示',
+    ko: '줄 번호 표시',
+    fr: 'Afficher les numéros de ligne',
+    de: 'Zeilennummern anzeigen',
+    es: 'Mostrar números de línea',
+  );
+  String get codeLineNumbersHint => _pick(
+    zhTw: '在程式碼區塊左側顯示行號',
+    zhCn: '在代码块左侧显示行号',
+    en: 'Show line numbers beside code blocks',
+    ja: 'コードブロックの左側に行番号を表示します',
+    ko: '코드 블록 왼쪽에 줄 번호를 표시합니다',
+    fr: 'Affiche des numéros de ligne à gauche des blocs de code',
+    de: 'Zeigt Zeilennummern links neben Codeblöcken an',
+    es: 'Muestra números de línea junto a los bloques de código',
+  );
   String get fullscreenHint => _pick(
     zhTw: '隱藏系統狀態列與導覽列；從螢幕邊緣滑動可暫時叫回',
     zhCn: '隐藏系统状态栏和导航栏；从屏幕边缘滑动可暂时唤回',
