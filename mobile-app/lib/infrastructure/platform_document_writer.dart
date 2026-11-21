@@ -12,7 +12,7 @@ import '../core/l10n/tr.dart';
 /// Android writes back through the SAF URI granted at pick time; other
 /// platforms (iOS opens picked files as copies) only offer "save as".
 class PlatformDocumentWriter implements DocumentWriter {
-  static const _channel = MethodChannel('com.stackbase.parchment/documents');
+  static const _channel = MethodChannel('com.stackbase.parchment/documents_io');
 
   @override
   bool canWriteInPlace(LocalDocument document) =>

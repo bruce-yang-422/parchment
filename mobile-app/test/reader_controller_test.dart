@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:parchment_mobile/core/models/local_document.dart';
 import 'package:parchment_mobile/core/services/document_picker.dart';
 import 'package:parchment_mobile/core/services/document_writer.dart';
+import 'package:parchment_mobile/core/services/incoming_documents.dart';
 import 'package:parchment_mobile/features/reader/reader_controller.dart';
 
 LocalDocument sampleDocument() => LocalDocument(
@@ -59,6 +62,49 @@ void main() {
     );
     expect(controller.document, same(before));
   });
+
+  test('選檔畫面還開著時收到外部開啟的檔案，結束後接著開啟', () async {
+    final picking = Completer<LocalDocument?>();
+    final controller = ReaderController(
+      documentPicker: _PendingPicker(picking),
+      incomingSource: _FakeIncoming(),
+    );
+
+    final pick = controller.openDocument();
+    await controller.openIncoming(const IncomingDocument(name: 'shared.md'));
+    expect(controller.document, isNull);
+
+    // The file manager opened the file elsewhere; the picker returns nothing.
+    picking.complete(null);
+    await pick;
+
+    expect(controller.document?.name, 'shared.md');
+    expect(controller.isOpening, isFalse);
+  });
+}
+
+class _PendingPicker implements DocumentPicker {
+  const _PendingPicker(this.result);
+
+  final Completer<LocalDocument?> result;
+
+  @override
+  Future<LocalDocument?> pickDocument() => result.future;
+}
+
+class _FakeIncoming implements IncomingDocumentSource {
+  @override
+  Stream<IncomingDocument> get documents => const Stream.empty();
+
+  @override
+  Future<IncomingDocument?> takeInitial() async => null;
+
+  @override
+  Future<LocalDocument> load(IncomingDocument incoming) async => LocalDocument(
+    name: incoming.name,
+    content: '# 內容',
+    format: DocumentFormat.markdown,
+  );
 }
 
 class _FakeDocumentPicker implements DocumentPicker {

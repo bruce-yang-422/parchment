@@ -3,6 +3,7 @@ import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:parchment_mobile/core/markdown/note_syntax.dart';
 import 'package:parchment_mobile/ui/reader/note_markdown.dart';
+import 'package:parchment_mobile/ui/reader/readable_table.dart';
 
 Future<TaskStateStore> pumpNote(WidgetTester tester, String markdown) async {
   final store = TaskStateStore();
@@ -72,6 +73,66 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('task-1')));
     await tester.pump();
     expect(store.changes, {2: true});
+  });
+
+  testWidgets('同一份設定重新解析時，工作清單編號不會累加', (tester) async {
+    final store = TaskStateStore();
+    final note = PreparedNote.prepare('- [ ] 一\n- [x] 二');
+    late NoteMarkdownConfig config;
+    Widget app(Brightness brightness) => MaterialApp(
+      theme: ThemeData(brightness: brightness),
+      home: Scaffold(
+        body: Builder(
+          builder: (context) {
+            config = NoteMarkdownConfig(
+              note: note,
+              styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)),
+              onTapLink: (_, _, _) {},
+              imageBuilder: (uri, title, alt) => const SizedBox(),
+              showMessage: (_) {},
+              taskStates: store,
+            );
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    await tester.pumpWidget(app(Brightness.light));
+    final kept = config;
+    Widget reader(Brightness brightness) => MaterialApp(
+      theme: ThemeData(brightness: brightness),
+      home: Scaffold(
+        body: NoteMarkdownScope(
+          config: kept,
+          child: kept.document(
+            controller: ScrollController(),
+            padding: EdgeInsets.zero,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpWidget(reader(Brightness.light));
+    // A theme change makes the Markdown widget parse again with the same
+    // config.
+    await tester.pumpWidget(reader(Brightness.dark));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('task-0')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-1')), findsOneWidget);
+    expect(find.byKey(const ValueKey('task-2')), findsNothing);
+    expect(store.taskCount, 2);
+    store.dispose();
+  });
+
+  test('表格欄寬設定以數值比較，避免每次重建都重新解析文件', () {
+    expect(
+      const ReadableColumnWidth(availableWidth: 320),
+      const ReadableColumnWidth(availableWidth: 320),
+    );
+    expect(
+      const ReadableColumnWidth(availableWidth: 320),
+      isNot(const ReadableColumnWidth(availableWidth: 300)),
+    );
   });
 
   testWidgets('捨棄後所有勾選回到檔案狀態', (tester) async {

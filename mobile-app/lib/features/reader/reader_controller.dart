@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/markdown/wiki_paths.dart';
 import '../../core/models/local_document.dart';
@@ -80,7 +80,13 @@ class ReaderController extends ChangeNotifier {
   NoteIndex? get noteIndex => _index;
   bool get isIndexing => _indexing != null && _index == null;
   int get indexedCount => _indexedCount;
-  String? get errorMessage => _error?.toString();
+  /// Plain message for the home screen, without technical exception names.
+  String? get errorMessage => switch (_error) {
+    null => null,
+    FormatException(:final message) => message,
+    PlatformException() => tr('無法讀取檔案'),
+    final error => error.toString(),
+  };
   bool get isOpening => _isOpening;
   ThemeMode get themeMode => _themeMode;
   double get textScale => _textScale;
@@ -231,8 +237,20 @@ class ReaderController extends ChangeNotifier {
   Future<void> openDocument() => _open(_documentPicker.pickDocument);
 
   /// Opens a file sent by another app ("Open with" / share).
-  Future<void> openIncoming(IncomingDocument incoming) =>
-      _open(() => _incomingSource!.load(incoming));
+  ///
+  /// A file can arrive while the document picker is still open (some file
+  /// managers open the tapped file with "Open with" instead of returning
+  /// it to the picker); it is opened as soon as the picker has finished
+  /// instead of being dropped.
+  Future<void> openIncoming(IncomingDocument incoming) async {
+    if (_isOpening) {
+      _queuedIncoming = incoming;
+      return;
+    }
+    await _open(() => _incomingSource!.load(incoming));
+  }
+
+  IncomingDocument? _queuedIncoming;
 
   /// Lets the user pick a folder. Returns whether a folder was opened.
   Future<bool> openFolder() async {
@@ -481,6 +499,11 @@ class ReaderController extends ChangeNotifier {
     } finally {
       _isOpening = false;
       notifyListeners();
+    }
+    final queued = _queuedIncoming;
+    if (queued != null) {
+      _queuedIncoming = null;
+      await openIncoming(queued);
     }
   }
 }

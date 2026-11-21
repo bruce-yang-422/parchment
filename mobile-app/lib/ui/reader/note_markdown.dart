@@ -76,6 +76,30 @@ class NoteMarkdownConfig {
   /// pairs every checkbox with its own task.
   final List<int> _pendingTasks = [];
   int _taskCount = 0;
+
+  /// Checkboxes in the whole document. The config is kept across rebuilds,
+  /// and the Markdown widget may parse the same document again (theme or
+  /// dependency changes); numbering wraps here so every parse starts at 0.
+  late final int _taskTotal = _countTasks(note.parse(note.markdown));
+
+  static int _countTasks(Iterable<md.Node> nodes) {
+    var count = 0;
+    for (final node in nodes) {
+      if (node is! md.Element) continue;
+      if (node.tag == 'input' && node.attributes['type'] == 'checkbox') {
+        count++;
+      }
+      count += _countTasks(node.children ?? const []);
+    }
+    return count;
+  }
+
+  int _nextTaskIndex() {
+    final total = _taskTotal;
+    final index = total == 0 ? _taskCount : _taskCount % total;
+    _taskCount++;
+    return index;
+  }
   final Map<String, GlobalKey> _footnoteReferenceKeys = {};
   final Map<String, double> _footnoteReferenceOffsets = {};
   ScrollController? _documentController;
@@ -384,7 +408,7 @@ class _TaskInputBuilder extends MarkdownElementBuilder {
     TextStyle? parentStyle,
   ) {
     if (element.attributes['type'] == 'checkbox') {
-      config._pendingTasks.add(config._taskCount++);
+      config._pendingTasks.add(config._nextTaskIndex());
     }
     return null;
   }

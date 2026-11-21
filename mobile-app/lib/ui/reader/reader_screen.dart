@@ -1979,6 +1979,55 @@ class _DocumentViewState extends State<_DocumentView> {
     );
   }
 
+  NoteMarkdownConfig? _config;
+  Object? _configKey;
+
+  /// The Markdown widget re-parses and rebuilds the whole document whenever
+  /// its style sheet or the [NoteMarkdownScope] config is a new object. The
+  /// screen rebuilds often (opening state, folder indexing, system bars), so
+  /// the config is only replaced when something that affects the rendering
+  /// really changed. Without this, long documents re-rendered from scratch
+  /// several times while opening and while reading.
+  NoteMarkdownConfig _configFor(
+    BuildContext context,
+    ThemeData theme,
+    ReaderLook look,
+    TextStyle? bodyStyle,
+  ) {
+    final key = (
+      _preparedNote,
+      theme,
+      look,
+      bodyStyle,
+      _usesChosenFont,
+      MediaQuery.sizeOf(context).width - widget.padding.horizontal,
+      widget.resolver,
+      widget.taskStore,
+      widget.onTagTap != null,
+    );
+    final cached = _config;
+    if (cached != null && _configKey == key) return cached;
+    late final NoteMarkdownConfig config;
+    config = NoteMarkdownConfig(
+      note: _preparedNote,
+      styleSheet: _styleSheet(theme, look, bodyStyle),
+      onTapLink: (text, href, title) => _handleLink(config, text, href),
+      imageBuilder: (uri, title, alt) => _ZoomableMarkdownImage(
+        uri: uri,
+        semanticLabel: alt ?? title,
+        loadFolderImage: widget.loadFolderImage,
+      ),
+      showMessage: _showMessage,
+      resolver: widget.resolver,
+      onTagTap: widget.onTagTap == null
+          ? null
+          : (tag) => widget.onTagTap?.call(tag),
+      taskStates: widget.taskStore,
+    );
+    _configKey = key;
+    return _config = config;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -2014,21 +2063,7 @@ class _DocumentViewState extends State<_DocumentView> {
       );
     }
 
-    late final NoteMarkdownConfig config;
-    config = NoteMarkdownConfig(
-      note: _preparedNote,
-      styleSheet: _styleSheet(theme, look, bodyStyle),
-      onTapLink: (text, href, title) => _handleLink(config, text, href),
-      imageBuilder: (uri, title, alt) => _ZoomableMarkdownImage(
-        uri: uri,
-        semanticLabel: alt ?? title,
-        loadFolderImage: widget.loadFolderImage,
-      ),
-      showMessage: _showMessage,
-      resolver: widget.resolver,
-      onTagTap: widget.onTagTap,
-      taskStates: widget.taskStore,
-    );
+    final config = _configFor(context, theme, look, bodyStyle);
 
     return MediaQuery(
       data: mediaQuery,

@@ -267,13 +267,20 @@ class ReaderLook extends ThemeExtension<ReaderLook> {
 }
 
 class ParchmentTheme {
-  static ThemeData light(ReaderPalette palette) {
-    return _build(Brightness.light, palette);
-  }
+  // The app rebuilds on every controller change; handing MaterialApp the
+  // same ThemeData instance keeps the document from being rebuilt as if
+  // the theme had changed.
+  static final Map<(Brightness, ReaderPalette), ThemeData> _themes = {};
 
-  static ThemeData dark(ReaderPalette palette) {
-    return _build(Brightness.dark, palette);
-  }
+  static ThemeData light(ReaderPalette palette) => _themes.putIfAbsent(
+    (Brightness.light, palette),
+    () => _build(Brightness.light, palette),
+  );
+
+  static ThemeData dark(ReaderPalette palette) => _themes.putIfAbsent(
+    (Brightness.dark, palette),
+    () => _build(Brightness.dark, palette),
+  );
 
   static ReaderLook look(ReaderPalette palette, Brightness brightness) =>
       brightness == Brightness.dark ? _dark[palette]! : _light[palette]!;

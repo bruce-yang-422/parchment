@@ -22,7 +22,7 @@ Parchment 的 Android／iOS 版本，以 Flutter 開發。畫面、文件模型�
 | 資料夾模式（Android） | 檔案樹（資料夾在前、自然排序、略過隱藏檔）；Wiki Links 跳轉到指定標題；`![[筆記#標題]]`、`![[筆記#^區塊]]` 內嵌（最多兩層）；`![[圖片.png\|寬度]]` 與相對路徑圖片；相對 `.md` 連結。路徑規則與網頁版 `noteSyntax.js` 相同，相對路徑超出資料夾時改依檔名尋找 | `lib/core/markdown/wiki_paths.dart`、`lib/core/models/note_folder.dart`、`lib/ui/reader/folder_tree.dart` |
 | 最近的資料夾 | 記住最近 16 個並保留系統授權，重開 App 一點即可切換；授權失效時提示重新選擇，移除時釋放授權 | `lib/core/services/recent_folders.dart`、`lib/infrastructure/preferences_recent_folders.dart` |
 | 搜尋、標籤、雙向連結 | 第一次使用時讀取所有筆記並顯示進度（單檔超過 2 MiB 略過）；全文搜尋不分大小寫、標題相符優先、顯示片段並捲到關鍵字段落；點標籤列出相同標籤的筆記；「關聯」面板列出連到本篇的筆記 | `lib/core/notes/note_index.dart`、`lib/ui/reader/notes_sheet.dart` |
-| 從其他 App 開啟（Android） | 「開啟方式」與分享選單列出 Parchment，接受 `text/markdown`、`text/x-markdown`、`text/plain` 與 `application/octet-stream`；後者僅在檔名為 `.md`／`.txt` 時開啟 | `AndroidManifest.xml`、`lib/infrastructure/android_document_channel.dart` |
+| 從其他 App 開啟（Android） | 「開啟方式」與分享選單列出 Parchment，接受 `text/markdown`、`text/x-markdown`、`text/plain` 與 `application/octet-stream`；後者僅在檔名為 `.md`／`.txt` 時開啟。App 以 `singleTask` 執行，檔案一律交給同一個 Parchment：Samsung「我的檔案」在選檔畫面中改用「選擇開啟工具」時，會結束等待中的選檔並接著開啟該檔，不會另開一份或卡在讀取中；舊式 `file://` 路徑讀不到時提示改用「開啟檔案」 | `AndroidManifest.xml`、`lib/infrastructure/android_document_channel.dart` |
 | 單檔選擇過濾（Android） | 以原生 SAF 的文字 MIME 類型開啟選檔器：圖片、PDF、壓縮檔等會顯示為灰色且無法選取（Android 不允許 App 完全隱藏它們）；回到 App 後再依副檔名驗證，只接受 `.md`／`.txt`。資料夾模式的檔案樹只列出 `.md`／`.txt` | `MainActivity.kt`、`lib/infrastructure/android_document_channel.dart` |
 | TODO 勾選寫回 | 勾選視為編輯，底部顯示未儲存數量，可捨棄、存回原檔或另存新檔；離開或開啟其他文件前會詢問。只替換 `[ ]` ↔ `[x]` 字元；掃描到的項目數須與畫面一致；寫入前重新讀取原檔，已被外部修改則拒絕；含非 UTF-8 內容只能另存 | `lib/core/markdown/task_markers.dart`、`lib/infrastructure/platform_document_writer.dart` |
 | 文件資訊 | 依常用程度排序：基本資訊（檔名、大小、修改時間、字數、待辦進度、標籤）→ 檔案位置（白話位置、手機內完整路徑、資料夾內路徑、能否存回、建立時間）→ 文件內容 → 進階資訊（字元、行數、編碼、換行、位元組、SHA-256、URI）。從 LINE、Gmail 等 App 開啟時顯示白話來源，並由媒體資料庫取得路徑與修改時間；複製按鈕隨配色變化 | `lib/core/notes/document_stats.dart`、`lib/core/services/document_inspector.dart`、`lib/ui/reader/document_info_sheet.dart` |
@@ -36,7 +36,7 @@ Parchment 的 Android／iOS 版本，以 Flutter 開發。畫面、文件模型�
 
 介面採用輕量底部 Dock、圓角面板與細分隔線；按鈕形狀、面板圓角與標題樣式隨配色改變，所有元件支援深色模式。切換介面語言會立即更新全部介面文字；文件內容不會被翻譯。
 
-穩定性：浮動元件（回到頂端、圖表渲染器）固定尺寸，即使建構失敗也不會蓋住整個畫面；切換文件時新舊清單會短暫同時掛在捲動控制器上，讀取捲動位置一律取最新的一個。正式版元件出錯時顯示「這部分內容無法顯示」而非灰色區塊。
+穩定性：浮動元件（回到頂端、圖表渲染器）固定尺寸，即使建構失敗也不會蓋住整個畫面；切換文件時新舊清單會短暫同時掛在捲動控制器上，讀取捲動位置一律取最新的一個。正式版元件出錯時顯示「這部分內容無法顯示」而非灰色區塊。效能：Markdown 元件在樣式表或設定物件「不相等」時會整份重新解析並重建，因此文件畫面快取設定與樣式表（`ReadableColumnWidth` 以數值比較、主題依配色快取），只在文件、配色、字型、字級或閱讀寬度改變時重建；工作清單編號在重新解析時從 0 起算。讀寫、檔案資訊與資料夾列表走 `documents_io` 背景任務佇列通道，不經 Android 主執行緒；Manifest 關閉 `flutter_deeplinking_enabled`，避免外部開檔的 `content://` 被當成 App 路由。原生端讀檔連記憶體不足等嚴重錯誤也轉成錯誤訊息，解析外部 App 傳來的檔案失敗時不會讓 App 閃退；首頁錯誤只顯示白話訊息，不帶例外名稱。
 
 ## 平台支援
 

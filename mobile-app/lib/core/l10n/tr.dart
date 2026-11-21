@@ -1179,6 +1179,15 @@ const Map<String, List<String>> translations = {
     'Datei kann nicht gelesen werden',
     'No se pudo leer el archivo',
   ],
+  '沒有權限讀取這個檔案，請在 Parchment 按「開啟檔案」選取它': [
+    '没有权限读取这个文件，请在 Parchment 点「打开文件」选择它',
+    'No permission to read this file. Tap "Open file" in Parchment to choose it.',
+    'このファイルを読み込む権限がありません。Parchment の「ファイルを開く」から選んでください',
+    '이 파일을 읽을 권한이 없습니다. Parchment에서 「파일 열기」로 선택하세요',
+    "Pas d'autorisation pour lire ce fichier. Touchez « Ouvrir un fichier » dans Parchment pour le choisir.",
+    'Keine Berechtigung, diese Datei zu lesen. Tippe in Parchment auf „Datei öffnen“, um sie auszuwählen.',
+    'Sin permiso para leer este archivo. Toca «Abrir archivo» en Parchment para elegirlo.',
+  ],
   '選擇要開啟的文件': [
     '选择要打开的文件',
     'Choose a file to open',

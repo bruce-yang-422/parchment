@@ -29,6 +29,15 @@ class ReadableColumnWidth extends IntrinsicColumnWidth {
   @override
   double? flex(Iterable<RenderBox> cells) => null;
 
+  // Part of the Markdown style sheet: without value equality every rebuild
+  // would count as a new style and re-parse the whole document.
+  @override
+  bool operator ==(Object other) =>
+      other is ReadableColumnWidth && other.availableWidth == availableWidth;
+
+  @override
+  int get hashCode => Object.hash(ReadableColumnWidth, availableWidth);
+
   double _width(Iterable<RenderBox> cells, double containerWidth) {
     final stats = TableColumnStats.measure(cells);
     final parent = cells.isEmpty ? null : cells.first.parent;

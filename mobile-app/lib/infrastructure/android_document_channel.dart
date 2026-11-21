@@ -29,6 +29,9 @@ class AndroidDocumentChannel
   }
 
   static const _channel = MethodChannel('com.stackbase.parchment/documents');
+
+  /// Reads, writes and folder listings; answered from background threads.
+  static const _io = MethodChannel('com.stackbase.parchment/documents_io');
   static bool get _supported => !kIsWeb && Platform.isAndroid;
 
   final _incoming = StreamController<IncomingDocument>.broadcast();
@@ -98,7 +101,7 @@ class AndroidDocumentChannel
 
   @override
   Future<NoteFolder> openFolderUri(String uri, String name) async {
-    final raw = await _channel.invokeListMethod<Map>('listTree', {'uri': uri});
+    final raw = await _io.invokeListMethod<Map>('listTree', {'uri': uri});
     final entries = [
       for (final item in raw ?? const <Map>[])
         FolderEntry(
@@ -141,7 +144,7 @@ class AndroidDocumentChannel
   Future<Uint8List> readFile(FolderEntry entry) => _read(entry.uri);
 
   Future<Uint8List> _read(String uri) async {
-    final bytes = await _channel.invokeMethod<Uint8List>('read', {'uri': uri});
+    final bytes = await _io.invokeMethod<Uint8List>('read', {'uri': uri});
     if (bytes == null) throw StateError(tr('無法讀取檔案'));
     return bytes;
   }
@@ -151,7 +154,7 @@ class AndroidDocumentChannel
   @override
   Future<DocumentStat?> stat(String uri) async {
     if (!_supported || !uri.startsWith('content:')) return null;
-    final map = await _channel.invokeMapMethod<String, Object?>('stat', {
+    final map = await _io.invokeMapMethod<String, Object?>('stat', {
       'uri': uri,
     });
     if (map == null) return null;
@@ -220,7 +223,15 @@ class AndroidDocumentChannel
     }
     final Uint8List bytes;
     if (uri.startsWith('file:')) {
-      bytes = await File.fromUri(Uri.parse(uri)).readAsBytes();
+      try {
+        bytes = await File.fromUri(Uri.parse(uri)).readAsBytes();
+      } on FileSystemException {
+        // Old-style file paths need a storage permission the app does
+        // not ask for; the picker grants access to the same file.
+        throw FormatException(
+          tr('沒有權限讀取這個檔案，請在 Parchment 按「開啟檔案」選取它'),
+        );
+      }
     } else {
       bytes = await _read(uri);
     }
