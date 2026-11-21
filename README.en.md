@@ -251,15 +251,19 @@ Run `npm run pwa` and then `npm run extension` to build it. See [browser-extensi
 
 ## Flutter mobile app
 
-`mobile-app/` is the Android/iOS app built on a shared Dart core. It keeps the same open-source, read-only-first, local-first, and Obsidian-compatible positioning. Mermaid, Graphviz, KaTeX, and their assets ship inside the app, so rendering works without a network connection.
+`mobile-app/` is the Android/iOS app built on a shared Dart core. It keeps the same open-source, read-only-first, local-first, and Obsidian-compatible positioning. Mermaid, Graphviz, KaTeX, the bundled fonts, and their assets ship inside the app, so reading and rendering work without a network connection when using the system or bundled fonts; a connection is needed only for Google Fonts typefaces, external links, or remote images.
 
-- Single-file and whole-folder modes accept `.md` and `.txt` documents.
+- Single-file and whole-folder modes accept `.md` and `.txt` documents; Android can also open files shared from LINE, Gmail and other apps.
+- Syntax matches the web version, including footnotes with non-ASCII labels (the end-of-document back button is a drawn vector icon). Common HTML (`<kbd>`, `<details>`, `<u>`, centring and more) is turned into native layout through an allowlist; `<script>` and similar tags are removed.
 - Android folder mode provides a file tree, Wiki Links, note and image embeds, full-text search, tags, and backlinks.
 - Diagrams use sanitized SVG, remain sharp when zoomed in the lightbox, and preserve source plus an error message when syntax is invalid.
 - Open-source notices use a concise summary, package-name search, and collapsible cards; full legal text is shown only when a component is expanded.
 - TODO checkboxes are the sole exception to read-only behavior: changes are written only after explicit confirmation, only checkbox markers are changed, and external modifications are detected first.
 - The bilingual [privacy policy](privacy.html) covers the website, PWA, browser extension, and Android/iOS app, including file grants, local preferences, offline diagrams, and external links.
-- The interface uses restrained iOS/macOS-inspired capsule buttons, a lightweight dock, and rounded sheets, with five light/dark palettes plus text-size and line-spacing controls.
+- Five palettes each imitate a familiar environment: Parchment, Amethyst (Obsidian), Ink (Notion), Lake (Windows 11) and Aluminum (iOS/macOS). Beyond colours, buttons, sheets, quotes, checkboxes, tables, callout icons and code blocks change with the palette.
+- Fonts: Taipei Sans TC, jf open huninn, Iansui, Naikai, GenJyuu Gothic, LINE Seed JP and Pretendard are bundled; Google Fonts are downloaded only when chosen. Each interface language lists only fonts that cover its script, with a sample line per choice.
+- The interface is available in eight languages (Traditional and Simplified Chinese, English, Japanese, Korean, French, German, Spanish). Language, fonts, palette, appearance, text size and line spacing are remembered.
+- The document info sheet is ordered by everyday relevance and shows word count, size, modified time, to-do progress, a plain-language location and the full path on the phone; the advanced section adds encoding, line endings and SHA-256.
 - Android 7.0 (API 24) is the minimum. Google Play serves the appropriate content from the AAB; the direct-download Universal APK contains ARM32, ARM64, and x86_64 and is not tied to any phone brand.
 
 See the [mobile app README](mobile-app/README.md) (Traditional Chinese) for development, platform differences, tests, and Android packaging. `mobile-app/apk/` locally contains the Google Play AAB and a Universal APK for direct installation on supported Android devices; release binaries are not committed to Git.

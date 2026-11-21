@@ -84,8 +84,8 @@ class ReaderStrings {
     es: 'Fuente latina y numérica',
   );
   String get palette => _pick(
-    zhTw: '配色',
-    zhCn: '配色',
+    zhTw: '主題',
+    zhCn: '主题',
     en: 'Color palette',
     ja: 'カラーパレット',
     ko: '색상 팔레트',
@@ -94,8 +94,8 @@ class ReaderStrings {
     es: 'Paleta de colores',
   );
   String get appearance => _pick(
-    zhTw: '明暗模式',
-    zhCn: '明暗模式',
+    zhTw: '外觀',
+    zhCn: '外观',
     en: 'Appearance',
     ja: '外観モード',
     ko: '화면 모드',
@@ -143,27 +143,6 @@ class ReaderStrings {
     de: 'Blendet Systemleisten aus; vom Bildschirmrand wischen, um sie einzublenden',
     es: 'Oculta las barras del sistema; desliza desde un borde para mostrarlas',
   );
-  String get lineNumbers => _pick(
-    zhTw: '顯示行號',
-    zhCn: '显示行号',
-    en: 'Show line numbers',
-    ja: '行番号を表示',
-    ko: '줄 번호 표시',
-    fr: 'Afficher les numéros de ligne',
-    de: 'Zeilennummern anzeigen',
-    es: 'Mostrar números de línea',
-  );
-  String get lineNumbersHint => _pick(
-    zhTw: '在閱讀區左側顯示低干擾行號，預設關閉',
-    zhCn: '在阅读区左侧显示低干扰行号，默认关闭',
-    en: 'Show a subtle line-number gutter on the left; off by default',
-    ja: '閲覧領域の左側に控えめな行番号を表示します（初期設定はオフ）',
-    ko: '읽기 영역 왼쪽에 줄 번호를 표시합니다. 기본값은 꺼짐입니다',
-    fr: 'Affiche une gouttière discrète à gauche, désactivée par défaut',
-    de: 'Zeigt links dezente Zeilennummern; standardmäßig aus',
-    es: 'Muestra números discretos a la izquierda; desactivado por defecto',
-  );
-
   String get notes => _pick(
     zhTw: '筆記',
     zhCn: '笔记',
@@ -419,14 +398,14 @@ class ReaderStrings {
 
   Map<ReaderPalette, String> get paletteNames => {
     ReaderPalette.parchment: _pick(
-      zhTw: '羊皮紙（預設）',
-      zhCn: '羊皮纸（默认）',
-      en: 'Parchment (default)',
-      ja: '羊皮紙（標準）',
-      ko: '양피지 (기본)',
-      fr: 'Parchemin (défaut)',
-      de: 'Pergament (Standard)',
-      es: 'Pergamino (predeterminado)',
+      zhTw: '羊皮紙',
+      zhCn: '羊皮纸',
+      en: 'Parchment',
+      ja: '羊皮紙',
+      ko: '양피지',
+      fr: 'Parchemin',
+      de: 'Pergament',
+      es: 'Pergamino',
     ),
     ReaderPalette.amethyst: _pick(
       zhTw: '紫晶',

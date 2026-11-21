@@ -32,7 +32,6 @@ void main() {
       latinFont: ReaderLatinFont.serif,
       palette: ReaderPalette.lake,
       fullscreen: true,
-      showLineNumbers: true,
     );
     final restored = ReaderSettings.fromJson(settings.toJson());
     expect(restored.toJson(), settings.toJson());
@@ -86,14 +85,12 @@ void main() {
         palette: ReaderPalette.aluminum,
         textScale: 1.1,
         fullscreen: true,
-        showLineNumbers: true,
       ),
     );
     expect(controller.themeMode, ThemeMode.dark);
     expect(controller.palette, ReaderPalette.aluminum);
     expect(controller.textScale, 1.1);
     expect(controller.fullscreen, isTrue);
-    expect(controller.showLineNumbers, isTrue);
   });
 
   test('文字大小支援 0.5 到 2 倍並限制超出範圍的值', () {

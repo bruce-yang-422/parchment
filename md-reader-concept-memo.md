@@ -95,7 +95,7 @@
 | 位置驗證 | 原始文字中掃描到的工作項目數必須與畫面一致，否則拒絕寫入 |
 | 衝突保護 | 寫入前重新讀取原檔，內容與開啟時不同即拒絕寫入，避免覆蓋其他程式的修改 |
 | 編碼保護 | 原檔含非 UTF-8 內容時無法無損重新編碼，只提供另存新檔 |
-| 平台 | Android 最低 7.0／API 24，以 Storage Access Framework 的讀寫授權開啟檔案（僅 App 執行期間有效，不持久保留）；Google Play AAB 由商店依裝置分送，直接下載版為包含 ARM32、ARM64 與 x86_64 的 Universal APK，不綁定手機品牌；iOS 選檔器以副本開啟，目前只提供另存新檔 |
+| 平台 | Android 最低 7.0／API 24，以 Storage Access Framework 的讀寫授權開啟檔案（單檔授權僅在 App 執行期間有效；資料夾授權會保留，供「最近的資料夾」重新開啟）；Google Play AAB 由商店依裝置分送，直接下載版為包含 ARM32、ARM64 與 x86_64 的 Universal APK，不綁定手機品牌；iOS 選檔器以副本開啟，目前只提供另存新檔 |
 
 ### 5.4 主題與閱讀字型
 
@@ -229,7 +229,7 @@ parchment/
 
 ### 8.7 SEO 與隱私權政策
 
-`index.html` 提供標題、描述、`robots`、canonical、Open Graph 與 Twitter 卡片，以及 `WebApplication` 結構化資料（功能清單、版本、作者、授權與 `priceCurrency`）。`privacy.html` 為網站、PWA、瀏覽器外掛與 Android／iOS App 共用的中英文隱私權政策，除網站儲存外亦說明 App 的 SAF／系統選檔授權、最近資料夾偏好、TODO 明確寫回、離線 WebView 圖表、外部連結及應用程式商店行為。首頁以 `<link rel="privacy-policy">`、歡迎畫面連結、工具資訊對話框與 `<noscript>` 說明連結至此頁，Chrome Web Store 與 Google Play 上架時亦使用此網址。`sitemap.xml` 列出首頁與隱私權頁；網站位於自訂網域的根目錄，`robots.txt` 允許全站索引並指向網站地圖，也可另於 Google Search Console 提交。`tests/seo-test.mjs` 檢查上述項目，並確認結構化資料的版本與 `package.json` 一致。
+`index.html` 提供標題、描述、`robots`、canonical、Open Graph 與 Twitter 卡片，以及 `WebApplication` 結構化資料（功能清單、版本、作者、授權與 `priceCurrency`）。`privacy.html` 為網站、PWA、瀏覽器外掛與 Android／iOS App 共用的中英文隱私權政策，除網站儲存外亦說明 App 的 SAF／系統選檔授權、最近資料夾偏好、TODO 明確寫回、離線 WebView 圖表、選用 Google Fonts 字型時的下載連線、外部連結及應用程式商店行為。首頁以 `<link rel="privacy-policy">`、歡迎畫面連結、工具資訊對話框與 `<noscript>` 說明連結至此頁，Chrome Web Store 與 Google Play 上架時亦使用此網址。`sitemap.xml` 列出首頁與隱私權頁；網站位於自訂網域的根目錄，`robots.txt` 允許全站索引並指向網站地圖，也可另於 Google Search Console 提交。`tests/seo-test.mjs` 檢查上述項目，並確認結構化資料的版本與 `package.json` 一致。
 
 ### 8.8 瀏覽器外掛
 
@@ -279,7 +279,7 @@ GitHub Pages 以發布分支的儲存庫根目錄提供靜態檔案。修改執�
 | 檔案樹工具 | 依名稱或編輯時間排序、全部折疊／展開 | 已實作 |
 | 響應式閱讀 | 手機左右側欄抽屜、水平溢位隔離、手機工具資訊入口與依文件長度／閱讀進度顯示的智慧回頂 | 已實作 |
 | 瀏覽器外掛 | Chrome／Edge 外掛（Manifest V3）：工具列開啟 Parchment、以 Parchment 顯示本機 `.md` 檔；上架資料與隱私權政策 | 已發布 GitHub Release v1.1.1，待上架 Chrome Web Store |
-| 手機 App | `mobile-app/` Flutter（Android／iOS）：與網頁版一致的筆記擴充語法、完全離線的 Mermaid／Graphviz、清理後的 SVG 向量燈箱與 PNG 匯出、TODO 勾選寫回、資料夾模式（檔案樹、Wiki Links 跳轉、內嵌筆記與圖片、最近資料夾、全文搜尋、標籤篩選、雙向連結）、從其他 App 以「開啟方式」或分享開啟 `.md`／`.txt`；Android 單檔選擇以文字 MIME 過濾並再次驗證副檔名；介面採半圓膠囊按鈕、輕量 Dock、圓角面板及一致的深淺配色；開源授權頁提供摘要、搜尋及按需展開 | 開發中，Android 已於模擬器驗證；發佈產物為 Google Play AAB 與適用各品牌支援裝置的 Universal APK，使用獨立 Upload Key 簽章且封裝檔不提交 Git；iOS 資料夾模式、外部開啟與實機驗收待實作 |
+| 手機 App | `mobile-app/` Flutter（Android／iOS）：與網頁版一致的筆記擴充語法、完全離線的 Mermaid／Graphviz、清理後的 SVG 向量燈箱與 PNG 匯出、TODO 勾選寫回、資料夾模式（檔案樹、Wiki Links 跳轉、內嵌筆記與圖片、最近資料夾、全文搜尋、標籤篩選、雙向連結）、從其他 App 以「開啟方式」或分享開啟 `.md`／`.txt`；Android 單檔選擇以文字 MIME 過濾並再次驗證副檔名；五套配色各自模仿一種環境（羊皮紙、Obsidian、Notion、Windows 11、iOS／macOS），版面、按鈕、提示框圖示與區塊樣式隨之改變；HTML 白名單轉原生排版；內建 7 款字型並可選用 Google Fonts（選了才下載），清單依介面語言篩選可完整顯示的字型；8 種介面語言（`tr()` 以繁中原文為鍵，與網頁版 i18n 相同）；閱讀設定保存；文件資訊含 SHA-256 與完整路徑；註腳支援中文名稱並以自繪返回圖示取代 ↩ 表情符號；開源授權頁提供摘要、搜尋及按需展開 | 開發中，Android 已於模擬器驗證；發佈產物為 Google Play AAB 與適用各品牌支援裝置的 Universal APK，使用獨立 Upload Key 簽章且封裝檔不提交 Git；iOS 資料夾模式、外部開啟與實機驗收待實作 |
 
 ## 十一、已知風險與對策（Risks）
 

@@ -11,7 +11,6 @@ class ReaderSettings {
     this.latinFont = ReaderLatinFont.system,
     this.palette = ReaderPalette.parchment,
     this.fullscreen = false,
-    this.showLineNumbers = false,
   });
 
   /// `system`, `light` or `dark`.
@@ -23,7 +22,6 @@ class ReaderSettings {
   final ReaderLatinFont latinFont;
   final ReaderPalette palette;
   final bool fullscreen;
-  final bool showLineNumbers;
 
   Map<String, Object> toJson() => {
     'themeMode': themeMode,
@@ -34,7 +32,6 @@ class ReaderSettings {
     'latinFont': latinFont.name,
     'palette': palette.name,
     'fullscreen': fullscreen,
-    'showLineNumbers': showLineNumbers,
   };
 
   /// Reads saved settings; unknown or broken values fall back to defaults,
@@ -83,9 +80,6 @@ class ReaderSettings {
       fullscreen: value['fullscreen'] is bool
           ? value['fullscreen'] as bool
           : defaults.fullscreen,
-      showLineNumbers: value['showLineNumbers'] is bool
-          ? value['showLineNumbers'] as bool
-          : defaults.showLineNumbers,
     );
   }
 }

@@ -66,7 +66,6 @@ class ReaderController extends ChangeNotifier {
   ReaderLatinFont _latinFont = ReaderLatinFont.system;
   ReaderPalette _palette = ReaderPalette.parchment;
   bool _fullscreen = false;
-  bool _showLineNumbers = false;
 
   LocalDocument? get document => _document;
   NoteFolder? get folder => _folder;
@@ -91,7 +90,6 @@ class ReaderController extends ChangeNotifier {
   ReaderLatinFont get latinFont => _latinFont;
   ReaderPalette get palette => _palette;
   bool get fullscreen => _fullscreen;
-  bool get showLineNumbers => _showLineNumbers;
 
   void setLocale(ReaderLocale value) => _update(value, _locale, (next) {
     _locale = next;
@@ -105,8 +103,6 @@ class ReaderController extends ChangeNotifier {
       _update(value, _palette, (next) => _palette = next);
   void setFullscreen(bool value) =>
       _update(value, _fullscreen, (next) => _fullscreen = next);
-  void setShowLineNumbers(bool value) =>
-      _update(value, _showLineNumbers, (next) => _showLineNumbers = next);
 
   void _update<T>(T value, T current, void Function(T) assign) {
     if (value == current) return;
@@ -144,7 +140,6 @@ class ReaderController extends ChangeNotifier {
     latinFont: _latinFont,
     palette: _palette,
     fullscreen: _fullscreen,
-    showLineNumbers: _showLineNumbers,
   );
 
   void _applySettings(ReaderSettings settings) {
@@ -160,7 +155,6 @@ class ReaderController extends ChangeNotifier {
     _latinFont = settings.latinFont;
     _palette = settings.palette;
     _fullscreen = settings.fullscreen;
-    _showLineNumbers = settings.showLineNumbers;
   }
 
   /// Saves shortly after the last change, so dragging a slider writes once.

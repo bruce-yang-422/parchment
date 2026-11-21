@@ -145,4 +145,17 @@ void main() {
     expect(note.markdown, isNot(contains('^id')));
     expect(note.markdown, isNot(contains('\r')));
   });
+
+  test('中文或大寫名稱的註腳也找得到內容', () {
+    final note = PreparedNote.prepare(
+      '一[^1]，二[^說明]，三[^Note]。\n\n'
+      '[^1]: 第一\n[^說明]: 第二\n[^Note]: 第三',
+    );
+    final html = md.renderToHtml(note.parse(note.markdown));
+    final labels = RegExp(
+      r'href="#fn-([^"]+)"',
+    ).allMatches(html).map((m) => m.group(1)!).toList();
+    expect(labels, hasLength(3));
+    expect(labels.map(note.footnoteFor), ['第一', '第二', '第三']);
+  });
 }

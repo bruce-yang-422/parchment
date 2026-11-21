@@ -1413,4 +1413,13 @@ const Map<String, List<String>> translations = {
     'CRLF (Windows)',
     'CRLF (Windows)',
   ],
+  '回到正文': [
+    '回到正文',
+    'Back to text',
+    '本文に戻る',
+    '본문으로 돌아가기',
+    'Retour au texte',
+    'Zurück zum Text',
+    'Volver al texto',
+  ],
 };

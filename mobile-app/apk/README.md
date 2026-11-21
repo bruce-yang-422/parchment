@@ -22,10 +22,19 @@ Universal APK 同時包含 ARM32、ARM64 與 x86_64；最低支援 Android 7.0�
 
 | 檔案 | 大小 | SHA-256 |
 | --- | --- | --- |
-| `parchment-v1.1.1-android-universal.apk` | 63.2 MB | `C2392CD6A45B6AD357600F916D241ED3FA6C03AD30D6A0A353EDC17CD00572A9` |
-| `parchment-v1.1.1-google-play.aab` | 60.3 MB | `AE2F565FC8721BE61C2D25EBCED32E5B1BA51837EC27AEFF610EB96250D7F2FC` |
+| `parchment-v1.1.1-android-universal.apk` | 93.0 MB | `29C3ED7D9135595A7C12AECE43FB360CC734F779CC8F709744F04D16AD8EC799` |
+| `parchment-v1.1.1-google-play.aab` | 89.9 MB | `A276106293FAE308277F9B599421A7DF9F95DCE36498D98059C5CE38EEA713FB` |
 
-本次封裝包含：Frontmatter／Callouts／註腳等語法修正、向量圖表燈箱與高解析 PNG 另存、TODO 勾選存回、資料夾模式（檔案樹、搜尋、標籤、雙向連結、最近資料夾）、Android 單檔文字類型過濾、從 LINE 等 App「開啟方式」進入、文件資訊面板、可搜尋與收合的開源授權頁、App 隱私政策入口、新版 App 圖示、精簡歡迎畫面與表格自動排版。
+本次封裝包含：
+
+- 閱讀：Frontmatter、Callouts、註腳（中文名稱註腳也能點開；文末返回鍵為自繪向量圖示；註腳面板固定 96% 寬）、HTML 白名單（`<kbd>`、`<details>` 等）、向量圖表燈箱與高解析 PNG、表格自動排版（隨字級放大）、回到頂端按鈕。
+- 配色：羊皮紙、紫晶（Obsidian）、墨白（Notion）、湖藍（Windows 11）、鋁銀（iOS）各自的版面、提示框圖示與按鈕樣式。
+- 字型：內建台北黑體、jf 粉圓、芫荽、內海、源柔哥德體、LINE Seed JP、Pretendard；Google Fonts 選了才下載；清單依介面語言、附範例文字。
+- 介面：8 種語言（繁中、簡中、英、日、韓、法、德、西）全部翻譯；閱讀設定會記住。
+- 檔案：資料夾模式、從 LINE 等 App 開啟、TODO 勾選存回、文件資訊（SHA-256、完整路徑）、中文資料夾名稱修正。
+- 穩定性：修正切換文件時畫面凍結（灰色遮罩）的問題；正式版補上網路權限。
+
+內建字型在 APK 中約佔 28.5 MB（壓縮後），所以檔案比 1.1.1 初版大。
 
 > [!IMPORTANT]
 > 同一個 versionCode 不能重複上傳到 Google Play。若 1.1.1（versionCode 1）已經上傳過，請先把 `pubspec.yaml` 改為 `1.1.2+2`（並同步 `lib/app/app_info.dart`）再重新封裝。

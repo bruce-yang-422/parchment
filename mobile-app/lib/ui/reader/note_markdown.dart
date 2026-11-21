@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
@@ -75,6 +76,44 @@ class NoteMarkdownConfig {
   /// pairs every checkbox with its own task.
   final List<int> _pendingTasks = [];
   int _taskCount = 0;
+  final Map<String, GlobalKey> _footnoteReferenceKeys = {};
+  final Map<String, double> _footnoteReferenceOffsets = {};
+  ScrollController? _documentController;
+
+  GlobalKey footnoteReferenceKey(String id) =>
+      _footnoteReferenceKeys.putIfAbsent(id, GlobalKey.new);
+
+  void rememberFootnoteReference(String id) {
+    final referenceContext = _footnoteReferenceKeys[id]?.currentContext;
+    final renderObject = referenceContext?.findRenderObject();
+    if (renderObject == null || !renderObject.attached) return;
+    final viewport = RenderAbstractViewport.maybeOf(renderObject);
+    if (viewport == null) return;
+    _footnoteReferenceOffsets[id] = viewport
+        .getOffsetToReveal(renderObject, 0.24)
+        .offset;
+  }
+
+  Future<void> scrollToFootnoteReference(String id) async {
+    final referenceContext = _footnoteReferenceKeys[id]?.currentContext;
+    if (referenceContext != null) {
+      await Scrollable.ensureVisible(
+        referenceContext,
+        alignment: 0.24,
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeOutCubic,
+      );
+      return;
+    }
+    final controller = _documentController;
+    final offset = _footnoteReferenceOffsets[id];
+    if (controller == null || offset == null || !controller.hasClients) return;
+    await controller.animateTo(
+      offset.clamp(0, controller.position.maxScrollExtent),
+      duration: const Duration(milliseconds: 320),
+      curve: Curves.easeOutCubic,
+    );
+  }
 
   late final Map<String, MarkdownElementBuilder> _documentBuilders = {
     ...builders,
@@ -104,6 +143,7 @@ class NoteMarkdownConfig {
     'sup-text': _InlineStyleBuilder(_InlineStyle.sup),
     'sub-text': _InlineStyleBuilder(_InlineStyle.sub),
     'sup': _FootnoteReferenceBuilder(this),
+    'section': _FootnoteSectionBuilder(this),
     'abbr': _AbbreviationBuilder(),
     'wikilink': _WikiLinkBuilder(),
     'wiki-embed': _WikiEmbedBuilder(),
@@ -134,6 +174,7 @@ class NoteMarkdownConfig {
     required ScrollController controller,
     required EdgeInsets padding,
   }) {
+    _documentController = controller;
     return Markdown(
       controller: controller,
       data: note.markdown,
@@ -351,6 +392,181 @@ class _TaskInputBuilder extends MarkdownElementBuilder {
 
 enum _InlineStyle { mark, ins, sup, sub }
 
+/// The footnotes at the end of a document, drawn by the app: number,
+/// content and a drawn "back to text" button. The markdown package's own
+/// back link is the character ↩, which Android shows as a colour emoji.
+class _FootnoteSectionBuilder extends MarkdownElementBuilder {
+  _FootnoteSectionBuilder(this.config);
+
+  final NoteMarkdownConfig config;
+
+  @override
+  bool isBlockElement() => true;
+
+  @override
+  Widget? visitElementAfterWithContext(
+    BuildContext context,
+    md.Element element,
+    TextStyle? preferredStyle,
+    TextStyle? parentStyle,
+  ) {
+    if (element.attributes['class'] != 'footnotes') return null;
+    final items = <md.Element>[];
+    void collect(md.Node node) {
+      if (node is! md.Element) return;
+      if (node.tag == 'li') {
+        items.add(node);
+        return;
+      }
+      node.children?.forEach(collect);
+    }
+
+    element.children?.forEach(collect);
+    final look = ReaderLook.of(context);
+    final numberStyle = config.styleSheet.p?.copyWith(
+      color: look.muted,
+      fontFeatures: const [FontFeature.tabularFigures()],
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Divider(height: 32, color: look.border),
+        for (var index = 0; index < items.length; index++)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 28,
+                  child: Text('${index + 1}.', style: numberStyle),
+                ),
+                // The back button follows the text instead of sitting at
+                // the right edge; the body shrinks to its content.
+                Expanded(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Flexible(child: config.body(_content(items[index]))),
+                      for (final href in _backLinks(items[index]))
+                        Padding(
+                          padding: const EdgeInsets.only(left: 4, bottom: 2),
+                          child: FootnoteBackButton(
+                            onTap: () => config.onTapLink('', href, ''),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  /// Markdown of one footnote, from the note's own definitions (`fn-<label>`).
+  String _content(md.Element item) {
+    final id = item.attributes['id'] ?? '';
+    final label = id.startsWith('fn-') ? id.substring(3) : id;
+    return config.note.footnoteFor(label) ?? item.textContent;
+  }
+
+  static List<String> _backLinks(md.Element item) {
+    final hrefs = <String>[];
+    void visit(md.Node node) {
+      if (node is! md.Element) return;
+      final href = node.attributes['href'];
+      if (node.tag == 'a' &&
+          node.attributes['class'] == 'footnote-backref' &&
+          href != null) {
+        hrefs.add(href);
+        return;
+      }
+      node.children?.forEach(visit);
+    }
+
+    item.children?.forEach(visit);
+    return hrefs;
+  }
+}
+
+/// Round "back to text" button: a drawn arrow that rises and turns left,
+/// in the same capsule as the footnote numbers in the text.
+class FootnoteBackButton extends StatelessWidget {
+  const FootnoteBackButton({required this.onTap, super.key});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Tooltip(
+      message: tr('回到正文'),
+      child: Semantics(
+        button: true,
+        label: tr('回到正文'),
+        excludeSemantics: true,
+        child: Material(
+          color: colors.primaryContainer.withValues(alpha: 0.72),
+          shape: const CircleBorder(),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap,
+            customBorder: const CircleBorder(),
+            child: SizedBox.square(
+              dimension: 20,
+              child: CustomPaint(
+                painter: _BackArrowPainter(colors.onPrimaryContainer),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BackArrowPainter extends CustomPainter {
+  const _BackArrowPainter(this.color);
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final s = size.shortestSide;
+    Offset at(double x, double y) => Offset(x * s, y * s);
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = s * 0.085
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
+    // Stem rising from the bottom right, curving into a leftward head.
+    final stem = Path()
+      ..moveTo(at(0.66, 0.74).dx, at(0.66, 0.74).dy)
+      ..lineTo(at(0.66, 0.5).dx, at(0.66, 0.5).dy)
+      ..quadraticBezierTo(
+        at(0.66, 0.34).dx,
+        at(0.66, 0.34).dy,
+        at(0.5, 0.34).dx,
+        at(0.5, 0.34).dy,
+      )
+      ..lineTo(at(0.32, 0.34).dx, at(0.32, 0.34).dy);
+    final head = Path()
+      ..moveTo(at(0.43, 0.23).dx, at(0.43, 0.23).dy)
+      ..lineTo(at(0.31, 0.34).dx, at(0.31, 0.34).dy)
+      ..lineTo(at(0.43, 0.45).dx, at(0.43, 0.45).dy);
+    canvas
+      ..drawPath(stem, paint)
+      ..drawPath(head, paint);
+  }
+
+  @override
+  bool shouldRepaint(_BackArrowPainter oldDelegate) =>
+      oldDelegate.color != color;
+}
+
 class _FootnoteReferenceBuilder extends MarkdownElementBuilder {
   _FootnoteReferenceBuilder(this.config);
 
@@ -374,6 +590,10 @@ class _FootnoteReferenceBuilder extends MarkdownElementBuilder {
     final href = link.attributes['href'];
     if (href == null || !href.startsWith('#fn-')) return null;
     final number = link.textContent;
+    final referenceId = link.attributes['id'] ?? 'fnref-${href.substring(4)}';
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => config.rememberFootnoteReference(referenceId),
+    );
     final colors = Theme.of(context).colorScheme;
     final base = parentStyle ?? DefaultTextStyle.of(context).style;
     final visualSize = math.max(12.0, (base.fontSize ?? 16) * 0.78);
@@ -382,21 +602,21 @@ class _FootnoteReferenceBuilder extends MarkdownElementBuilder {
         alignment: PlaceholderAlignment.baseline,
         baseline: TextBaseline.alphabetic,
         child: Transform.translate(
+          key: config.footnoteReferenceKey(referenceId),
           offset: Offset(0, -visualSize * 0.24),
           child: Semantics(
             button: true,
             label: tr('註腳 {number}', {'number': number}),
             child: Material(
               color: colors.primaryContainer.withValues(alpha: 0.72),
-              shape: const StadiumBorder(),
+              shape: const CircleBorder(),
+              clipBehavior: Clip.antiAlias,
               child: InkWell(
-                customBorder: const StadiumBorder(),
+                customBorder: const CircleBorder(),
                 onTap: () => config.onTapLink(number, href, ''),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    minWidth: 30,
-                    minHeight: 28,
-                  ),
+                child: SizedBox.square(
+                  key: ValueKey('footnote-reference-$referenceId'),
+                  dimension: 26,
                   child: Center(
                     child: Text(
                       number,
@@ -1463,6 +1683,67 @@ class _PropertyValue extends StatelessWidget {
 
 /* ──────────────────── Code blocks ──────────────────── */
 
+class _OverflowCodeScroller extends StatefulWidget {
+  const _OverflowCodeScroller({required this.padding, required this.child});
+
+  final EdgeInsets padding;
+  final Widget child;
+
+  @override
+  State<_OverflowCodeScroller> createState() => _OverflowCodeScrollerState();
+}
+
+class _OverflowCodeScrollerState extends State<_OverflowCodeScroller> {
+  final ScrollController _controller = ScrollController();
+  bool _overflow = false;
+  bool _updateScheduled = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  bool _onMetrics(ScrollMetricsNotification notification) {
+    if (notification.metrics.axis != Axis.horizontal) return false;
+    if (_updateScheduled) return false;
+    _updateScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateScheduled = false;
+      final next =
+          _controller.hasClients && _controller.position.maxScrollExtent > 0.5;
+      if (mounted && next != _overflow) setState(() => _overflow = next);
+    });
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return NotificationListener<ScrollMetricsNotification>(
+      onNotification: _onMetrics,
+      child: RawScrollbar(
+        key: const ValueKey('code-horizontal-scrollbar'),
+        controller: _controller,
+        thumbVisibility: _overflow,
+        trackVisibility: _overflow,
+        interactive: true,
+        scrollbarOrientation: ScrollbarOrientation.bottom,
+        thickness: 4,
+        radius: const Radius.circular(99),
+        thumbColor: colors.onSurfaceVariant.withValues(alpha: 0.65),
+        trackColor: colors.onSurfaceVariant.withValues(alpha: 0.12),
+        child: SingleChildScrollView(
+          controller: _controller,
+          scrollDirection: Axis.horizontal,
+          padding: widget.padding,
+          child: widget.child,
+        ),
+      ),
+    );
+  }
+}
+
 class CodeBlockView extends StatelessWidget {
   const CodeBlockView({
     required this.source,
@@ -1509,8 +1790,7 @@ class CodeBlockView extends StatelessWidget {
       },
       icon: const Icon(Icons.copy_rounded),
     );
-    final code = SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
+    final code = _OverflowCodeScroller(
       padding: EdgeInsets.fromLTRB(
         16,
         style == CodeLook.framed || style == CodeLook.card ? 10 : 0,

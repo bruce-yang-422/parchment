@@ -225,7 +225,6 @@ class _ReaderScreenState extends State<ReaderScreen>
                         cjkFont: controller.cjkFont,
                         latinFont: controller.latinFont,
                         locale: controller.locale,
-                        showLineNumbers: controller.showLineNumbers,
                       ),
               ),
               // Floating layers get a fixed size: if one ever fails to
@@ -840,13 +839,13 @@ class _ReaderScreenState extends State<ReaderScreen>
                         },
                         onChanged: controller.setLatinFont,
                       ),
-                      _SettingCapsules<ReaderPalette>(
+                      _SettingDropdown<ReaderPalette>(
                         title: strings.palette,
                         value: controller.palette,
                         values: strings.paletteNames,
                         onChanged: controller.setPalette,
                       ),
-                      _SettingCapsules<ThemeMode>(
+                      _SettingDropdown<ThemeMode>(
                         title: strings.appearance,
                         value: controller.themeMode,
                         values: {
@@ -888,13 +887,6 @@ class _ReaderScreenState extends State<ReaderScreen>
                         subtitle: Text(strings.fullscreenHint),
                         value: controller.fullscreen,
                         onChanged: controller.setFullscreen,
-                      ),
-                      SwitchListTile.adaptive(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(strings.lineNumbers),
-                        subtitle: Text(strings.lineNumbersHint),
-                        value: controller.showLineNumbers,
-                        onChanged: controller.setShowLineNumbers,
                       ),
                     ],
                   ),
@@ -1457,71 +1449,6 @@ class _SettingDropdown<T extends Enum> extends StatelessWidget {
   }
 }
 
-class _SettingCapsules<T extends Enum> extends StatelessWidget {
-  const _SettingCapsules({
-    required this.title,
-    required this.value,
-    required this.values,
-    required this.onChanged,
-  });
-
-  final String title;
-  final T value;
-  final Map<T, String> values;
-  final ValueChanged<T> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title, style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final entry in values.entries)
-                ChoiceChip(
-                  label: Text(entry.value),
-                  selected: entry.key == value,
-                  showCheckmark: false,
-                  avatar: entry.key == value
-                      ? Icon(
-                          Icons.check_rounded,
-                          size: 17,
-                          color: colors.onPrimary,
-                        )
-                      : null,
-                  labelStyle: TextStyle(
-                    color: entry.key == value
-                        ? colors.onPrimary
-                        : colors.onSurfaceVariant,
-                    fontWeight: entry.key == value
-                        ? FontWeight.w600
-                        : FontWeight.w500,
-                  ),
-                  selectedColor: colors.primary,
-                  backgroundColor: colors.surfaceContainerLow,
-                  side: BorderSide(
-                    color: entry.key == value
-                        ? colors.primary
-                        : colors.outlineVariant,
-                  ),
-                  shape: const StadiumBorder(),
-                  onSelected: (_) => onChanged(entry.key),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _ToolbarButton extends StatefulWidget {
   const _ToolbarButton({
     required this.icon,
@@ -1784,7 +1711,6 @@ class _DocumentView extends StatefulWidget {
     required this.cjkFont,
     required this.locale,
     required this.latinFont,
-    required this.showLineNumbers,
   });
 
   final LocalDocument document;
@@ -1800,7 +1726,6 @@ class _DocumentView extends StatefulWidget {
   final double lineHeight;
   final ReaderCjkFont cjkFont;
   final ReaderLatinFont latinFont;
-  final bool showLineNumbers;
 
   /// Picks the regional Noto variant (TC, SC, JP, KR).
   final ReaderLocale locale;
@@ -1839,7 +1764,10 @@ class _DocumentViewState extends State<_DocumentView> {
       );
       return;
     }
-    if (href.startsWith('#fnref-')) return;
+    if (href.startsWith('#fnref-')) {
+      unawaited(config.scrollToFootnoteReference(href.substring(1)));
+      return;
+    }
     final uri = Uri.tryParse(href);
     if (uri != null && uri.hasScheme) {
       Clipboard.setData(ClipboardData(text: href));
@@ -1855,23 +1783,28 @@ class _DocumentViewState extends State<_DocumentView> {
     String label, {
     String? number,
   }) {
-    final content = config.note.footnotes[label];
+    final content = config.note.footnoteFor(label);
     if (content == null) return;
+    // Same width for every footnote (96% of the screen), however short or
+    // long its text; the sheet would otherwise shrink to fit the content.
+    final width = MediaQuery.sizeOf(context).width * 0.96;
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
       isScrollControlled: true,
+      constraints: BoxConstraints.tightFor(width: width),
       builder: (sheetContext) => NoteMarkdownScope(
         config: config,
         child: SafeArea(
           child: ConstrainedBox(
             constraints: BoxConstraints(
+              minWidth: width,
               maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.6,
             ),
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
@@ -2067,39 +2000,16 @@ class _DocumentViewState extends State<_DocumentView> {
     final mediaQuery = MediaQuery.of(
       context,
     ).copyWith(textScaler: TextScaler.noScaling);
-    final numberedPadding = widget.showLineNumbers
-        ? widget.padding.copyWith(left: widget.padding.left + 42)
-        : widget.padding;
-    final lineExtent = (bodyStyle?.fontSize ?? 16) * widget.lineHeight * 1;
-    final lineCount = '\n'.allMatches(widget.document.content).length + 1;
-
     if (widget.document.format == DocumentFormat.plainText) {
       return MediaQuery(
         data: mediaQuery,
-        child: Stack(
-          children: [
-            SingleChildScrollView(
-              key: ValueKey(widget.document.id),
-              controller: widget.scrollController,
-              padding: numberedPadding,
-              child: SelectionArea(
-                child: Text(widget.document.content, style: bodyStyle),
-              ),
-            ),
-            if (widget.showLineNumbers)
-              Positioned(
-                left: widget.padding.left,
-                top: 0,
-                bottom: 0,
-                width: 34,
-                child: _LineNumberGutter(
-                  controller: widget.scrollController,
-                  lineCount: lineCount,
-                  lineExtent: lineExtent,
-                  topPadding: widget.padding.top,
-                ),
-              ),
-          ],
+        child: SingleChildScrollView(
+          key: ValueKey(widget.document.id),
+          controller: widget.scrollController,
+          padding: widget.padding,
+          child: SelectionArea(
+            child: Text(widget.document.content, style: bodyStyle),
+          ),
         ),
       );
     }
@@ -2131,26 +2041,13 @@ class _DocumentViewState extends State<_DocumentView> {
               // the next document.
               child: SelectionArea(
                 key: ValueKey(widget.document.id),
-                child: Stack(
-                  children: [
-                    config.document(
-                      controller: widget.scrollController,
-                      padding: numberedPadding,
-                    ),
-                    if (widget.showLineNumbers)
-                      Positioned(
-                        left: widget.padding.left,
-                        top: 0,
-                        bottom: 0,
-                        width: 34,
-                        child: _LineNumberGutter(
-                          controller: widget.scrollController,
-                          lineCount: lineCount,
-                          lineExtent: lineExtent,
-                          topPadding: widget.padding.top,
-                        ),
-                      ),
-                  ],
+                child: config.document(
+                  controller: widget.scrollController,
+                  // Room below the last line for the floating back-to-top
+                  // button, so it never covers the end of the document.
+                  padding: widget.padding.copyWith(
+                    bottom: widget.padding.bottom + 64,
+                  ),
                 ),
               ),
             ),
@@ -2275,99 +2172,6 @@ class _DocumentViewState extends State<_DocumentView> {
     }
     return tr('目前無法存回');
   }
-}
-
-class _LineNumberGutter extends StatelessWidget {
-  const _LineNumberGutter({
-    required this.controller,
-    required this.lineCount,
-    required this.lineExtent,
-    required this.topPadding,
-  });
-
-  final ScrollController controller;
-  final int lineCount;
-  final double lineExtent;
-  final double topPadding;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return IgnorePointer(
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: colors.surface.withValues(alpha: 0.92),
-          border: Border(
-            right: BorderSide(
-              color: colors.outlineVariant.withValues(alpha: 0.55),
-              width: 0.5,
-            ),
-          ),
-        ),
-        child: AnimatedBuilder(
-          animation: controller,
-          builder: (context, _) => CustomPaint(
-            painter: _LineNumberPainter(
-              offset: controller.hasClients ? controller.offset : 0,
-              lineCount: lineCount,
-              lineExtent: lineExtent,
-              topPadding: topPadding,
-              color: colors.onSurfaceVariant.withValues(alpha: 0.58),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _LineNumberPainter extends CustomPainter {
-  const _LineNumberPainter({
-    required this.offset,
-    required this.lineCount,
-    required this.lineExtent,
-    required this.topPadding,
-    required this.color,
-  });
-
-  final double offset;
-  final int lineCount;
-  final double lineExtent;
-  final double topPadding;
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (lineExtent <= 0 || lineCount <= 0) return;
-    final first = math.max(0, ((offset - topPadding) / lineExtent).floor());
-    var y = topPadding + first * lineExtent - offset;
-    for (var index = first; index < lineCount && y < size.height; index++) {
-      if (y + lineExtent >= 0) {
-        final painter = TextPainter(
-          text: TextSpan(
-            text: '${index + 1}',
-            style: TextStyle(
-              color: color,
-              fontSize: 10.5,
-              fontFeatures: const [FontFeature.tabularFigures()],
-            ),
-          ),
-          textDirection: TextDirection.ltr,
-          textAlign: TextAlign.right,
-        )..layout(maxWidth: size.width - 6);
-        painter.paint(canvas, Offset(size.width - painter.width - 6, y + 2));
-      }
-      y += lineExtent;
-    }
-  }
-
-  @override
-  bool shouldRepaint(_LineNumberPainter oldDelegate) =>
-      oldDelegate.offset != offset ||
-      oldDelegate.lineCount != lineCount ||
-      oldDelegate.lineExtent != lineExtent ||
-      oldDelegate.topPadding != topPadding ||
-      oldDelegate.color != color;
 }
 
 enum _SaveChoice { inPlace, saveAs }

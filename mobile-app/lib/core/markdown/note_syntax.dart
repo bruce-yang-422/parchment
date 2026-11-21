@@ -12,6 +12,7 @@ import 'package:markdown/markdown.dart' as md;
 
 import 'frontmatter.dart';
 import 'html_syntax.dart';
+import 'wiki_paths.dart';
 
 /// Fenced-code language used to carry frontmatter into the Markdown AST.
 const String propertiesFenceLanguage = 'parchment-properties';
@@ -45,6 +46,20 @@ class PreparedNote {
 
   /// Footnote label → raw Markdown, used for the footnote preview sheet.
   final Map<String, String> footnotes;
+
+  /// Footnote text for the label in a `#fn-…` link. The markdown package
+  /// percent-encodes and lower-cases labels (`[^說明]` → `%E8%AA%AA%E6%98%8E`),
+  /// so they are decoded and compared without case.
+  String? footnoteFor(String linkLabel) {
+    final label = decodePercent(linkLabel);
+    final exact = footnotes[label];
+    if (exact != null) return exact;
+    final lower = label.toLowerCase();
+    for (final entry in footnotes.entries) {
+      if (entry.key.toLowerCase() == lower) return entry.value;
+    }
+    return null;
+  }
 
   static PreparedNote prepare(String source) {
     final frontmatter = Frontmatter.parse(source);

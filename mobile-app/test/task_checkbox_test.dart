@@ -87,4 +87,86 @@ void main() {
     expect(checkboxValue(tester, 0), isFalse);
     expect(checkboxValue(tester, 1), isTrue);
   });
+
+  testWidgets('文末註腳可在正文引用卸載後捲回原位', (tester) async {
+    final controller = ScrollController();
+    final store = TaskStateStore();
+    final note = PreparedNote.prepare(
+      '正文註腳[^a]\n\n${List.generate(180, (i) => '第 ${i + 1} 行內容').join('\n\n')}\n\n[^a]: 註腳內容',
+    );
+    late NoteMarkdownConfig config;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Builder(
+            builder: (context) {
+              config = NoteMarkdownConfig(
+                note: note,
+                styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)),
+                onTapLink: (_, _, _) {},
+                imageBuilder: (uri, title, alt) => const SizedBox(),
+                showMessage: (_) {},
+                taskStates: store,
+              );
+              return NoteMarkdownScope(
+                config: config,
+                child: config.document(
+                  controller: controller,
+                  padding: EdgeInsets.zero,
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(
+      tester.getSize(find.byKey(const ValueKey('footnote-reference-fnref-a'))),
+      const Size.square(26),
+    );
+    expect(controller.position.maxScrollExtent, greaterThan(1000));
+
+    controller.jumpTo(controller.position.maxScrollExtent);
+    await tester.pumpAndSettle();
+    final bottom = controller.offset;
+    final scrolling = config.scrollToFootnoteReference('fnref-a');
+    await tester.pumpAndSettle();
+    await scrolling;
+
+    expect(controller.offset, lessThan(bottom / 2));
+    controller.dispose();
+    store.dispose();
+  });
+
+  testWidgets('程式碼超出寬度時顯示水平捲動軸', (tester) async {
+    Future<void> pumpCode(String source) => tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            width: 220,
+            child: CodeBlockView(source: source, language: 'dart'),
+          ),
+        ),
+      ),
+    );
+
+    await pumpCode('x');
+    await tester.pumpAndSettle();
+    var scrollbar = tester.widget<RawScrollbar>(
+      find.byKey(const ValueKey('code-horizontal-scrollbar')),
+    );
+    expect(scrollbar.thumbVisibility, isFalse);
+
+    await pumpCode(
+      'final veryLongVariableName = someFunctionWithManyArguments(firstArgument, secondArgument, thirdArgument);',
+    );
+    await tester.pumpAndSettle();
+    scrollbar = tester.widget<RawScrollbar>(
+      find.byKey(const ValueKey('code-horizontal-scrollbar')),
+    );
+    expect(scrollbar.thumbVisibility, isTrue);
+    expect(scrollbar.trackVisibility, isTrue);
+    expect(scrollbar.scrollbarOrientation, ScrollbarOrientation.bottom);
+  });
 }
