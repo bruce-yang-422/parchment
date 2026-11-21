@@ -25,7 +25,9 @@ Parchment 的 Android／iOS 版本，以 Flutter 開發。畫面、文件模型�
 | 單檔選擇過濾（Android） | 以原生 SAF 的文字 MIME 類型開啟選檔器：圖片、PDF、壓縮檔等會顯示為灰色且無法選取（Android 不允許 App 完全隱藏它們）；回到 App 後再依副檔名驗證，只接受 `.md`／`.txt`。資料夾模式的檔案樹只列出 `.md`／`.txt` | `MainActivity.kt`、`lib/infrastructure/android_document_channel.dart` |
 | TODO 勾選寫回 | 勾選視為編輯，底部顯示未儲存數量，可捨棄、存回原檔或另存新檔；離開或開啟其他文件前會詢問。只替換 `[ ]` ↔ `[x]` 字元；掃描到的項目數須與畫面一致；寫入前重新讀取原檔，已被外部修改則拒絕；含非 UTF-8 內容只能另存 | `lib/core/markdown/task_markers.dart`、`lib/infrastructure/platform_document_writer.dart` |
 | 文件資訊 | 檔名、可讀位置、資料夾內路徑、大小、修改時間（Android 不提供建立時間）、能否存回；字數、字元、行數、段落、閱讀時間；標題、連結、圖片、程式碼與圖表、附註、待辦進度、標籤；進階資訊；複製檔名、位置、筆記連結與全文 | `lib/core/notes/document_stats.dart`、`lib/core/services/document_inspector.dart`、`lib/ui/reader/document_info_sheet.dart` |
-| 關於 | 設定最下方：版本、最後更新、作者、授權、官方網站、隱私權政策、開放原始碼元件授權 | `lib/app/app_info.dart`、`lib/ui/reader/about_section.dart` |
+| 關於與授權 | 設定最下方顯示版本、最後更新、作者、授權、官方網站與隱私權政策；開放原始碼元件改以摘要、名稱搜尋與可收合卡片呈現，完整授權文字只在使用者展開個別元件時顯示 | `lib/app/app_info.dart`、`lib/ui/reader/about_section.dart`、`lib/ui/reader/open_source_licenses_page.dart` |
+| 閱讀顯示 | 文字大小以 8–32 pt（0.5×–2×）調整；可選擇全螢幕沉浸閱讀及左側行號，兩者預設關閉。主題配色與系統／淺色／深色模式以膠囊標籤直接選取 | `lib/core/services/reader_settings.dart`、`lib/ui/reader/reader_screen.dart` |
+| 註腳 | 行內編號使用高對比膠囊與較大的觸控區；點擊後以底部面板顯示「註腳 1」及完整內容 | `lib/ui/reader/note_markdown.dart`、`lib/ui/reader/reader_screen.dart` |
 
 介面採用接近 iOS／macOS 的低干擾設計語言：半圓膠囊操作按鈕、輕量底部 Dock、圓角面板、細分隔線與一致的按壓／滑鼠懸停回饋。所有元件沿用五套配色並支援深色模式。介面語言選擇會立即更新設定與主要導覽文字；文件內容不會被翻譯。
 
@@ -84,6 +86,7 @@ mobile-app/
 | `read`、`write` | 讀寫 SAF 文件（寫入使用 `"wt"` 截斷） |
 | `stat` | 檔案大小、修改時間、document ID 與 provider（供「資訊」顯示可讀位置） |
 | `listTree` | 列出資料夾樹（最多 20000 筆，略過以 `.` 開頭的項目） |
+| `pickDocument` | 以文字 MIME 類型開啟 Android SAF；非文字檔不可選，回傳後再驗證僅接受 `.md`／`.txt` |
 | `persistedTrees`、`releaseTree` | 查詢與釋放保留的資料夾授權 |
 | `takeIncomingDocument`；原生呼叫 `incomingDocument` | 啟動時與執行中收到的外部檔案 |
 
@@ -103,7 +106,8 @@ mobile-app/
 
 1. 同步更新 `pubspec.yaml` 的 `version`（例如 `1.1.2+2`，`+` 後的組建編號每次上架都要遞增）與 `lib/app/app_info.dart` 的 `version`、`buildNumber`、`lastUpdated`。`test/app_info_test.dart` 會檢查兩邊一致。
 2. 執行 `flutter analyze` 與 `flutter test`。
-3. 若網站更新了圖表套件或標誌，依「資產同步」重新產生。
+3. 檢查 `privacy.html` 是否涵蓋 App 權限、本機偏好、TODO 寫回與第三方商店行為。
+4. 若網站更新了圖表套件或標誌，依「資產同步」重新產生。
 
 ## 建立原生工程
 

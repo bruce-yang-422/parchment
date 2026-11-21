@@ -10,6 +10,8 @@ class ReaderSettings {
     this.cjkFont = ReaderCjkFont.system,
     this.latinFont = ReaderLatinFont.system,
     this.palette = ReaderPalette.parchment,
+    this.fullscreen = false,
+    this.showLineNumbers = false,
   });
 
   /// `system`, `light` or `dark`.
@@ -20,6 +22,8 @@ class ReaderSettings {
   final ReaderCjkFont cjkFont;
   final ReaderLatinFont latinFont;
   final ReaderPalette palette;
+  final bool fullscreen;
+  final bool showLineNumbers;
 
   Map<String, Object> toJson() => {
     'themeMode': themeMode,
@@ -29,6 +33,8 @@ class ReaderSettings {
     'cjkFont': cjkFont.name,
     'latinFont': latinFont.name,
     'palette': palette.name,
+    'fullscreen': fullscreen,
+    'showLineNumbers': showLineNumbers,
   };
 
   /// Reads saved settings; unknown or broken values fall back to defaults,
@@ -54,7 +60,7 @@ class ReaderSettings {
       themeMode: const {'system', 'light', 'dark'}.contains(themeMode)
           ? themeMode as String
           : defaults.themeMode,
-      textScale: number(value['textScale'], defaults.textScale, 0.85, 1.35),
+      textScale: number(value['textScale'], defaults.textScale, 0.5, 2),
       lineHeight: number(value['lineHeight'], defaults.lineHeight, 1.3, 2.2),
       locale: locale,
       cjkFont: pick(
@@ -74,6 +80,12 @@ class ReaderSettings {
         defaults.latinFont,
       ),
       palette: pick(ReaderPalette.values, value['palette'], defaults.palette),
+      fullscreen: value['fullscreen'] is bool
+          ? value['fullscreen'] as bool
+          : defaults.fullscreen,
+      showLineNumbers: value['showLineNumbers'] is bool
+          ? value['showLineNumbers'] as bool
+          : defaults.showLineNumbers,
     );
   }
 }

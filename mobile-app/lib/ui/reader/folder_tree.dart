@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/models/note_folder.dart';
+import '../../core/l10n/tr.dart';
 
 /// Expandable tree of the `.md` / `.txt` notes in a folder. Folders come
 /// first; names sort naturally (`2` before `10`).
@@ -87,9 +88,9 @@ class _FolderTreeViewState extends State<FolderTreeView> {
 
     add(_root, 0);
     if (rows.isEmpty) {
-      return const Padding(
+      return Padding(
         padding: EdgeInsets.symmetric(vertical: 24),
-        child: Center(child: Text('這個資料夾沒有 .md 或 .txt 檔案')),
+        child: Center(child: Text(tr('這個資料夾沒有 .md 或 .txt 檔案'))),
       );
     }
     return Column(children: rows);

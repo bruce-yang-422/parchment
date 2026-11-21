@@ -1,3 +1,5 @@
+import '../l10n/tr.dart';
+
 /// File metadata from the platform (size, modification time, location).
 class DocumentStat {
   const DocumentStat({
@@ -86,7 +88,7 @@ String? _absoluteFor(
     final path = id.substring(colon + 1);
     return volume == 'primary' ? '$internal/$path' : '/storage/$volume/$path';
   }
-  if (location.label == '內部儲存空間' && location.path != null) {
+  if (location.label == tr('內部儲存空間') && location.path != null) {
     return '$internal/${location.path}';
   }
   if (location.label.startsWith('/')) return location.label;
@@ -104,7 +106,9 @@ DocumentLocation? _describe(
     final volume = colon < 0 ? id : id.substring(0, colon);
     final path = colon < 0 ? null : id.substring(colon + 1);
     return DocumentLocation(
-      label: volume == 'primary' ? '內部儲存空間' : 'SD 卡（$volume）',
+      label: volume == 'primary'
+          ? tr('內部儲存空間')
+          : tr('SD 卡（{volume}）', {'volume': volume}),
       path: path == null || path.isEmpty ? null : path,
     );
   }
@@ -113,15 +117,18 @@ DocumentLocation? _describe(
       final raw = id.substring(4);
       const root = '/storage/emulated/0/';
       return raw.startsWith(root)
-          ? DocumentLocation(label: '內部儲存空間', path: raw.substring(root.length))
+          ? DocumentLocation(
+              label: tr('內部儲存空間'),
+              path: raw.substring(root.length),
+            )
           : DocumentLocation(label: raw);
     }
-    return const DocumentLocation(label: '下載項目');
+    return DocumentLocation(label: tr('下載項目'));
   }
   if (storagePath != null && storagePath.isNotEmpty) {
     return storagePath.startsWith('/')
         ? DocumentLocation(label: storagePath)
-        : DocumentLocation(label: '內部儲存空間', path: storagePath);
+        : DocumentLocation(label: tr('內部儲存空間'), path: storagePath);
   }
   if (authority == null || authority.isEmpty) return null;
   return DocumentLocation(label: _sourceApp(authority));
@@ -130,18 +137,18 @@ DocumentLocation? _describe(
 /// Plain name of the app that shared the file, when it is a common one.
 String _sourceApp(String authority) {
   final value = authority.toLowerCase();
-  if (value.contains('naver.line')) return '來自 LINE';
-  if (value.startsWith('com.google.android.gm')) return '來自 Gmail';
+  if (value.contains('naver.line')) return tr('來自 LINE');
+  if (value.startsWith('com.google.android.gm')) return tr('來自 Gmail');
   if (value.startsWith('com.google.android.apps.docs')) {
-    return '來自 Google 雲端硬碟';
+    return tr('來自 Google 雲端硬碟');
   }
-  if (value.contains('telegram')) return '來自 Telegram';
-  if (value.contains('whatsapp')) return '來自 WhatsApp';
-  if (value.contains('facebook.orca')) return '來自 Messenger';
-  if (value.contains('discord')) return '來自 Discord';
-  if (value.contains('slack')) return '來自 Slack';
+  if (value.contains('telegram')) return tr('來自 Telegram');
+  if (value.contains('whatsapp')) return tr('來自 WhatsApp');
+  if (value.contains('facebook.orca')) return tr('來自 Messenger');
+  if (value.contains('discord')) return tr('來自 Discord');
+  if (value.contains('slack')) return tr('來自 Slack');
   if (value == 'media' || value.startsWith('com.android.providers.media')) {
-    return '內部儲存空間';
+    return tr('內部儲存空間');
   }
-  return '來自其他 App';
+  return tr('來自其他 App');
 }

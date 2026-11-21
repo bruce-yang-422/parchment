@@ -10,18 +10,19 @@ import 'infrastructure/file_picker_document_picker.dart';
 import 'infrastructure/platform_document_writer.dart';
 import 'infrastructure/preferences_reader_settings.dart';
 import 'infrastructure/preferences_recent_folders.dart';
+import 'core/l10n/tr.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // In release builds a failing widget is a plain grey box; show a short
   // note instead so the rest of the screen stays usable and readable.
   if (kReleaseMode) {
-    ErrorWidget.builder = (details) => const Directionality(
+    ErrorWidget.builder = (details) => Directionality(
       textDirection: TextDirection.ltr,
       child: Padding(
         padding: EdgeInsets.all(8),
         child: Text(
-          '這部分內容無法顯示',
+          tr('這部分內容無法顯示'),
           style: TextStyle(color: Color(0xFF9E3B2E), fontSize: 14),
         ),
       ),

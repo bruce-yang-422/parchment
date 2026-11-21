@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../l10n/tr.dart';
 
 import 'package:crypto/crypto.dart' as crypto;
 
@@ -115,7 +116,7 @@ class LocalDocument {
 
   static DocumentFormat formatForFileName(String name) {
     if (!supportsFileName(name)) {
-      throw const FormatException('只支援 .md 與 .txt 檔案');
+      throw FormatException(tr('只支援 .md 與 .txt 檔案'));
     }
     return name.toLowerCase().endsWith('.md')
         ? DocumentFormat.markdown
@@ -136,6 +137,8 @@ class LocalDocument {
           return DocumentFormat.plainText;
       }
     }
-    throw FormatException('無法開啟「$name」：Parchment 只支援 .md 與 .txt 檔案。');
+    throw FormatException(
+      tr('無法開啟「{name}」：Parchment 只支援 .md 與 .txt 檔案。', {'name': name}),
+    );
   }
 }

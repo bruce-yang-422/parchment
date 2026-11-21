@@ -4,12 +4,13 @@ import 'package:file_picker/file_picker.dart';
 import '../core/models/local_document.dart';
 import '../core/services/document_picker.dart';
 import '../core/services/large_document_policy.dart';
+import '../core/l10n/tr.dart';
 
 class FilePickerDocumentPicker implements DocumentPicker {
   @override
   Future<LocalDocument?> pickDocument() async {
     final file = await FilePicker.pickFile(
-      dialogTitle: '選擇要開啟的文件',
+      dialogTitle: tr('選擇要開啟的文件'),
       type: FileType.custom,
       allowedExtensions: const ['md', 'txt'],
       // Ask for write access so task-list edits can be saved back when the
@@ -23,7 +24,9 @@ class FilePickerDocumentPicker implements DocumentPicker {
     );
     if (file == null) return null;
     if (!LocalDocument.supportsFileName(file.name)) {
-      throw FormatException('不支援的格式：${file.name}。請使用 .md 或 .txt 檔案。');
+      throw FormatException(
+        tr('不支援的格式：{name}。請使用 .md 或 .txt 檔案。', {'name': file.name}),
+      );
     }
 
     final byteLength = await file.length();

@@ -1,3 +1,5 @@
+import '../l10n/tr.dart';
+
 class LargeDocumentPolicy {
   const LargeDocumentPolicy._();
 
@@ -18,8 +20,9 @@ class PagedReadingRequiredException implements Exception {
   @override
   String toString() {
     final mebibytes = byteLength / (1024 * 1024);
-    return '這個檔案太大（約 ${mebibytes.toStringAsFixed(1)} MB），'
-        '打開可能讓手機變慢或當機，目前無法開啟。';
+    return tr('這個檔案太大（約 {size} MB），打開可能讓手機變慢或當機，目前無法開啟。', {
+      'size': mebibytes.toStringAsFixed(1),
+    });
   }
 }
 
@@ -28,6 +31,6 @@ class FileSizeUnavailableException implements Exception {
 
   @override
   String toString() {
-    return '無法確認檔案大小，為了避免手機變慢，已取消開啟。';
+    return tr('無法確認檔案大小，為了避免手機變慢，已取消開啟。');
   }
 }

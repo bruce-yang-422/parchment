@@ -9,6 +9,7 @@
 library;
 
 import 'frontmatter.dart';
+import '../l10n/tr.dart';
 
 final RegExp _fence = RegExp(r'^\s{0,3}(?:>\s?)*\s{0,3}(`{3,}|~{3,})');
 final RegExp _calloutStart = RegExp(r'^[ ]{0,3}>[ \t]?\[![A-Za-z][\w-]*\]');
@@ -51,7 +52,7 @@ class TaskMarkerMismatchException implements Exception {
   const TaskMarkerMismatchException();
 
   @override
-  String toString() => '找不到要更新的勾選位置，檔案沒有被修改。';
+  String toString() => tr('找不到要更新的勾選位置，檔案沒有被修改。');
 }
 
 /// Returns [content] with each task in [changes] (task index → checked) set,

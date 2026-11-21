@@ -256,7 +256,9 @@ Run `npm run pwa` and then `npm run extension` to build it. See [browser-extensi
 - Single-file and whole-folder modes accept `.md` and `.txt` documents.
 - Android folder mode provides a file tree, Wiki Links, note and image embeds, full-text search, tags, and backlinks.
 - Diagrams use sanitized SVG, remain sharp when zoomed in the lightbox, and preserve source plus an error message when syntax is invalid.
+- Open-source notices use a concise summary, package-name search, and collapsible cards; full legal text is shown only when a component is expanded.
 - TODO checkboxes are the sole exception to read-only behavior: changes are written only after explicit confirmation, only checkbox markers are changed, and external modifications are detected first.
+- The bilingual [privacy policy](privacy.html) covers the website, PWA, browser extension, and Android/iOS app, including file grants, local preferences, offline diagrams, and external links.
 - The interface uses restrained iOS/macOS-inspired capsule buttons, a lightweight dock, and rounded sheets, with five light/dark palettes plus text-size and line-spacing controls.
 - Android 7.0 (API 24) is the minimum. Google Play serves the appropriate content from the AAB; the direct-download Universal APK contains ARM32, ARM64, and x86_64 and is not tied to any phone brand.
 

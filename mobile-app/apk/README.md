@@ -9,7 +9,7 @@ Universal APK 同時包含 ARM32、ARM64 與 x86_64；最低支援 Android 7.0�
 
 ## 目前版本
 
-封裝日期：2026-11-20
+封裝日期：2026-11-21
 
 | 項目 | 內容 |
 | --- | --- |
@@ -22,10 +22,10 @@ Universal APK 同時包含 ARM32、ARM64 與 x86_64；最低支援 Android 7.0�
 
 | 檔案 | 大小 | SHA-256 |
 | --- | --- | --- |
-| `parchment-v1.1.1-android-universal.apk` | 63.2 MB | `5F6365B7AEC7F03274547D5B506E353344B248C6C326BA199432D5327B259BB4` |
-| `parchment-v1.1.1-google-play.aab` | 60.3 MB | `7F99674E941024C2CA7312EA94D70173CBE6523D6042BC7B5E9F89E776663A98` |
+| `parchment-v1.1.1-android-universal.apk` | 63.2 MB | `C2392CD6A45B6AD357600F916D241ED3FA6C03AD30D6A0A353EDC17CD00572A9` |
+| `parchment-v1.1.1-google-play.aab` | 60.3 MB | `AE2F565FC8721BE61C2D25EBCED32E5B1BA51837EC27AEFF610EB96250D7F2FC` |
 
-本次封裝包含：Frontmatter／Callouts／註腳等語法修正、向量圖表燈箱與高解析 PNG 另存、TODO 勾選存回、資料夾模式（檔案樹、搜尋、標籤、雙向連結、最近資料夾）、從 LINE 等 App「開啟方式」進入、文件資訊面板、設定頁「關於」、新版 App 圖示、精簡歡迎畫面與表格自動排版。
+本次封裝包含：Frontmatter／Callouts／註腳等語法修正、向量圖表燈箱與高解析 PNG 另存、TODO 勾選存回、資料夾模式（檔案樹、搜尋、標籤、雙向連結、最近資料夾）、Android 單檔文字類型過濾、從 LINE 等 App「開啟方式」進入、文件資訊面板、可搜尋與收合的開源授權頁、App 隱私政策入口、新版 App 圖示、精簡歡迎畫面與表格自動排版。
 
 > [!IMPORTANT]
 > 同一個 versionCode 不能重複上傳到 Google Play。若 1.1.1（versionCode 1）已經上傳過，請先把 `pubspec.yaml` 改為 `1.1.2+2`（並同步 `lib/app/app_info.dart`）再重新封裝。

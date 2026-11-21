@@ -5,6 +5,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../infrastructure/diagram_render_service.dart';
 import '../../infrastructure/image_exporter.dart';
+import '../../core/l10n/tr.dart';
 
 class DiagramView extends StatefulWidget {
   const DiagramView({
@@ -105,7 +106,7 @@ class _DiagramPreview extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     return Semantics(
       button: true,
-      label: '圖表，點一下放大',
+      label: tr('圖表，點一下放大'),
       child: Material(
         color: colors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(12),
@@ -206,7 +207,7 @@ class _VectorDiagramLightboxState extends State<_VectorDiagramLightbox> {
       final raster = await DiagramRenderService.instance.rasterize(
         widget.result.svg!,
       );
-      if (!raster.isSuccess) throw StateError(raster.error ?? '圖片產生失敗');
+      if (!raster.isSuccess) throw StateError(raster.error ?? tr('圖片產生失敗'));
       final png = await ImageExporter.flattenPng(
         raster.pngBytes!,
         background: widget.background,
@@ -221,10 +222,10 @@ class _VectorDiagramLightboxState extends State<_VectorDiagramLightbox> {
         fileName: '${widget.name.toLowerCase()}-$stamp.png',
       );
       if (saved) {
-        messenger.showSnackBar(const SnackBar(content: Text('已儲存圖片')));
+        messenger.showSnackBar(SnackBar(content: Text(tr('已儲存圖片'))));
       }
     } catch (error) {
-      messenger.showSnackBar(SnackBar(content: Text('圖片儲存失敗，請再試一次')));
+      messenger.showSnackBar(SnackBar(content: Text(tr('圖片儲存失敗，請再試一次'))));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -289,7 +290,7 @@ body{display:flex;align-items:center;justify-content:center;min-height:100vh;box
             child: Row(
               children: [
                 IconButton.filledTonal(
-                  tooltip: '儲存成圖片',
+                  tooltip: tr('儲存成圖片'),
                   onPressed: _saving ? null : _savePng,
                   icon: _saving
                       ? const SizedBox.square(
@@ -300,7 +301,7 @@ body{display:flex;align-items:center;justify-content:center;min-height:100vh;box
                 ),
                 const SizedBox(width: 8),
                 IconButton.filled(
-                  tooltip: '關閉',
+                  tooltip: tr('關閉'),
                   onPressed: widget.onClose,
                   icon: const Icon(Icons.close),
                 ),
@@ -338,7 +339,7 @@ class _DiagramError extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '這張圖表無法顯示，可能是內容格式有誤。以下是原始內容：',
+            tr('這張圖表無法顯示，可能是內容格式有誤。以下是原始內容：'),
             style: TextStyle(color: colors.onErrorContainer),
           ),
           const SizedBox(height: 4),

@@ -31,6 +31,8 @@ void main() {
       cjkFont: ReaderCjkFont.huninn,
       latinFont: ReaderLatinFont.serif,
       palette: ReaderPalette.lake,
+      fullscreen: true,
+      showLineNumbers: true,
     );
     final restored = ReaderSettings.fromJson(settings.toJson());
     expect(restored.toJson(), settings.toJson());
@@ -45,7 +47,7 @@ void main() {
       'locale': 'ko',
     });
     expect(restored.themeMode, 'system');
-    expect(restored.textScale, 1.35);
+    expect(restored.textScale, 2);
     expect(restored.lineHeight, 1.75);
     expect(restored.palette, ReaderPalette.parchment);
     expect(restored.locale, ReaderLocale.ko);
@@ -83,11 +85,24 @@ void main() {
         themeMode: 'dark',
         palette: ReaderPalette.aluminum,
         textScale: 1.1,
+        fullscreen: true,
+        showLineNumbers: true,
       ),
     );
     expect(controller.themeMode, ThemeMode.dark);
     expect(controller.palette, ReaderPalette.aluminum);
     expect(controller.textScale, 1.1);
+    expect(controller.fullscreen, isTrue);
+    expect(controller.showLineNumbers, isTrue);
+  });
+
+  test('文字大小支援 0.5 到 2 倍並限制超出範圍的值', () {
+    final controller = ReaderController(documentPicker: _NoPicker());
+    controller.setTextScale(0.1);
+    expect(controller.textScale, 0.5);
+    controller.setTextScale(3);
+    expect(controller.textScale, 2);
+    controller.dispose();
   });
 
   testWidgets('連續調整只在停手後儲存一次', (tester) async {

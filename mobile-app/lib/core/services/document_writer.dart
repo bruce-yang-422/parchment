@@ -1,4 +1,5 @@
 import '../models/local_document.dart';
+import '../l10n/tr.dart';
 
 /// Writes user-approved edits. Nothing is written unless the user chooses to
 /// save.
@@ -19,5 +20,5 @@ class DocumentChangedException implements Exception {
   const DocumentChangedException();
 
   @override
-  String toString() => '這個檔案在你打開後被其他 App 改過了，為了不蓋掉那些修改，這次沒有儲存。請重新開啟檔案再試一次。';
+  String toString() => tr('這個檔案在你打開後被其他 App 改過了，為了不蓋掉那些修改，這次沒有儲存。請重新開啟檔案再試一次。');
 }

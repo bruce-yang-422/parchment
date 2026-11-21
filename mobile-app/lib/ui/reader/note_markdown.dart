@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ import '../../infrastructure/diagram_render_service.dart';
 import '../theme/parchment_theme.dart';
 import 'callout_styles.dart';
 import 'diagram_view.dart';
+import '../../core/l10n/tr.dart';
 
 /// Resolves wiki links and embeds against the opened folder.
 abstract interface class NoteResolver {
@@ -101,6 +103,7 @@ class NoteMarkdownConfig {
     'ins': _InlineStyleBuilder(_InlineStyle.ins),
     'sup-text': _InlineStyleBuilder(_InlineStyle.sup),
     'sub-text': _InlineStyleBuilder(_InlineStyle.sub),
+    'sup': _FootnoteReferenceBuilder(this),
     'abbr': _AbbreviationBuilder(),
     'wikilink': _WikiLinkBuilder(),
     'wiki-embed': _WikiEmbedBuilder(),
@@ -348,6 +351,74 @@ class _TaskInputBuilder extends MarkdownElementBuilder {
 
 enum _InlineStyle { mark, ins, sup, sub }
 
+class _FootnoteReferenceBuilder extends MarkdownElementBuilder {
+  _FootnoteReferenceBuilder(this.config);
+
+  final NoteMarkdownConfig config;
+
+  @override
+  Widget? visitElementAfterWithContext(
+    BuildContext context,
+    md.Element element,
+    TextStyle? preferredStyle,
+    TextStyle? parentStyle,
+  ) {
+    final children = element.children;
+    if (element.attributes['class'] != 'footnote-ref' ||
+        children == null ||
+        children.isEmpty ||
+        children.first is! md.Element) {
+      return null;
+    }
+    final link = children.first as md.Element;
+    final href = link.attributes['href'];
+    if (href == null || !href.startsWith('#fn-')) return null;
+    final number = link.textContent;
+    final colors = Theme.of(context).colorScheme;
+    final base = parentStyle ?? DefaultTextStyle.of(context).style;
+    final visualSize = math.max(12.0, (base.fontSize ?? 16) * 0.78);
+    return Text.rich(
+      WidgetSpan(
+        alignment: PlaceholderAlignment.baseline,
+        baseline: TextBaseline.alphabetic,
+        child: Transform.translate(
+          offset: Offset(0, -visualSize * 0.24),
+          child: Semantics(
+            button: true,
+            label: tr('註腳 {number}', {'number': number}),
+            child: Material(
+              color: colors.primaryContainer.withValues(alpha: 0.72),
+              shape: const StadiumBorder(),
+              child: InkWell(
+                customBorder: const StadiumBorder(),
+                onTap: () => config.onTapLink(number, href, ''),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    minWidth: 30,
+                    minHeight: 28,
+                  ),
+                  child: Center(
+                    child: Text(
+                      number,
+                      style: base.copyWith(
+                        color: colors.onPrimaryContainer,
+                        fontSize: visualSize,
+                        height: 1,
+                        fontWeight: FontWeight.w700,
+                        decoration: TextDecoration.none,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _InlineStyleBuilder extends MarkdownElementBuilder {
   _InlineStyleBuilder(this.style);
 
@@ -485,8 +556,11 @@ class _WikiLinkBuilder extends MarkdownElementBuilder {
               resolver.openWiki(target);
             } else {
               config.showMessage(
-                '「${target.name.isEmpty ? target.displayText : target.name}」'
-                '在其他筆記裡，要先開啟整個筆記資料夾才能跳過去',
+                tr('「{name}」在其他筆記裡，要先開啟整個筆記資料夾才能跳過去', {
+                  'name': target.name.isEmpty
+                      ? target.displayText
+                      : target.name,
+                }),
               );
             }
           },
@@ -697,7 +771,7 @@ class _HtmlDetailsViewState extends State<HtmlDetailsView> {
   Widget build(BuildContext context) {
     final config = NoteMarkdownScope.of(context);
     final colors = Theme.of(context).colorScheme;
-    final summary = widget.summary.isEmpty ? '詳細內容' : widget.summary;
+    final summary = widget.summary.isEmpty ? tr('詳細內容') : widget.summary;
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
       decoration: BoxDecoration(
@@ -945,7 +1019,7 @@ class _NoteEmbedState extends State<_NoteEmbed> {
             padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
             child: depth >= _NoteEmbed.maxDepth
                 ? Text(
-                    '這裡引用的內容太多層，點上方標題直接開啟那份筆記',
+                    tr('這裡引用的內容太多層，點上方標題直接開啟那份筆記'),
                     style: TextStyle(color: colors.onSurfaceVariant),
                   )
                 : FutureBuilder<String?>(
@@ -961,8 +1035,10 @@ class _NoteEmbedState extends State<_NoteEmbed> {
                       if (section == null) {
                         return Text(
                           snapshot.hasError
-                              ? '無法讀取引用的內容'
-                              : '找不到「${widget.target.displayText}」',
+                              ? tr('無法讀取引用的內容')
+                              : tr('找不到「{name}」', {
+                                  'name': widget.target.displayText,
+                                }),
                           style: TextStyle(color: colors.error),
                         );
                       }
@@ -1014,7 +1090,9 @@ class _EmbedPlaceholder extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  image ? '開啟整個筆記資料夾後，這張圖片才會顯示' : '這裡引用了另一份筆記，開啟整個筆記資料夾後才會顯示',
+                  image
+                      ? tr('開啟整個筆記資料夾後，這張圖片才會顯示')
+                      : tr('這裡引用了另一份筆記，開啟整個筆記資料夾後才會顯示'),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: colors.onSurfaceVariant,
                   ),
@@ -1247,7 +1325,7 @@ class PropertiesView extends StatelessWidget {
                   Icon(Icons.tune, size: 18, color: colors.onSurfaceVariant),
                   const SizedBox(width: 6),
                   Text(
-                    '文件資料',
+                    tr('文件資料'),
                     style: theme.textTheme.labelLarge?.copyWith(
                       color: colors.onSurfaceVariant,
                     ),
@@ -1418,7 +1496,7 @@ class CodeBlockView extends StatelessWidget {
       ),
     );
     final copy = IconButton(
-      tooltip: '複製程式碼',
+      tooltip: tr('複製程式碼'),
       visualDensity: VisualDensity.compact,
       iconSize: 18,
       color: look.muted,
@@ -1427,7 +1505,7 @@ class CodeBlockView extends StatelessWidget {
         if (!context.mounted) return;
         ScaffoldMessenger.maybeOf(context)
           ?..hideCurrentSnackBar()
-          ..showSnackBar(const SnackBar(content: Text('已複製程式碼')));
+          ..showSnackBar(SnackBar(content: Text(tr('已複製程式碼'))));
       },
       icon: const Icon(Icons.copy_rounded),
     );

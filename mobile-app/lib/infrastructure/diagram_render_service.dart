@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/widgets.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import '../core/l10n/tr.dart';
 
 enum DiagramKind { mermaid, graphviz }
 
@@ -104,7 +105,7 @@ class DiagramRenderService {
     try {
       await _ready.future.timeout(_readyTimeout);
     } on TimeoutException {
-      return const DiagramRenderResult.failure('圖表功能載入太久，請稍後再試');
+      return DiagramRenderResult.failure(tr('圖表功能載入太久，請稍後再試'));
     }
     if (_initializationError case final error?) {
       return DiagramRenderResult.failure(error);
@@ -117,7 +118,7 @@ class DiagramRenderService {
       await _controller.runJavaScript('$function(${jsonEncode(request)})');
       return await completer.future.timeout(_renderTimeout);
     } on TimeoutException {
-      return const DiagramRenderResult.failure('圖表產生太久，請稍後再試');
+      return DiagramRenderResult.failure(tr('圖表產生太久，請稍後再試'));
     } catch (error) {
       return DiagramRenderResult.failure('$error');
     } finally {
@@ -145,7 +146,7 @@ class DiagramRenderService {
           },
           onWebResourceError: (error) {
             if (error.isForMainFrame == true && !_ready.isCompleted) {
-              _initializationError = '圖表功能無法啟動';
+              _initializationError = tr('圖表功能無法啟動');
               _ready.complete();
             }
           },
@@ -180,7 +181,7 @@ class DiagramRenderService {
           message['renderer'] == 'function';
       if (!valid && !_ready.isCompleted) {
         _initializationError =
-            '圖表功能無法啟動'
+            '${tr('圖表功能無法啟動')}'
             '（mermaid=${message['mermaid']}、DOMPurify=${message['purifier']}）';
       }
       if (!_ready.isCompleted) _ready.complete();
@@ -203,7 +204,7 @@ class DiagramRenderService {
     } else {
       completer.complete(
         DiagramRenderResult.failure(
-          (message['message'] as String?) ?? '圖表發生未知問題',
+          (message['message'] as String?) ?? tr('圖表發生未知問題'),
         ),
       );
     }

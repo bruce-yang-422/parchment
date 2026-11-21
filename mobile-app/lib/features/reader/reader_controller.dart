@@ -17,6 +17,7 @@ import '../../core/services/incoming_documents.dart';
 import '../../core/services/large_document_policy.dart';
 import '../../core/services/reader_settings.dart';
 import '../../core/services/recent_folders.dart';
+import '../../core/l10n/tr.dart';
 
 class ReaderController extends ChangeNotifier {
   ReaderController({
@@ -64,6 +65,8 @@ class ReaderController extends ChangeNotifier {
   ReaderCjkFont _cjkFont = ReaderCjkFont.system;
   ReaderLatinFont _latinFont = ReaderLatinFont.system;
   ReaderPalette _palette = ReaderPalette.parchment;
+  bool _fullscreen = false;
+  bool _showLineNumbers = false;
 
   LocalDocument? get document => _document;
   NoteFolder? get folder => _folder;
@@ -87,15 +90,23 @@ class ReaderController extends ChangeNotifier {
   ReaderCjkFont get cjkFont => _cjkFont;
   ReaderLatinFont get latinFont => _latinFont;
   ReaderPalette get palette => _palette;
+  bool get fullscreen => _fullscreen;
+  bool get showLineNumbers => _showLineNumbers;
 
-  void setLocale(ReaderLocale value) =>
-      _update(value, _locale, (next) => _locale = next);
+  void setLocale(ReaderLocale value) => _update(value, _locale, (next) {
+    _locale = next;
+    AppLocale.current = next;
+  });
   void setCjkFont(ReaderCjkFont value) =>
       _update(value, _cjkFont, (next) => _cjkFont = next);
   void setLatinFont(ReaderLatinFont value) =>
       _update(value, _latinFont, (next) => _latinFont = next);
   void setPalette(ReaderPalette value) =>
       _update(value, _palette, (next) => _palette = next);
+  void setFullscreen(bool value) =>
+      _update(value, _fullscreen, (next) => _fullscreen = next);
+  void setShowLineNumbers(bool value) =>
+      _update(value, _showLineNumbers, (next) => _showLineNumbers = next);
 
   void _update<T>(T value, T current, void Function(T) assign) {
     if (value == current) return;
@@ -110,7 +121,7 @@ class ReaderController extends ChangeNotifier {
   }
 
   void setTextScale(double value) {
-    final normalized = value.clamp(0.85, 1.35);
+    final normalized = value.clamp(0.5, 2.0);
     if (_textScale == normalized) return;
     _textScale = normalized;
     _settingsChanged();
@@ -132,6 +143,8 @@ class ReaderController extends ChangeNotifier {
     cjkFont: _cjkFont,
     latinFont: _latinFont,
     palette: _palette,
+    fullscreen: _fullscreen,
+    showLineNumbers: _showLineNumbers,
   );
 
   void _applySettings(ReaderSettings settings) {
@@ -142,9 +155,12 @@ class ReaderController extends ChangeNotifier {
     _textScale = settings.textScale;
     _lineHeight = settings.lineHeight;
     _locale = settings.locale;
+    AppLocale.current = settings.locale;
     _cjkFont = settings.cjkFont;
     _latinFont = settings.latinFont;
     _palette = settings.palette;
+    _fullscreen = settings.fullscreen;
+    _showLineNumbers = settings.showLineNumbers;
   }
 
   /// Saves shortly after the last change, so dragging a slider writes once.
@@ -270,7 +286,9 @@ class ReaderController extends ChangeNotifier {
     try {
       _grantedFolderUris = await source.grantedFolderUris();
       if (!_grantedFolderUris.contains(recent.uri)) {
-        throw StateError('「${recent.name}」需要重新選擇一次，請按「開啟資料夾」再選它。');
+        throw StateError(
+          tr('「{name}」需要重新選擇一次，請按「開啟資料夾」再選它。', {'name': recent.name}),
+        );
       }
       final folder = await source.openFolderUri(recent.uri, recent.name);
       _setFolder(folder);
@@ -330,7 +348,7 @@ class ReaderController extends ChangeNotifier {
   /// search. Notes over the eager-load limit are skipped.
   Future<NoteIndex> ensureIndex() {
     final folder = _folder;
-    if (folder == null) return Future.error(StateError('尚未開啟資料夾'));
+    if (folder == null) return Future.error(StateError(tr('尚未開啟資料夾')));
     if (_index case final index?) return Future.value(index);
     return _indexing ??= _buildIndex(folder);
   }

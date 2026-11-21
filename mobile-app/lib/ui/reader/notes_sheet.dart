@@ -6,6 +6,7 @@ import '../../core/notes/note_index.dart';
 import '../../core/services/recent_folders.dart';
 import '../../features/reader/reader_controller.dart';
 import 'folder_tree.dart';
+import '../../core/l10n/tr.dart';
 
 /// The "筆記" sheet: folder tree, full-text search, tag filter and recent
 /// folders.
@@ -81,14 +82,17 @@ class _NotesSheetState extends State<NotesSheet> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                showFolders ? '資料夾' : '筆記',
+                                showFolders ? tr('資料夾') : tr('筆記'),
                                 style: theme.textTheme.titleLarge,
                               ),
                               const SizedBox(height: 2),
                               Text(
                                 showFolders
-                                    ? '開啟資料夾，或切換到最近使用的資料夾'
-                                    : '${folder.name}・${folder.notes.length} 份筆記',
+                                    ? tr('開啟資料夾，或切換到最近使用的資料夾')
+                                    : tr('{name}・{count} 份筆記', {
+                                        'name': folder.name,
+                                        'count': folder.notes.length,
+                                      }),
                                 style: theme.textTheme.bodyMedium?.copyWith(
                                   color: theme.colorScheme.onSurfaceVariant,
                                 ),
@@ -100,7 +104,7 @@ class _NotesSheetState extends State<NotesSheet> {
                           TextButton(
                             onPressed: () =>
                                 setState(() => _showFolders = false),
-                            child: const Text('返回筆記'),
+                            child: Text(tr('返回筆記')),
                           ),
                       ],
                     ),
@@ -133,12 +137,12 @@ class _NotesSheetState extends State<NotesSheet> {
           decoration: InputDecoration(
             isDense: true,
             prefixIcon: const Icon(Icons.search),
-            hintText: '搜尋所有筆記',
+            hintText: tr('搜尋所有筆記'),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(28)),
             suffixIcon: _query.text.isEmpty
                 ? null
                 : IconButton(
-                    tooltip: '清除',
+                    tooltip: tr('清除'),
                     onPressed: _query.clear,
                     icon: const Icon(Icons.close),
                   ),
@@ -192,7 +196,7 @@ class _NotesSheetState extends State<NotesSheet> {
       return _searchResults(context, hits, index);
     }
     final notes = index.withTag(_tag!);
-    if (notes.isEmpty) return const _EmptyMessage('沒有使用這個標籤的筆記');
+    if (notes.isEmpty) return _EmptyMessage(tr('沒有使用這個標籤的筆記'));
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       children: [
@@ -215,15 +219,19 @@ class _NotesSheetState extends State<NotesSheet> {
     NoteIndex index,
   ) {
     final theme = Theme.of(context);
-    if (hits.isEmpty) return const _EmptyMessage('找不到符合的筆記');
+    if (hits.isEmpty) return _EmptyMessage(tr('找不到符合的筆記'));
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
           child: Text(
-            '${hits.length} 份筆記'
-            '${index.skipped.isEmpty ? '' : '（${index.skipped.length} 份檔案太大，沒有搜尋）'}',
+            tr('{count} 份筆記', {'count': hits.length}) +
+                (index.skipped.isEmpty
+                    ? ''
+                    : tr('（{count} 份檔案太大，沒有搜尋）', {
+                        'count': index.skipped.length,
+                      })),
             style: theme.textTheme.labelMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -303,10 +311,9 @@ class _NotesSheetState extends State<NotesSheet> {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  '建議把筆記放在「Documents（文件）」資料夾，可以直接選用。\n'
-                  '「Download（下載）」不能直接選，要點進去，'
-                  '選裡面放筆記的資料夾，再按「使用這個資料夾」。\n'
-                  '只想看一個檔案？按下方的「開啟文件」就好。',
+                  tr(
+                    '建議把筆記放在「Documents（文件）」資料夾，可以直接選用。\n「Download（下載）」不能直接選，要點進去，選裡面放筆記的資料夾，再按「使用這個資料夾」。\n只想看一個檔案？按下方的「開啟文件」就好。',
+                  ),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -316,7 +323,7 @@ class _NotesSheetState extends State<NotesSheet> {
           ),
         ),
         if (recents.isEmpty)
-          const _EmptyMessage('還沒有開啟過資料夾')
+          _EmptyMessage(tr('還沒有開啟過資料夾'))
         else
           for (final recent in recents)
             ListTile(
@@ -333,11 +340,11 @@ class _NotesSheetState extends State<NotesSheet> {
               title: Text(recent.name),
               subtitle: Text(
                 controller.isFolderGranted(recent)
-                    ? '上次開啟：${_formatDate(recent.openedAt)}'
-                    : '需要重新選擇一次，請按「開啟資料夾」再選它',
+                    ? tr('上次開啟：{date}', {'date': _formatDate(recent.openedAt)})
+                    : tr('需要重新選擇一次，請按「開啟資料夾」再選它'),
               ),
               trailing: IconButton(
-                tooltip: '從清單移除',
+                tooltip: tr('從清單移除'),
                 onPressed: () => controller.forgetFolder(recent),
                 icon: const Icon(Icons.close),
               ),
@@ -364,7 +371,7 @@ class _NotesSheetState extends State<NotesSheet> {
             child: OutlinedButton.icon(
               onPressed: widget.onOpenDocument,
               icon: const Icon(Icons.description_outlined),
-              label: const Text('開啟文件'),
+              label: Text(tr('開啟文件')),
             ),
           ),
           if (controller.supportsFolders) ...[
@@ -375,7 +382,7 @@ class _NotesSheetState extends State<NotesSheet> {
                     ? widget.onPickFolder
                     : () => setState(() => _showFolders = true),
                 icon: const Icon(Icons.folder_open_outlined),
-                label: Text(showFolders ? '開啟資料夾' : '切換資料夾'),
+                label: Text(showFolders ? tr('開啟資料夾') : tr('切換資料夾')),
               ),
             ),
           ],
@@ -442,7 +449,7 @@ class _IndexProgress extends StatelessWidget {
         children: [
           LinearProgressIndicator(value: total == 0 ? null : done / total),
           const SizedBox(height: 12),
-          Text('正在讀取所有筆記（$done／$total）'),
+          Text(tr('正在讀取所有筆記（{done}／{total}）', {'done': done, 'total': total})),
         ],
       ),
     );

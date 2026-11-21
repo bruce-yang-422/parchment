@@ -11,6 +11,7 @@ import '../../core/notes/note_index.dart';
 import '../../core/services/document_inspector.dart';
 import '../theme/parchment_theme.dart';
 import 'note_markdown.dart';
+import '../../core/l10n/tr.dart';
 
 /// The "資訊" sheet: file details, statistics and quick copy actions.
 class DocumentInfoSheet extends StatelessWidget {
@@ -62,7 +63,7 @@ class DocumentInfoSheet extends StatelessWidget {
             return ListView(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
               children: [
-                Text('文件資訊', style: theme.textTheme.titleLarge),
+                Text(tr('文件資訊'), style: theme.textTheme.titleLarge),
                 const SizedBox(height: 4),
                 Text(
                   title is String && title.isNotEmpty ? title : document.name,
@@ -75,115 +76,134 @@ class DocumentInfoSheet extends StatelessWidget {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    _CopyChip(label: '複製檔名', value: document.name),
+                    _CopyChip(label: tr('複製檔名'), value: document.name),
                     if (location?.path != null || folderPath != null)
                       _CopyChip(
-                        label: '複製檔案位置',
+                        label: tr('複製檔案位置'),
                         value:
                             location?.absolute ??
                             location?.display ??
                             folderPath!,
                       ),
                     if (_markdown)
-                      _CopyChip(label: '複製筆記連結', value: '[[$baseName]]'),
-                    _CopyChip(label: '複製全文', value: document.content),
+                      _CopyChip(label: tr('複製筆記連結'), value: '[[$baseName]]'),
+                    _CopyChip(label: tr('複製全文'), value: document.content),
                   ],
                 ),
                 // Ordered by how often people look for each item; the
                 // technical details come last.
                 _Section(
-                  title: '基本資訊',
+                  title: tr('基本資訊'),
                   rows: [
-                    _Row('檔名', document.name, copyable: true),
-                    _Row('大小', size == null ? '未知' : _formatSize(size)),
+                    _Row(tr('檔名'), document.name, copyable: true),
+                    _Row(tr('大小'), size == null ? tr('未知') : _formatSize(size)),
                     _Row(
-                      '修改時間',
+                      tr('修改時間'),
                       info?.modified == null
                           ? (snapshot.connectionState == ConnectionState.done
-                                ? '系統未提供'
-                                : '讀取中…')
+                                ? tr('系統未提供')
+                                : tr('讀取中…'))
                           : _formatTime(info!.modified!),
                     ),
-                    _Row('字數', _number(stats.words)),
+                    _Row(tr('字數'), _number(stats.words)),
                     if (stats.cjkCharacters > 0 && stats.latinWords > 0)
                       _Row(
-                        '　其中',
-                        '中文 ${_number(stats.cjkCharacters)} 字・'
-                            '英文 ${_number(stats.latinWords)} 字',
+                        tr('　其中'),
+                        tr('中文 {cjk} 字・英文 {latin} 字', {
+                          'cjk': _number(stats.cjkCharacters),
+                          'latin': _number(stats.latinWords),
+                        }),
                         muted: true,
                       ),
                     if (_markdown && stats.tasks > 0) _taskRow(stats),
                     if (tags.isNotEmpty)
-                      _Row('標籤', tags.map((tag) => '#$tag').join('  ')),
+                      _Row(tr('標籤'), tags.map((tag) => '#$tag').join('  ')),
                   ],
                 ),
                 _Section(
-                  title: '檔案位置',
+                  title: tr('檔案位置'),
                   rows: [
                     if (location != null)
-                      _Row('位置', location.display, copyable: true),
+                      _Row(tr('位置'), location.display, copyable: true),
                     if (location?.absolute != null)
-                      _Row('完整路徑', location!.absolute!, copyable: true),
+                      _Row(tr('完整路徑'), location!.absolute!, copyable: true),
                     if (folderName != null && folderPath != null)
-                      _Row('資料夾內', '$folderName/$folderPath', copyable: true),
-                    _Row('勾選後儲存', canWriteInPlace ? '可以直接存回這個檔案' : '只能另存新檔'),
+                      _Row(
+                        tr('資料夾內'),
+                        '$folderName/$folderPath',
+                        copyable: true,
+                      ),
                     _Row(
-                      '建立時間',
+                      tr('勾選後儲存'),
+                      canWriteInPlace ? tr('可以直接存回這個檔案') : tr('只能另存新檔'),
+                    ),
+                    _Row(
+                      tr('建立時間'),
                       info?.created == null
-                          ? '系統未提供'
+                          ? tr('系統未提供')
                           : _formatTime(info!.created!),
                       muted: info?.created == null,
                     ),
                   ],
                 ),
                 _Section(
-                  title: '文件內容',
+                  title: tr('文件內容'),
                   rows: [
-                    if (_markdown) _Row('標題', _number(stats.headings)),
-                    _Row('段落', _number(stats.paragraphs)),
+                    if (_markdown) _Row(tr('標題'), _number(stats.headings)),
+                    _Row(tr('段落'), _number(stats.paragraphs)),
                     if (_markdown) ...[
                       _Row(
-                        '連結',
-                        '其他筆記 ${stats.wikiLinks + stats.markdownLinks}・'
-                            '網址 ${stats.externalLinks}',
+                        tr('連結'),
+                        tr('其他筆記 {notes}・網址 {urls}', {
+                          'notes': stats.wikiLinks + stats.markdownLinks,
+                          'urls': stats.externalLinks,
+                        }),
                       ),
-                      _Row('圖片', _number(stats.images)),
+                      _Row(tr('圖片'), _number(stats.images)),
                       _Row(
-                        '程式碼與圖表',
-                        '${stats.codeBlocks} 段程式碼・${stats.diagrams} 張圖表',
+                        tr('程式碼與圖表'),
+                        tr('{code} 段程式碼・{diagrams} 張圖表', {
+                          'code': stats.codeBlocks,
+                          'diagrams': stats.diagrams,
+                        }),
                       ),
                       if (stats.footnotes > 0)
-                        _Row('附註', _number(stats.footnotes)),
+                        _Row(tr('附註'), _number(stats.footnotes)),
                       if (stats.properties > 0)
-                        _Row('文件資料', '${stats.properties} 項'),
+                        _Row(
+                          tr('文件資料'),
+                          tr('{count} 項', {'count': stats.properties}),
+                        ),
                     ],
                   ],
                 ),
                 _Section(
-                  title: '進階資訊（給技術人員）',
+                  title: tr('進階資訊（給技術人員）'),
                   rows: [
                     _Row(
-                      '字元數',
-                      '${_number(stats.characters)}'
-                          '（不含空白 ${_number(stats.charactersWithoutSpaces)}）',
+                      tr('字元數'),
+                      _number(stats.characters) +
+                          tr('（不含空白 {count}）', {
+                            'count': _number(stats.charactersWithoutSpaces),
+                          }),
                     ),
-                    _Row('行數', _number(stats.lines)),
-                    _Row('類型', _markdown ? 'Markdown' : '純文字'),
+                    _Row(tr('行數'), _number(stats.lines)),
+                    _Row(tr('類型'), _markdown ? 'Markdown' : tr('純文字')),
                     _Row(
-                      '編碼',
+                      tr('編碼'),
                       [
                         'UTF-8',
-                        if (document.hasBom) '含 BOM',
-                        if (!document.lossless) '含無效位元組，以替代字元顯示',
+                        if (document.hasBom) tr('含 BOM'),
+                        if (!document.lossless) tr('含無效位元組，以替代字元顯示'),
                       ].join('・'),
                     ),
-                    _Row('換行', switch (stats.lineEnding) {
-                      LineEnding.none => '單行',
-                      LineEnding.lf => 'LF（macOS／Linux）',
-                      LineEnding.crlf => 'CRLF（Windows）',
-                      LineEnding.mixed => '混合 LF 與 CRLF',
+                    _Row(tr('換行'), switch (stats.lineEnding) {
+                      LineEnding.none => tr('單行'),
+                      LineEnding.lf => tr('LF（macOS／Linux）'),
+                      LineEnding.crlf => tr('CRLF（Windows）'),
+                      LineEnding.mixed => tr('混合 LF 與 CRLF'),
                     }),
-                    if (size != null) _Row('位元組', _number(size)),
+                    if (size != null) _Row(tr('位元組'), _number(size)),
                     if (document.sha256 != null)
                       _Row(
                         'SHA-256',
@@ -219,9 +239,13 @@ class DocumentInfoSheet extends StatelessWidget {
     }
     final percent = stats.tasks == 0 ? 0 : (done * 100 / stats.tasks).round();
     return _Row(
-      '待辦事項',
-      '已完成 $done／${stats.tasks}（$percent%）'
-          '${pending > 0 ? '，有 $pending 項還沒儲存' : ''}',
+      tr('待辦事項'),
+      tr('已完成 {done}／{total}（{percent}%）', {
+            'done': done,
+            'total': stats.tasks,
+            'percent': percent,
+          }) +
+          (pending > 0 ? tr('，有 {pending} 項還沒儲存', {'pending': pending}) : ''),
     );
   }
 
@@ -388,7 +412,7 @@ class _CopyIconState extends State<_CopyIcon> {
       child: IconButton(
         padding: EdgeInsets.zero,
         iconSize: 18,
-        tooltip: _copied ? '已複製' : '複製${widget.label}',
+        tooltip: _copied ? tr('已複製') : tr('複製{label}', {'label': widget.label}),
         onPressed: _copy,
         icon: Icon(
           _copied ? Icons.check : Icons.copy_rounded,
@@ -476,7 +500,7 @@ class _CopyChipState extends State<_CopyChip> {
         : foreground;
     return Semantics(
       button: true,
-      label: _copied ? '已複製' : widget.label,
+      label: _copied ? tr('已複製') : widget.label,
       excludeSemantics: true,
       child: Material(
         color: Colors.transparent,
@@ -515,7 +539,7 @@ class _CopyChipState extends State<_CopyChip> {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      _copied ? '已複製' : widget.label,
+                      _copied ? tr('已複製') : widget.label,
                       style: TextStyle(
                         color: foreground,
                         fontSize: 13.5,

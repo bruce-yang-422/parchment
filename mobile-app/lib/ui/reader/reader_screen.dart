@@ -28,6 +28,7 @@ import 'document_info_sheet.dart';
 import 'notes_sheet.dart';
 import 'readable_table.dart';
 import 'note_markdown.dart';
+import '../../core/l10n/tr.dart';
 
 /// While one document replaces another, the old and the new list are both
 /// attached for a moment and [ScrollController.position] throws; this
@@ -45,7 +46,8 @@ class ReaderScreen extends StatefulWidget {
   State<ReaderScreen> createState() => _ReaderScreenState();
 }
 
-class _ReaderScreenState extends State<ReaderScreen> {
+class _ReaderScreenState extends State<ReaderScreen>
+    with WidgetsBindingObserver {
   final ScrollController _scrollController = ScrollController();
 
   ReaderController get controller => widget.controller;
@@ -55,6 +57,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
   StreamSubscription<IncomingDocument>? _incomingSubscription;
   late final NoteResolver _resolver = _FolderResolver(this);
   LocalDocument? _taskStoreDocument;
+  bool? _appliedFullscreen;
 
   /// One task store per document content; saving creates a new document
   /// object, which resets the store to the saved file state.
@@ -75,16 +78,16 @@ class _ReaderScreenState extends State<ReaderScreen> {
     final discard = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('放棄未儲存的變更？'),
-        content: const Text('工作清單的勾選變更尚未儲存，繼續將會捨棄這些變更。'),
+        title: Text(tr('放棄未儲存的變更？')),
+        content: Text(tr('工作清單的勾選變更尚未儲存，繼續將會捨棄這些變更。')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('取消'),
+            child: Text(tr('取消')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('捨棄變更'),
+            child: Text(tr('捨棄變更')),
           ),
         ],
       ),
@@ -99,7 +102,9 @@ class _ReaderScreenState extends State<ReaderScreen> {
   @override
   void initState() {
     super.initState();
-    controller.addListener(_reportOpenError);
+    WidgetsBinding.instance.addObserver(this);
+    controller.addListener(_onControllerChanged);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _syncFullscreen());
     final incoming = controller.incomingSource;
     if (incoming != null) {
       _incomingSubscription = incoming.documents.listen(_openIncoming);
@@ -119,18 +124,48 @@ class _ReaderScreenState extends State<ReaderScreen> {
   void didUpdateWidget(covariant ReaderScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != controller) {
-      oldWidget.controller.removeListener(_reportOpenError);
-      controller.addListener(_reportOpenError);
+      oldWidget.controller.removeListener(_onControllerChanged);
+      controller.addListener(_onControllerChanged);
+      _appliedFullscreen = null;
+      _syncFullscreen();
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _appliedFullscreen = null;
+      _syncFullscreen();
     }
   }
 
   @override
   void dispose() {
-    controller.removeListener(_reportOpenError);
+    WidgetsBinding.instance.removeObserver(this);
+    controller.removeListener(_onControllerChanged);
+    if (_appliedFullscreen == true) {
+      unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge));
+    }
     _incomingSubscription?.cancel();
     _taskStore?.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onControllerChanged() {
+    _reportOpenError();
+    _syncFullscreen();
+  }
+
+  void _syncFullscreen() {
+    final fullscreen = controller.fullscreen;
+    if (_appliedFullscreen == fullscreen) return;
+    _appliedFullscreen = fullscreen;
+    unawaited(
+      SystemChrome.setEnabledSystemUIMode(
+        fullscreen ? SystemUiMode.immersiveSticky : SystemUiMode.edgeToEdge,
+      ),
+    );
   }
 
   /// The welcome view shows open errors inline; once a document is open the
@@ -190,6 +225,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
                         cjkFont: controller.cjkFont,
                         latinFont: controller.latinFont,
                         locale: controller.locale,
+                        showLineNumbers: controller.showLineNumbers,
                       ),
               ),
               // Floating layers get a fixed size: if one ever fails to
@@ -313,7 +349,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
       document.content,
     ).where((item) => headingKey(item.title) == wanted).firstOrNull;
     if (match == null) {
-      _showSnack('找不到段落「$heading」');
+      _showSnack(tr('找不到段落「{heading}」', {'heading': heading}));
       return;
     }
     _scrollToHeading(match, document);
@@ -337,11 +373,13 @@ class _ReaderScreenState extends State<ReaderScreen> {
     }
     final entry = controller.resolveWikiTarget(target.target);
     if (entry == null) {
-      _showSnack('找不到筆記「${target.name}」');
+      _showSnack(tr('找不到筆記「{name}」', {'name': target.name}));
       return;
     }
     if (!entry.isNote) {
-      _showSnack('「${entry.name}」不是 .md 或 .txt 檔案，無法在 Parchment 開啟');
+      _showSnack(
+        tr('「{name}」不是 .md 或 .txt 檔案，無法在 Parchment 開啟', {'name': entry.name}),
+      );
       return;
     }
     await _openFolderEntry(entry, heading: target.heading);
@@ -363,7 +401,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
     }
     final entry = controller.resolveLink(path, markdown: true);
     if (entry == null || !entry.isNote) {
-      _showSnack('找不到「$path」');
+      _showSnack(tr('找不到「{name}」', {'name': path}));
       return true;
     }
     _openFolderEntry(entry, heading: heading);
@@ -426,7 +464,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
     if (document == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('請先開啟 .md 或 .txt 文件')));
+      ).showSnackBar(SnackBar(content: Text(tr('請先開啟 .md 或 .txt 文件'))));
       return;
     }
     action(document);
@@ -450,12 +488,12 @@ class _ReaderScreenState extends State<ReaderScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('目錄', style: Theme.of(context).textTheme.titleLarge),
+                Text(tr('目錄'), style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 8),
                 if (headings.isEmpty)
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.symmetric(vertical: 16),
-                    child: Text('這份文件沒有可用的章節標題。'),
+                    child: Text(tr('這份文件沒有可用的章節標題。')),
                   )
                 else
                   Flexible(
@@ -635,10 +673,12 @@ class _ReaderScreenState extends State<ReaderScreen> {
                 return ListView(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                   children: [
-                    Text('關聯', style: theme.textTheme.titleLarge),
+                    Text(tr('關聯'), style: theme.textTheme.titleLarge),
                     const SizedBox(height: 4),
                     Text(
-                      inFolder ? '點標籤可找出相同標籤的筆記，點連結可開啟筆記' : '這篇筆記提到的標籤與連結',
+                      inFolder
+                          ? tr('點標籤可找出相同標籤的筆記，點連結可開啟筆記')
+                          : tr('這篇筆記提到的標籤與連結'),
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -646,9 +686,9 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     const SizedBox(height: 20),
                     _RelationSection(
                       icon: Icons.sell_outlined,
-                      title: '標籤',
+                      title: tr('標籤'),
                       values: [for (final tag in relations.tags) '#$tag'],
-                      emptyText: '沒有標籤',
+                      emptyText: tr('沒有標籤'),
                       onTap: inFolder
                           ? (value) {
                               Navigator.pop(sheetContext);
@@ -659,9 +699,9 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     const SizedBox(height: 20),
                     _RelationSection(
                       icon: Icons.link,
-                      title: '連到的筆記',
+                      title: tr('連到的筆記'),
                       values: relations.links,
-                      emptyText: '沒有連到其他筆記',
+                      emptyText: tr('沒有連到其他筆記'),
                       onTap: inFolder
                           ? (value) {
                               Navigator.pop(sheetContext);
@@ -671,11 +711,11 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     ),
                     const SizedBox(height: 20),
                     if (!inFolder)
-                      const ListTile(
+                      ListTile(
                         contentPadding: EdgeInsets.zero,
                         leading: Icon(Icons.link_off_outlined),
-                        title: Text('哪些筆記連到這裡'),
-                        subtitle: Text('開啟整個筆記資料夾後，會列出連到這一篇的筆記。'),
+                        title: Text(tr('哪些筆記連到這裡')),
+                        subtitle: Text(tr('開啟整個筆記資料夾後，會列出連到這一篇的筆記。')),
                       )
                     else
                       _Backlinks(
@@ -800,13 +840,13 @@ class _ReaderScreenState extends State<ReaderScreen> {
                         },
                         onChanged: controller.setLatinFont,
                       ),
-                      _SettingDropdown<ReaderPalette>(
+                      _SettingCapsules<ReaderPalette>(
                         title: strings.palette,
                         value: controller.palette,
                         values: strings.paletteNames,
                         onChanged: controller.setPalette,
                       ),
-                      _SettingDropdown<ThemeMode>(
+                      _SettingCapsules<ThemeMode>(
                         title: strings.appearance,
                         value: controller.themeMode,
                         values: {
@@ -825,12 +865,11 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     children: [
                       _ReadingSlider(
                         title: strings.textSize,
-                        valueLabel:
-                            '${controller.textScale.toStringAsFixed(2)}×',
+                        valueLabel: _fontSizeLabel(controller.textScale),
                         value: controller.textScale,
-                        min: 0.85,
-                        max: 1.35,
-                        divisions: 10,
+                        min: 0.5,
+                        max: 2,
+                        divisions: 30,
                         onChanged: controller.setTextScale,
                       ),
                       _ReadingSlider(
@@ -843,6 +882,20 @@ class _ReaderScreenState extends State<ReaderScreen> {
                         divisions: 9,
                         onChanged: controller.setLineHeight,
                       ),
+                      SwitchListTile.adaptive(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(strings.fullscreen),
+                        subtitle: Text(strings.fullscreenHint),
+                        value: controller.fullscreen,
+                        onChanged: controller.setFullscreen,
+                      ),
+                      SwitchListTile.adaptive(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(strings.lineNumbers),
+                        subtitle: Text(strings.lineNumbersHint),
+                        value: controller.showLineNumbers,
+                        onChanged: controller.setShowLineNumbers,
+                      ),
                     ],
                   ),
                   AboutSection(strings: strings),
@@ -853,6 +906,14 @@ class _ReaderScreenState extends State<ReaderScreen> {
         },
       ),
     );
+  }
+
+  String _fontSizeLabel(double scale) {
+    final points = 16 * scale;
+    final text = points == points.roundToDouble()
+        ? points.toStringAsFixed(0)
+        : points.toStringAsFixed(1);
+    return '$text pt · ${scale.toStringAsFixed(2)}×';
   }
 }
 
@@ -918,7 +979,7 @@ class _BackToTopButton extends StatelessWidget {
                 duration: const Duration(milliseconds: 180),
                 scale: visible ? 1 : 0.8,
                 child: Tooltip(
-                  message: '回到頂端',
+                  message: tr('回到頂端'),
                   child: Material(
                     color: colors.surfaceContainerLow,
                     elevation: 3,
@@ -935,7 +996,7 @@ class _BackToTopButton extends StatelessWidget {
                         child: Icon(
                           Icons.arrow_upward_rounded,
                           color: colors.primary,
-                          semanticLabel: '回到頂端',
+                          semanticLabel: tr('回到頂端'),
                         ),
                       ),
                     ),
@@ -1138,7 +1199,7 @@ class _Backlinks extends StatelessWidget {
           children: [
             const Icon(Icons.call_received, size: 20),
             const SizedBox(width: 8),
-            Text('哪些筆記連到這裡', style: theme.textTheme.titleMedium),
+            Text(tr('哪些筆記連到這裡'), style: theme.textTheme.titleMedium),
             if (index != null) ...[
               const SizedBox(width: 6),
               Text(
@@ -1159,13 +1220,18 @@ class _Backlinks extends StatelessWidget {
                   value: total == 0 ? null : progress / total,
                 ),
                 const SizedBox(height: 6),
-                Text('正在讀取所有筆記（$progress／$total）'),
+                Text(
+                  tr('正在讀取所有筆記（{done}／{total}）', {
+                    'done': progress,
+                    'total': total,
+                  }),
+                ),
               ],
             ),
           )
         else if (notes.isEmpty)
           Text(
-            '沒有其他筆記連到這裡',
+            tr('沒有其他筆記連到這裡'),
             style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
           )
         else
@@ -1280,7 +1346,7 @@ class _FontSample extends StatelessWidget {
             Icons.cloud_download_outlined,
             size: 20,
             color: theme.colorScheme.onSurfaceVariant,
-            semanticLabel: '選擇後下載',
+            semanticLabel: tr('選擇後下載'),
           ),
         );
       },
@@ -1386,6 +1452,71 @@ class _SettingDropdown<T extends Enum> extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _SettingCapsules<T extends Enum> extends StatelessWidget {
+  const _SettingCapsules({
+    required this.title,
+    required this.value,
+    required this.values,
+    required this.onChanged,
+  });
+
+  final String title;
+  final T value;
+  final Map<T, String> values;
+  final ValueChanged<T> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final entry in values.entries)
+                ChoiceChip(
+                  label: Text(entry.value),
+                  selected: entry.key == value,
+                  showCheckmark: false,
+                  avatar: entry.key == value
+                      ? Icon(
+                          Icons.check_rounded,
+                          size: 17,
+                          color: colors.onPrimary,
+                        )
+                      : null,
+                  labelStyle: TextStyle(
+                    color: entry.key == value
+                        ? colors.onPrimary
+                        : colors.onSurfaceVariant,
+                    fontWeight: entry.key == value
+                        ? FontWeight.w600
+                        : FontWeight.w500,
+                  ),
+                  selectedColor: colors.primary,
+                  backgroundColor: colors.surfaceContainerLow,
+                  side: BorderSide(
+                    color: entry.key == value
+                        ? colors.primary
+                        : colors.outlineVariant,
+                  ),
+                  shape: const StadiumBorder(),
+                  onSelected: (_) => onChanged(entry.key),
+                ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -1511,7 +1642,7 @@ class _WelcomeView extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               Text(
-                '在手機上閱讀 .md 文件',
+                tr('在手機上閱讀 .md 文件'),
                 textAlign: TextAlign.center,
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w600,
@@ -1519,7 +1650,7 @@ class _WelcomeView extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                '打開就是排好版的文件',
+                tr('打開就是排好版的文件'),
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: colors.onSurfaceVariant,
@@ -1535,7 +1666,7 @@ class _WelcomeView extends StatelessWidget {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.file_open_outlined),
-                  label: const Text('開啟檔案'),
+                  label: Text(tr('開啟檔案')),
                 ),
               ),
               if (controller.supportsFolders) ...[
@@ -1544,7 +1675,7 @@ class _WelcomeView extends StatelessWidget {
                   child: OutlinedButton.icon(
                     onPressed: busy ? null : onOpenFolder,
                     icon: const Icon(Icons.folder_open_outlined),
-                    label: const Text('開啟筆記資料夾'),
+                    label: Text(tr('開啟筆記資料夾')),
                   ),
                 ),
               ],
@@ -1568,7 +1699,7 @@ class _WelcomeView extends StatelessWidget {
                   const SizedBox(width: 6),
                   Flexible(
                     child: Text(
-                      '檔案只在這支手機上開啟，不會上傳',
+                      tr('檔案只在這支手機上開啟，不會上傳'),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: colors.onSurfaceVariant,
                       ),
@@ -1577,19 +1708,12 @@ class _WelcomeView extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 24),
-              const _WelcomeTip(
+              _WelcomeTip(
                 icon: Icons.help_outline,
-                title: '怎麼使用？',
-                body:
-                    '收到 LINE 傳來的 .md 檔：點一下檔案，選「用其他應用程式開啟」'
-                    '或「分享」，再選 Parchment。\n\n'
-                    '在電腦編輯的筆記：把筆記資料夾同步到手機'
-                    '（例如 Syncthing、FolderSync），再按「開啟筆記資料夾」，'
-                    '筆記之間的連結、圖片和搜尋都能使用。\n\n'
-                    'Markdown 是一種輕量級標記語言，透過簡單符號排版純文字，'
-                    '例如用 # 建立標題、** 標示粗體、- 製作清單。'
-                    '它易學、易讀，並可轉換成 HTML 等格式，'
-                    '廣泛應用於技術文件、筆記、README 與網頁內容。',
+                title: tr('怎麼使用？'),
+                body: tr(
+                  '收到 LINE 傳來的 .md 檔：點一下檔案，選「用其他應用程式開啟」或「分享」，再選 Parchment。\n\n在電腦編輯的筆記：把筆記資料夾同步到手機（例如 Syncthing、FolderSync），再按「開啟筆記資料夾」，筆記之間的連結、圖片和搜尋都能使用。\n\nMarkdown 是一種輕量級標記語言，透過簡單符號排版純文字，例如用 # 建立標題、** 標示粗體、- 製作清單。它易學、易讀，並可轉換成 HTML 等格式，廣泛應用於技術文件、筆記、README 與網頁內容。',
+                ),
               ),
             ],
           ),
@@ -1660,6 +1784,7 @@ class _DocumentView extends StatefulWidget {
     required this.cjkFont,
     required this.locale,
     required this.latinFont,
+    required this.showLineNumbers,
   });
 
   final LocalDocument document;
@@ -1675,6 +1800,7 @@ class _DocumentView extends StatefulWidget {
   final double lineHeight;
   final ReaderCjkFont cjkFont;
   final ReaderLatinFont latinFont;
+  final bool showLineNumbers;
 
   /// Picks the regional Noto variant (TC, SC, JP, KR).
   final ReaderLocale locale;
@@ -1703,24 +1829,32 @@ class _DocumentViewState extends State<_DocumentView> {
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 
-  void _handleLink(NoteMarkdownConfig config, String? href) {
+  void _handleLink(NoteMarkdownConfig config, String? text, String? href) {
     if (href == null || href.isEmpty) return;
     if (href.startsWith('#fn-')) {
-      _showFootnote(config, href.substring(4));
+      _showFootnote(
+        config,
+        href.substring(4),
+        number: text?.trim().isNotEmpty == true ? text!.trim() : null,
+      );
       return;
     }
     if (href.startsWith('#fnref-')) return;
     final uri = Uri.tryParse(href);
     if (uri != null && uri.hasScheme) {
       Clipboard.setData(ClipboardData(text: href));
-      _showMessage('已複製連結：$href');
+      _showMessage(tr('已複製連結：{href}', {'href': href}));
       return;
     }
     if (widget.openRelativeLink(href)) return;
-    _showMessage('這個連結指向其他檔案，要先開啟整個筆記資料夾才能跳過去');
+    _showMessage(tr('這個連結指向其他檔案，要先開啟整個筆記資料夾才能跳過去'));
   }
 
-  void _showFootnote(NoteMarkdownConfig config, String label) {
+  void _showFootnote(
+    NoteMarkdownConfig config,
+    String label, {
+    String? number,
+  }) {
     final content = config.note.footnotes[label];
     if (content == null) return;
     showModalBottomSheet<void>(
@@ -1741,11 +1875,18 @@ class _DocumentViewState extends State<_DocumentView> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    '附註',
+                    number == null
+                        ? tr('註腳')
+                        : tr('註腳 {number}', {'number': number}),
                     style: Theme.of(sheetContext).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 8),
-                  config.body(content),
+                  MediaQuery(
+                    data: MediaQuery.of(
+                      sheetContext,
+                    ).copyWith(textScaler: TextScaler.noScaling),
+                    child: config.body(content),
+                  ),
                 ],
               ),
             ),
@@ -1914,29 +2055,51 @@ class _DocumentViewState extends State<_DocumentView> {
       locale: widget.locale,
     );
     final look = ReaderLook.of(context);
+    // Keep the reader size absolute and predictable across devices. App
+    // chrome still follows the operating-system accessibility scale; only
+    // document typography uses the explicit 8–32 pt reader setting.
     final bodyStyle = theme.textTheme.bodyLarge?.copyWith(
-      fontSize: (theme.textTheme.bodyLarge?.fontSize ?? 16) * look.bodyScale,
+      fontSize: 16 * widget.textScale,
       height: widget.lineHeight,
       fontFamily: fonts.family,
       fontFamilyFallback: fonts.fallback,
     );
-    // Multiply instead of replacing so the system accessibility text size
-    // still applies on top of the reader setting.
-    final systemScale = MediaQuery.textScalerOf(context).scale(1);
     final mediaQuery = MediaQuery.of(
       context,
-    ).copyWith(textScaler: TextScaler.linear(systemScale * widget.textScale));
+    ).copyWith(textScaler: TextScaler.noScaling);
+    final numberedPadding = widget.showLineNumbers
+        ? widget.padding.copyWith(left: widget.padding.left + 42)
+        : widget.padding;
+    final lineExtent = (bodyStyle?.fontSize ?? 16) * widget.lineHeight * 1;
+    final lineCount = '\n'.allMatches(widget.document.content).length + 1;
 
     if (widget.document.format == DocumentFormat.plainText) {
       return MediaQuery(
         data: mediaQuery,
-        child: SingleChildScrollView(
-          key: ValueKey(widget.document.id),
-          controller: widget.scrollController,
-          padding: widget.padding,
-          child: SelectionArea(
-            child: Text(widget.document.content, style: bodyStyle),
-          ),
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              key: ValueKey(widget.document.id),
+              controller: widget.scrollController,
+              padding: numberedPadding,
+              child: SelectionArea(
+                child: Text(widget.document.content, style: bodyStyle),
+              ),
+            ),
+            if (widget.showLineNumbers)
+              Positioned(
+                left: widget.padding.left,
+                top: 0,
+                bottom: 0,
+                width: 34,
+                child: _LineNumberGutter(
+                  controller: widget.scrollController,
+                  lineCount: lineCount,
+                  lineExtent: lineExtent,
+                  topPadding: widget.padding.top,
+                ),
+              ),
+          ],
         ),
       );
     }
@@ -1945,7 +2108,7 @@ class _DocumentViewState extends State<_DocumentView> {
     config = NoteMarkdownConfig(
       note: _preparedNote,
       styleSheet: _styleSheet(theme, look, bodyStyle),
-      onTapLink: (text, href, title) => _handleLink(config, href),
+      onTapLink: (text, href, title) => _handleLink(config, text, href),
       imageBuilder: (uri, title, alt) => _ZoomableMarkdownImage(
         uri: uri,
         semanticLabel: alt ?? title,
@@ -1968,9 +2131,26 @@ class _DocumentViewState extends State<_DocumentView> {
               // the next document.
               child: SelectionArea(
                 key: ValueKey(widget.document.id),
-                child: config.document(
-                  controller: widget.scrollController,
-                  padding: widget.padding,
+                child: Stack(
+                  children: [
+                    config.document(
+                      controller: widget.scrollController,
+                      padding: numberedPadding,
+                    ),
+                    if (widget.showLineNumbers)
+                      Positioned(
+                        left: widget.padding.left,
+                        top: 0,
+                        bottom: 0,
+                        width: 34,
+                        child: _LineNumberGutter(
+                          controller: widget.scrollController,
+                          lineCount: lineCount,
+                          lineExtent: lineExtent,
+                          topPadding: widget.padding.top,
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
@@ -2029,12 +2209,12 @@ class _DocumentViewState extends State<_DocumentView> {
               children: [
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-                  child: Text('儲存勾選', style: theme.textTheme.titleLarge),
+                  child: Text(tr('儲存勾選'), style: theme.textTheme.titleLarge),
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                   child: Text(
-                    '只會更新 $count 個打勾項目，文件的其他內容完全不變。',
+                    tr('只會更新 {count} 個打勾項目，文件的其他內容完全不變。', {'count': count}),
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -2043,7 +2223,7 @@ class _DocumentViewState extends State<_DocumentView> {
                 ListTile(
                   enabled: controller.canWriteInPlace,
                   leading: const Icon(Icons.save_outlined),
-                  title: const Text('存回原本的檔案'),
+                  title: Text(tr('存回原本的檔案')),
                   subtitle: Text(
                     controller.canWriteInPlace
                         ? widget.document.name
@@ -2054,8 +2234,8 @@ class _DocumentViewState extends State<_DocumentView> {
                 ListTile(
                   enabled: controller.canSaveAs,
                   leading: const Icon(Icons.save_as_outlined),
-                  title: const Text('另存新檔…'),
-                  subtitle: const Text('原本的檔案不會改變'),
+                  title: Text(tr('另存新檔…')),
+                  subtitle: Text(tr('原本的檔案不會改變')),
                   onTap: () => Navigator.pop(sheetContext, _SaveChoice.saveAs),
                 ),
               ],
@@ -2073,28 +2253,121 @@ class _DocumentViewState extends State<_DocumentView> {
       switch (choice) {
         case _SaveChoice.inPlace:
           await controller.writeInPlace(content);
-          _showMessage('已儲存到「${widget.document.name}」');
+          _showMessage(tr('已儲存到「{name}」', {'name': widget.document.name}));
         case _SaveChoice.saveAs:
           if (await controller.saveAs(content)) {
-            _showMessage('已另存新檔，原本的檔案沒有改變');
+            _showMessage(tr('已另存新檔，原本的檔案沒有改變'));
           }
       }
     } catch (error) {
-      _showMessage('儲存失敗：$error');
+      _showMessage(tr('儲存失敗：{error}', {'error': error}));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
   }
 
   String _inPlaceUnavailableReason() {
-    if (!widget.document.lossless) return '這個檔案有特殊字元，為了避免損壞只能另存新檔';
+    if (!widget.document.lossless) return tr('這個檔案有特殊字元，為了避免損壞只能另存新檔');
     if (widget.document.sourceUri == null) {
       return Platform.isIOS
-          ? 'iPhone 開啟的是檔案副本，請用「另存新檔」'
-          : '沒有被允許修改這個檔案，請用「另存新檔」';
+          ? tr('iPhone 開啟的是檔案副本，請用「另存新檔」')
+          : tr('沒有被允許修改這個檔案，請用「另存新檔」');
     }
-    return '目前無法存回';
+    return tr('目前無法存回');
   }
+}
+
+class _LineNumberGutter extends StatelessWidget {
+  const _LineNumberGutter({
+    required this.controller,
+    required this.lineCount,
+    required this.lineExtent,
+    required this.topPadding,
+  });
+
+  final ScrollController controller;
+  final int lineCount;
+  final double lineExtent;
+  final double topPadding;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return IgnorePointer(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: colors.surface.withValues(alpha: 0.92),
+          border: Border(
+            right: BorderSide(
+              color: colors.outlineVariant.withValues(alpha: 0.55),
+              width: 0.5,
+            ),
+          ),
+        ),
+        child: AnimatedBuilder(
+          animation: controller,
+          builder: (context, _) => CustomPaint(
+            painter: _LineNumberPainter(
+              offset: controller.hasClients ? controller.offset : 0,
+              lineCount: lineCount,
+              lineExtent: lineExtent,
+              topPadding: topPadding,
+              color: colors.onSurfaceVariant.withValues(alpha: 0.58),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LineNumberPainter extends CustomPainter {
+  const _LineNumberPainter({
+    required this.offset,
+    required this.lineCount,
+    required this.lineExtent,
+    required this.topPadding,
+    required this.color,
+  });
+
+  final double offset;
+  final int lineCount;
+  final double lineExtent;
+  final double topPadding;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (lineExtent <= 0 || lineCount <= 0) return;
+    final first = math.max(0, ((offset - topPadding) / lineExtent).floor());
+    var y = topPadding + first * lineExtent - offset;
+    for (var index = first; index < lineCount && y < size.height; index++) {
+      if (y + lineExtent >= 0) {
+        final painter = TextPainter(
+          text: TextSpan(
+            text: '${index + 1}',
+            style: TextStyle(
+              color: color,
+              fontSize: 10.5,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+          textDirection: TextDirection.ltr,
+          textAlign: TextAlign.right,
+        )..layout(maxWidth: size.width - 6);
+        painter.paint(canvas, Offset(size.width - painter.width - 6, y + 2));
+      }
+      y += lineExtent;
+    }
+  }
+
+  @override
+  bool shouldRepaint(_LineNumberPainter oldDelegate) =>
+      oldDelegate.offset != offset ||
+      oldDelegate.lineCount != lineCount ||
+      oldDelegate.lineExtent != lineExtent ||
+      oldDelegate.topPadding != topPadding ||
+      oldDelegate.color != color;
 }
 
 enum _SaveChoice { inPlace, saveAs }
@@ -2128,7 +2401,7 @@ class _UnsavedTasksBar extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                '有 $count 個勾選還沒儲存',
+                tr('有 {count} 個勾選還沒儲存', {'count': count}),
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSecondaryContainer,
                 ),
@@ -2136,7 +2409,7 @@ class _UnsavedTasksBar extends StatelessWidget {
             ),
             TextButton(
               onPressed: saving ? null : onDiscard,
-              child: const Text('捨棄'),
+              child: Text(tr('捨棄')),
             ),
             const SizedBox(width: 4),
             FilledButton(
@@ -2146,7 +2419,7 @@ class _UnsavedTasksBar extends StatelessWidget {
                       dimension: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('儲存'),
+                  : Text(tr('儲存')),
             ),
           ],
         ),
@@ -2223,18 +2496,20 @@ class _ZoomableMarkdownImageState extends State<_ZoomableMarkdownImage> {
       if (bytes == null) {
         return _ImageUnavailable(
           message: uri.scheme == 'parchment-wiki'
-              ? '找不到圖片「${uri.queryParameters['target']}」'
-              : '開啟整個筆記資料夾後，這張圖片才會顯示',
+              ? tr('找不到圖片「{name}」', {'name': uri.queryParameters['target']})
+              : tr('開啟整個筆記資料夾後，這張圖片才會顯示'),
         );
       }
       return FutureBuilder<Uint8List>(
         future: bytes,
         builder: (context, snapshot) {
           if (snapshot.error case final _ImageNotFound missing) {
-            return _ImageUnavailable(message: '找不到圖片「${missing.name}」');
+            return _ImageUnavailable(
+              message: tr('找不到圖片「{name}」', {'name': missing.name}),
+            );
           }
           if (snapshot.hasError) {
-            return const _ImageUnavailable(message: '圖片無法顯示');
+            return _ImageUnavailable(message: tr('圖片無法顯示'));
           }
           final data = snapshot.data;
           if (data == null) {
@@ -2254,7 +2529,7 @@ class _ZoomableMarkdownImageState extends State<_ZoomableMarkdownImage> {
         uri.data?.mimeType.startsWith('image/') == true) {
       return _zoomable(context, MemoryImage(uri.data!.contentAsBytes()));
     }
-    return const _ImageUnavailable(message: '圖片無法顯示');
+    return _ImageUnavailable(message: tr('圖片無法顯示'));
   }
 
   Widget _zoomable(BuildContext context, ImageProvider<Object> provider) {
@@ -2267,12 +2542,12 @@ class _ZoomableMarkdownImageState extends State<_ZoomableMarkdownImage> {
       fit: BoxFit.contain,
       semanticLabel: widget.semanticLabel,
       errorBuilder: (context, error, stackTrace) =>
-          const _ImageUnavailable(message: '圖片無法顯示'),
+          _ImageUnavailable(message: tr('圖片無法顯示')),
     );
     final label = widget.semanticLabel;
     return Semantics(
       button: true,
-      label: label == null ? '開啟圖片' : '開啟圖片：$label',
+      label: label == null ? tr('開啟圖片') : tr('開啟圖片：{label}', {'label': label}),
       child: GestureDetector(
         onTap: () => _showImageLightbox(context, provider),
         child: Align(
@@ -2311,7 +2586,7 @@ class _ZoomableMarkdownImageState extends State<_ZoomableMarkdownImage> {
               right: 8,
               child: SafeArea(
                 child: IconButton.filled(
-                  tooltip: '關閉',
+                  tooltip: tr('關閉'),
                   onPressed: () => Navigator.pop(dialogContext),
                   icon: const Icon(Icons.close),
                 ),

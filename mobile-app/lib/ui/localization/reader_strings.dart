@@ -123,6 +123,46 @@ class ReaderStrings {
     de: 'Zeilenabstand',
     es: 'Interlineado',
   );
+  String get fullscreen => _pick(
+    zhTw: '全螢幕閱讀',
+    zhCn: '全屏阅读',
+    en: 'Full-screen reading',
+    ja: '全画面表示',
+    ko: '전체 화면 읽기',
+    fr: 'Lecture en plein écran',
+    de: 'Vollbildlesen',
+    es: 'Lectura a pantalla completa',
+  );
+  String get fullscreenHint => _pick(
+    zhTw: '隱藏系統狀態列與導覽列；從螢幕邊緣滑動可暫時叫回',
+    zhCn: '隐藏系统状态栏和导航栏；从屏幕边缘滑动可暂时唤回',
+    en: 'Hide system bars; swipe from a screen edge to reveal them',
+    ja: 'システムバーを隠します。画面端からスワイプすると再表示できます',
+    ko: '시스템 표시줄을 숨깁니다. 화면 가장자리에서 밀어 다시 표시할 수 있습니다',
+    fr: 'Masque les barres système ; balayez depuis un bord pour les afficher',
+    de: 'Blendet Systemleisten aus; vom Bildschirmrand wischen, um sie einzublenden',
+    es: 'Oculta las barras del sistema; desliza desde un borde para mostrarlas',
+  );
+  String get lineNumbers => _pick(
+    zhTw: '顯示行號',
+    zhCn: '显示行号',
+    en: 'Show line numbers',
+    ja: '行番号を表示',
+    ko: '줄 번호 표시',
+    fr: 'Afficher les numéros de ligne',
+    de: 'Zeilennummern anzeigen',
+    es: 'Mostrar números de línea',
+  );
+  String get lineNumbersHint => _pick(
+    zhTw: '在閱讀區左側顯示低干擾行號，預設關閉',
+    zhCn: '在阅读区左侧显示低干扰行号，默认关闭',
+    en: 'Show a subtle line-number gutter on the left; off by default',
+    ja: '閲覧領域の左側に控えめな行番号を表示します（初期設定はオフ）',
+    ko: '읽기 영역 왼쪽에 줄 번호를 표시합니다. 기본값은 꺼짐입니다',
+    fr: 'Affiche une gouttière discrète à gauche, désactivée par défaut',
+    de: 'Zeigt links dezente Zeilennummern; standardmäßig aus',
+    es: 'Muestra números discretos a la izquierda; desactivado por defecto',
+  );
 
   String get notes => _pick(
     zhTw: '筆記',

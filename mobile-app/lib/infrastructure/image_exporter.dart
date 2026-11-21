@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:file_picker/file_picker.dart';
+import '../core/l10n/tr.dart';
 
 /// Saves images through the system "save as" dialog (Android SAF / iOS
 /// document picker), so no storage permission is required.
@@ -14,7 +15,7 @@ class ImageExporter {
     required String fileName,
   }) async {
     final uri = await FilePicker.saveFile(
-      dialogTitle: '儲存圖片',
+      dialogTitle: tr('儲存圖片'),
       fileName: fileName,
       bytes: bytes,
       mimeType: 'image/png',

@@ -14,6 +14,7 @@ import '../core/services/document_picker.dart';
 import '../core/services/folder_source.dart';
 import '../core/services/incoming_documents.dart';
 import '../core/services/large_document_policy.dart';
+import '../core/l10n/tr.dart';
 
 /// Android implementation backed by `MainActivity.kt`'s
 /// `com.stackbase.parchment/documents` channel.
@@ -43,7 +44,9 @@ class AndroidDocumentChannel
     if (picked == null) return null;
     final name = picked['name'] as String? ?? 'document';
     if (!LocalDocument.supportsFileName(name)) {
-      throw FormatException('不支援的格式：$name。請使用 .md 或 .txt 檔案。');
+      throw FormatException(
+        tr('不支援的格式：{name}。請使用 .md 或 .txt 檔案。', {'name': name}),
+      );
     }
     final size = picked['size'] as int?;
     if (size == null) throw const FileSizeUnavailableException();
@@ -51,7 +54,7 @@ class AndroidDocumentChannel
       throw PagedReadingRequiredException(size);
     }
     final uri = picked['uri'] as String?;
-    if (uri == null) throw const FormatException('沒有收到可開啟的檔案');
+    if (uri == null) throw FormatException(tr('沒有收到可開啟的檔案'));
     final bytes = await _read(uri);
     return LocalDocument.decode(
       name: name,
@@ -79,7 +82,7 @@ class AndroidDocumentChannel
   Future<NoteFolder?> pickFolder() async {
     if (!_supported) return null;
     final tree = await FilePicker.pickDirectory(
-      dialogTitle: '選擇筆記資料夾',
+      dialogTitle: tr('選擇筆記資料夾'),
       // Write access lets task-list edits be saved back; the grant is kept
       // so the folder can be reopened later.
       androidOptions: const FilePickerAndroidOptions(
@@ -131,7 +134,7 @@ class AndroidDocumentChannel
     final id = tree.pathSegments.isEmpty ? '' : tree.pathSegments.last;
     final path = id.contains(':') ? id.substring(id.indexOf(':') + 1) : id;
     final name = path.split('/').where((part) => part.isNotEmpty).lastOrNull;
-    return name ?? '資料夾';
+    return name ?? tr('資料夾');
   }
 
   @override
@@ -139,7 +142,7 @@ class AndroidDocumentChannel
 
   Future<Uint8List> _read(String uri) async {
     final bytes = await _channel.invokeMethod<Uint8List>('read', {'uri': uri});
-    if (bytes == null) throw StateError('無法讀取檔案');
+    if (bytes == null) throw StateError(tr('無法讀取檔案'));
     return bytes;
   }
 
@@ -206,7 +209,7 @@ class AndroidDocumentChannel
       );
     }
     final uri = incoming.uri;
-    if (uri == null) throw const FormatException('沒有收到可開啟的檔案');
+    if (uri == null) throw FormatException(tr('沒有收到可開啟的檔案'));
     final format = LocalDocument.formatForIncoming(
       incoming.name,
       incoming.mimeType,
