@@ -11,6 +11,7 @@ import 'dart:convert';
 import 'package:markdown/markdown.dart' as md;
 
 import 'frontmatter.dart';
+import 'html_syntax.dart';
 
 /// Fenced-code language used to carry frontmatter into the Markdown AST.
 const String propertiesFenceLanguage = 'parchment-properties';
@@ -118,9 +119,11 @@ class PreparedNote {
     CalloutSyntax(),
     MathBlockSyntax(),
     DefinitionListSyntax(),
+    HtmlBlockSyntax(),
   ];
 
   late final List<md.InlineSyntax> inlineSyntaxes = [
+    InlineHtmlSyntax(),
     WikiEmbedSyntax(),
     WikiLinkSyntax(),
     InlineMathSyntax(),

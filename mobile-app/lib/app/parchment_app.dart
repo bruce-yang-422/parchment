@@ -5,6 +5,7 @@ import '../core/services/document_picker.dart';
 import '../core/services/document_writer.dart';
 import '../core/services/folder_source.dart';
 import '../core/services/incoming_documents.dart';
+import '../core/services/reader_settings.dart';
 import '../core/services/recent_folders.dart';
 import '../features/reader/reader_controller.dart';
 import '../ui/reader/reader_screen.dart';
@@ -18,6 +19,8 @@ class ParchmentApp extends StatefulWidget {
     this.incomingSource,
     this.recentFoldersStore,
     this.documentInspector,
+    this.settingsStore,
+    this.initialSettings,
     super.key,
   });
 
@@ -27,6 +30,11 @@ class ParchmentApp extends StatefulWidget {
   final IncomingDocumentSource? incomingSource;
   final RecentFoldersStore? recentFoldersStore;
   final DocumentInspector? documentInspector;
+  final ReaderSettingsStore? settingsStore;
+
+  /// Settings loaded before the first frame, so the saved palette shows
+  /// right away.
+  final ReaderSettings? initialSettings;
 
   @override
   State<ParchmentApp> createState() => _ParchmentAppState();
@@ -45,6 +53,8 @@ class _ParchmentAppState extends State<ParchmentApp> {
       incomingSource: widget.incomingSource,
       recentFoldersStore: widget.recentFoldersStore,
       documentInspector: widget.documentInspector,
+      settingsStore: widget.settingsStore,
+      initialSettings: widget.initialSettings,
     )..loadRecentFolders();
   }
 
@@ -64,6 +74,8 @@ class _ParchmentAppState extends State<ParchmentApp> {
         theme: ParchmentTheme.light(_controller.palette),
         darkTheme: ParchmentTheme.dark(_controller.palette),
         themeMode: _controller.themeMode,
+        builder: (context, child) =>
+            PaperBackground(child: child ?? const SizedBox.shrink()),
         home: ReaderScreen(controller: _controller),
       ),
     );

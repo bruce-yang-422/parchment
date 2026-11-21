@@ -85,21 +85,11 @@ class TableColumnStats {
     var textNatural = 0.0;
     void visit(RenderObject node) {
       if (node is RenderParagraph) {
-        final span = node.text;
         textNatural = math.max(
           textNatural,
           node.getMaxIntrinsicWidth(double.infinity),
         );
-        final style = span.style ?? _styleOf(span);
-        for (final match in _unbreakable.allMatches(span.toPlainText())) {
-          final painter = TextPainter(
-            text: TextSpan(text: match.group(0), style: style),
-            textDirection: TextDirection.ltr,
-            textScaler: node.textScaler,
-          )..layout();
-          longest = math.max(longest, painter.width);
-          painter.dispose();
-        }
+        longest = math.max(longest, _paragraphWord(node));
         return;
       }
       node.visitChildren(visit);
@@ -109,6 +99,35 @@ class TableColumnStats {
     if (longest == 0) return 0;
     final padding = math.max(0.0, cellNatural - textNatural);
     return longest + padding;
+  }
+
+  /// Measured runs per paragraph. Tables are measured several times per
+  /// layout (once per column, minimum and maximum), so text is only
+  /// measured again when it or its scale changes.
+  static final _wordCache =
+      Expando<({InlineSpan span, TextScaler scaler, double width})>();
+
+  static double _paragraphWord(RenderParagraph node) {
+    final span = node.text;
+    final cached = _wordCache[node];
+    if (cached != null &&
+        identical(cached.span, span) &&
+        cached.scaler == node.textScaler) {
+      return cached.width;
+    }
+    final style = span.style ?? _styleOf(span);
+    var longest = 0.0;
+    for (final match in _unbreakable.allMatches(span.toPlainText())) {
+      final painter = TextPainter(
+        text: TextSpan(text: match.group(0), style: style),
+        textDirection: TextDirection.ltr,
+        textScaler: node.textScaler,
+      )..layout();
+      longest = math.max(longest, painter.width);
+      painter.dispose();
+    }
+    _wordCache[node] = (span: span, scaler: node.textScaler, width: longest);
+    return longest;
   }
 
   static TextStyle? _styleOf(InlineSpan span) {

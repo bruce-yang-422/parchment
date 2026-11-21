@@ -51,16 +51,6 @@ class ReaderStrings {
     de: 'App-Sprache',
     es: 'Idioma de la aplicación',
   );
-  String get interfaceLanguageHint => _pick(
-    zhTw: '選擇 App 介面使用的語言',
-    zhCn: '选择 App 界面使用的语言',
-    en: 'Choose the language used by the app',
-    ja: 'アプリで使用する言語を選択',
-    ko: '앱에서 사용할 언어를 선택하세요',
-    fr: 'Choisissez la langue de l’application',
-    de: 'Sprache der App auswählen',
-    es: 'Elige el idioma de la aplicación',
-  );
   String get cjkFont => _pick(
     zhTw: '中文字型',
     zhCn: '中日韩字体',
@@ -70,16 +60,6 @@ class ReaderStrings {
     fr: 'Police CJK',
     de: 'CJK-Schrift',
     es: 'Fuente CJK',
-  );
-  String get cjkFontHint => _pick(
-    zhTw: '中文、日文與韓文字元',
-    zhCn: '中文、日文与韩文字符',
-    en: 'Chinese, Japanese and Korean characters',
-    ja: '中国語・日本語・韓国語の文字',
-    ko: '중국어, 일본어 및 한국어 문자',
-    fr: 'Caractères chinois, japonais et coréens',
-    de: 'Chinesische, japanische und koreanische Zeichen',
-    es: 'Caracteres chinos, japoneses y coreanos',
   );
   String get latinFont => _pick(
     zhTw: '英文與數字字型',
@@ -91,16 +71,6 @@ class ReaderStrings {
     de: 'Schrift für Latein und Zahlen',
     es: 'Fuente latina y numérica',
   );
-  String get latinFontHint => _pick(
-    zhTw: '英文字母、數字與標點',
-    zhCn: '英文字母、数字与标点',
-    en: 'Letters, numbers and punctuation',
-    ja: '英字・数字・句読点',
-    ko: '영문자, 숫자 및 문장 부호',
-    fr: 'Lettres, chiffres et ponctuation',
-    de: 'Buchstaben, Zahlen und Satzzeichen',
-    es: 'Letras, números y puntuación',
-  );
   String get palette => _pick(
     zhTw: '配色',
     zhCn: '配色',
@@ -111,16 +81,6 @@ class ReaderStrings {
     de: 'Farbpalette',
     es: 'Paleta de colores',
   );
-  String get paletteHint => _pick(
-    zhTw: '每套配色皆有淺色與深色版本',
-    zhCn: '每套配色都有浅色与深色版本',
-    en: 'Each palette includes light and dark variants',
-    ja: '各配色にライト・ダーク版があります',
-    ko: '각 팔레트에 밝은 테마와 어두운 테마가 있습니다',
-    fr: 'Chaque palette comprend une version claire et sombre',
-    de: 'Jede Palette enthält eine helle und dunkle Variante',
-    es: 'Cada paleta incluye variantes clara y oscura',
-  );
   String get appearance => _pick(
     zhTw: '明暗模式',
     zhCn: '明暗模式',
@@ -130,16 +90,6 @@ class ReaderStrings {
     fr: 'Apparence',
     de: 'Darstellung',
     es: 'Apariencia',
-  );
-  String get appearanceHint => _pick(
-    zhTw: '可以跟著手機的深淺色設定',
-    zhCn: '可以跟随手机的深浅色设置',
-    en: 'Can follow your device appearance',
-    ja: '端末の外観設定に合わせられます',
-    ko: '기기의 화면 모드를 따를 수 있습니다',
-    fr: 'Peut suivre l’apparence de l’appareil',
-    de: 'Kann der Gerätedarstellung folgen',
-    es: 'Puede seguir la apariencia del dispositivo',
   );
   String get textSize => _pick(
     zhTw: '文字大小',

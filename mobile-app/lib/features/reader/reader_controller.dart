@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -13,6 +14,7 @@ import '../../core/services/document_writer.dart';
 import '../../core/services/folder_source.dart';
 import '../../core/services/incoming_documents.dart';
 import '../../core/services/large_document_policy.dart';
+import '../../core/services/reader_settings.dart';
 import '../../core/services/recent_folders.dart';
 
 class ReaderController extends ChangeNotifier {
@@ -23,12 +25,17 @@ class ReaderController extends ChangeNotifier {
     IncomingDocumentSource? incomingSource,
     RecentFoldersStore? recentFoldersStore,
     DocumentInspector? documentInspector,
+    ReaderSettingsStore? settingsStore,
+    ReaderSettings? initialSettings,
   }) : _documentPicker = documentPicker,
+       _settingsStore = settingsStore,
        _inspector = documentInspector,
        _documentWriter = documentWriter,
        _folderSource = folderSource,
        _incomingSource = incomingSource,
-       _recentStore = recentFoldersStore;
+       _recentStore = recentFoldersStore {
+    if (initialSettings != null) _applySettings(initialSettings);
+  }
 
   final DocumentPicker _documentPicker;
   final DocumentWriter? _documentWriter;
@@ -36,6 +43,8 @@ class ReaderController extends ChangeNotifier {
   final IncomingDocumentSource? _incomingSource;
   final RecentFoldersStore? _recentStore;
   final DocumentInspector? _inspector;
+  final ReaderSettingsStore? _settingsStore;
+  Timer? _saveTimer;
 
   List<RecentFolder> _recentFolders = const [];
   Set<String> _grantedFolderUris = const {};
@@ -90,27 +99,76 @@ class ReaderController extends ChangeNotifier {
   void _update<T>(T value, T current, void Function(T) assign) {
     if (value == current) return;
     assign(value);
-    notifyListeners();
+    _settingsChanged();
   }
 
   void setThemeMode(ThemeMode value) {
     if (_themeMode == value) return;
     _themeMode = value;
-    notifyListeners();
+    _settingsChanged();
   }
 
   void setTextScale(double value) {
     final normalized = value.clamp(0.85, 1.35);
     if (_textScale == normalized) return;
     _textScale = normalized;
-    notifyListeners();
+    _settingsChanged();
   }
 
   void setLineHeight(double value) {
     final normalized = value.clamp(1.3, 2.2);
     if (_lineHeight == normalized) return;
     _lineHeight = normalized;
+    _settingsChanged();
+  }
+
+  /// Current reading settings, as they are saved.
+  ReaderSettings get settings => ReaderSettings(
+    themeMode: _themeMode.name,
+    textScale: _textScale,
+    lineHeight: _lineHeight,
+    locale: _locale,
+    cjkFont: _cjkFont,
+    latinFont: _latinFont,
+    palette: _palette,
+  );
+
+  void _applySettings(ReaderSettings settings) {
+    _themeMode = ThemeMode.values.firstWhere(
+      (mode) => mode.name == settings.themeMode,
+      orElse: () => ThemeMode.system,
+    );
+    _textScale = settings.textScale;
+    _lineHeight = settings.lineHeight;
+    _locale = settings.locale;
+    _cjkFont = settings.cjkFont;
+    _latinFont = settings.latinFont;
+    _palette = settings.palette;
+  }
+
+  /// Saves shortly after the last change, so dragging a slider writes once.
+  void _settingsChanged() {
     notifyListeners();
+    if (_settingsStore == null) return;
+    _saveTimer?.cancel();
+    _saveTimer = Timer(const Duration(milliseconds: 400), saveSettings);
+  }
+
+  @override
+  void dispose() {
+    if (_saveTimer?.isActive ?? false) unawaited(saveSettings());
+    super.dispose();
+  }
+
+  /// Writes the settings now (also used when the app closes).
+  Future<void> saveSettings() async {
+    _saveTimer?.cancel();
+    _saveTimer = null;
+    try {
+      await _settingsStore?.save(settings);
+    } on Object {
+      // Settings are a convenience; failing to save must not break reading.
+    }
   }
 
   /// Platform metadata (size, modified time, location) of the open file.

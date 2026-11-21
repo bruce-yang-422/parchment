@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -20,6 +21,7 @@ import '../../features/reader/reader_controller.dart';
 import '../../infrastructure/diagram_render_service.dart';
 import '../../platform/platform_profile.dart';
 import '../localization/reader_strings.dart';
+import '../theme/parchment_theme.dart';
 import 'about_section.dart';
 import 'document_info_sheet.dart';
 import 'notes_sheet.dart';
@@ -466,34 +468,88 @@ class _ReaderScreenState extends State<ReaderScreen> {
   }
 
   /// The Markdown list builds lazily, so its extent is only an estimate.
-  /// Jump near the heading, then align to the rendered heading itself.
+  /// Jump near the heading, then step towards it using the headings that
+  /// are built, and finally align to the rendered heading itself.
   Future<void> _scrollToHeading(
     NoteHeading heading,
     LocalDocument document,
   ) async {
-    final ratio = heading.offset / document.content.length.clamp(1, 1 << 30);
-    final occurrence = extractHeadings(document.content)
-        .takeWhile((item) => item.offset < heading.offset)
+    final headings = extractHeadings(document.content);
+    final targetIndex = headings.indexWhere(
+      (item) => item.offset == heading.offset,
+    );
+    final occurrence = headings
+        .take(math.max(targetIndex, 0))
         .where((item) => item.title == heading.title)
         .length;
+    final ratio = heading.offset / document.content.length.clamp(1, 1 << 30);
     await WidgetsBinding.instance.endOfFrame;
-    for (var attempt = 0; attempt < 8; attempt++) {
+    for (var attempt = 0; attempt < 40; attempt++) {
       if (!mounted || !_scrollController.hasClients) return;
-      final target = _findHeading(heading.title, occurrence);
-      if (target != null && target.mounted) {
+      final found = _findHeading(heading.title, occurrence);
+      if (found != null && found.mounted) {
         await Scrollable.ensureVisible(
-          target,
+          found,
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeOut,
         );
         return;
       }
       final position = _scrollController.position;
-      position.jumpTo(
-        (position.maxScrollExtent * ratio).clamp(0, position.maxScrollExtent),
-      );
+      final built = _builtHeadingIndex(headings, targetIndex);
+      double next;
+      if (attempt == 0 || built == null || targetIndex < 0) {
+        next = position.maxScrollExtent * ratio;
+      } else {
+        // Step one screen towards the target.
+        final step = position.viewportDimension * 0.9;
+        next = position.pixels + (targetIndex < built ? -step : step);
+      }
+      next = next.clamp(0.0, position.maxScrollExtent);
+      if (attempt > 0 && (next - position.pixels).abs() < 1) return;
+      position.jumpTo(next);
       await WidgetsBinding.instance.endOfFrame;
     }
+  }
+
+  /// Rendered heading texts inside the document, in build order.
+  List<String> _builtHeadings() {
+    final titles = <String>[];
+    final minHeadingSize =
+        Theme.of(context).textTheme.titleMedium?.fontSize ?? 16;
+    void visit(Element element) {
+      final widget = element.widget;
+      final span = widget is Text ? widget.textSpan : null;
+      if (span != null && (span.style?.fontSize ?? 0) >= minHeadingSize) {
+        titles.add(span.toPlainText().trim());
+      }
+      element.visitChildren(visit);
+    }
+
+    final root = _documentKey.currentContext;
+    if (root is Element) root.visitChildren(visit);
+    return titles;
+  }
+
+  /// Index in [headings] of a heading that is built now, picking for each
+  /// built title the occurrence closest to [targetIndex]; `null` when no
+  /// heading is built.
+  int? _builtHeadingIndex(List<NoteHeading> headings, int targetIndex) {
+    final indexes = <int>[];
+    for (final title in _builtHeadings()) {
+      int? best;
+      for (var i = 0; i < headings.length; i++) {
+        if (headings[i].title != title) continue;
+        if (best == null ||
+            (i - targetIndex).abs() < (best - targetIndex).abs()) {
+          best = i;
+        }
+      }
+      if (best != null) indexes.add(best);
+    }
+    if (indexes.isEmpty) return null;
+    indexes.sort();
+    return indexes[indexes.length ~/ 2];
   }
 
   /// Finds the rendered heading text, preferring the [occurrence]-th match
@@ -646,63 +702,70 @@ class _ReaderScreenState extends State<ReaderScreen> {
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 16),
-                  _SettingDropdown<ReaderLocale>(
-                    title: strings.interfaceLanguage,
-                    subtitle: strings.interfaceLanguageHint,
-                    value: controller.locale,
-                    values: strings.languageNames,
-                    onChanged: controller.setLocale,
+                  _SettingsGroup(
+                    children: [
+                      _SettingDropdown<ReaderLocale>(
+                        title: strings.interfaceLanguage,
+                        value: controller.locale,
+                        values: strings.languageNames,
+                        onChanged: controller.setLocale,
+                      ),
+                      _SettingDropdown<ReaderCjkFont>(
+                        title: strings.cjkFont,
+                        value: controller.cjkFont,
+                        values: strings.cjkFontNames,
+                        onChanged: controller.setCjkFont,
+                      ),
+                      _SettingDropdown<ReaderLatinFont>(
+                        title: strings.latinFont,
+                        value: controller.latinFont,
+                        values: strings.latinFontNames,
+                        onChanged: controller.setLatinFont,
+                      ),
+                      _SettingDropdown<ReaderPalette>(
+                        title: strings.palette,
+                        value: controller.palette,
+                        values: strings.paletteNames,
+                        onChanged: controller.setPalette,
+                      ),
+                      _SettingDropdown<ThemeMode>(
+                        title: strings.appearance,
+                        value: controller.themeMode,
+                        values: {
+                          ThemeMode.system: strings.themeNames['system']!,
+                          ThemeMode.light: strings.themeNames['light']!,
+                          ThemeMode.dark: strings.themeNames['dark']!,
+                        },
+                        onChanged: controller.setThemeMode,
+                      ),
+                    ],
                   ),
-                  _SettingDropdown<ReaderCjkFont>(
-                    title: strings.cjkFont,
-                    subtitle: strings.cjkFontHint,
-                    value: controller.cjkFont,
-                    values: strings.cjkFontNames,
-                    onChanged: controller.setCjkFont,
-                  ),
-                  _SettingDropdown<ReaderLatinFont>(
-                    title: strings.latinFont,
-                    subtitle: strings.latinFontHint,
-                    value: controller.latinFont,
-                    values: strings.latinFontNames,
-                    onChanged: controller.setLatinFont,
-                  ),
-                  _SettingDropdown<ReaderPalette>(
-                    title: strings.palette,
-                    subtitle: strings.paletteHint,
-                    value: controller.palette,
-                    values: strings.paletteNames,
-                    onChanged: controller.setPalette,
-                  ),
-                  _SettingDropdown<ThemeMode>(
-                    title: strings.appearance,
-                    subtitle: strings.appearanceHint,
-                    value: controller.themeMode,
-                    values: {
-                      ThemeMode.system: strings.themeNames['system']!,
-                      ThemeMode.light: strings.themeNames['light']!,
-                      ThemeMode.dark: strings.themeNames['dark']!,
-                    },
-                    onChanged: controller.setThemeMode,
-                  ),
-                  const Divider(height: 28),
-                  _ReadingSlider(
-                    title: strings.textSize,
-                    valueLabel: '${controller.textScale.toStringAsFixed(2)}×',
-                    value: controller.textScale,
-                    min: 0.85,
-                    max: 1.35,
-                    divisions: 10,
-                    onChanged: controller.setTextScale,
-                  ),
-                  _ReadingSlider(
-                    title: strings.lineSpacing,
-                    valueLabel: '${controller.lineHeight.toStringAsFixed(2)}×',
-                    value: controller.lineHeight,
-                    min: 1.3,
-                    max: 2.2,
-                    divisions: 9,
-                    onChanged: controller.setLineHeight,
+                  ReaderLook.of(context).chrome.groupedSettings
+                      ? const SizedBox(height: 20)
+                      : const Divider(height: 28),
+                  _SettingsGroup(
+                    children: [
+                      _ReadingSlider(
+                        title: strings.textSize,
+                        valueLabel:
+                            '${controller.textScale.toStringAsFixed(2)}×',
+                        value: controller.textScale,
+                        min: 0.85,
+                        max: 1.35,
+                        divisions: 10,
+                        onChanged: controller.setTextScale,
+                      ),
+                      _ReadingSlider(
+                        title: strings.lineSpacing,
+                        valueLabel:
+                            '${controller.lineHeight.toStringAsFixed(2)}×',
+                        value: controller.lineHeight,
+                        min: 1.3,
+                        max: 2.2,
+                        divisions: 9,
+                        onChanged: controller.setLineHeight,
+                      ),
+                    ],
                   ),
                   const AboutSection(),
                 ],
@@ -710,6 +773,41 @@ class _ReaderScreenState extends State<ReaderScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+/// Settings rows. iOS and Windows 11 palettes show them as a rounded
+/// grouped list; the others as a plain list.
+class _SettingsGroup extends StatelessWidget {
+  const _SettingsGroup({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final look = ReaderLook.of(context);
+    if (!look.chrome.groupedSettings) return Column(children: children);
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      decoration: BoxDecoration(
+        color: dark
+            ? Color.lerp(look.surface, Colors.white, 0.07)
+            : Colors.white,
+        borderRadius: BorderRadius.circular(look.chrome.panelRadius),
+        border: look.chrome.panelRadius < 10
+            ? Border.all(color: look.border)
+            : null,
+      ),
+      child: Column(
+        children: [
+          for (var i = 0; i < children.length; i++) ...[
+            if (i > 0) Divider(height: 1, color: look.border),
+            children[i],
+          ],
+        ],
       ),
     );
   }
@@ -967,14 +1065,12 @@ class _RelationSection extends StatelessWidget {
 class _SettingDropdown<T extends Enum> extends StatelessWidget {
   const _SettingDropdown({
     required this.title,
-    required this.subtitle,
     required this.value,
     required this.values,
     required this.onChanged,
   });
 
   final String title;
-  final String subtitle;
   final T value;
   final Map<T, String> values;
   final ValueChanged<T> onChanged;
@@ -984,7 +1080,6 @@ class _SettingDropdown<T extends Enum> extends StatelessWidget {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       title: Text(title),
-      subtitle: Text(subtitle),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -1408,6 +1503,148 @@ class _DocumentViewState extends State<_DocumentView> {
     );
   }
 
+  /// Markdown styles for the current palette (see [ReaderLook]).
+  MarkdownStyleSheet _styleSheet(
+    ThemeData theme,
+    ReaderLook look,
+    TextStyle? bodyStyle,
+  ) {
+    final size = bodyStyle?.fontSize ?? 16;
+    TextStyle? heading(double scale, Color color) => bodyStyle?.copyWith(
+      fontSize: size * scale,
+      height: 1.3,
+      color: color,
+      fontFamily: look.chrome.headingFamily ?? bodyStyle.fontFamily,
+      fontWeight: look.headingWeight,
+      letterSpacing: size * scale * look.headingLetterSpacing,
+    );
+    final radius = BorderRadius.circular(look.radius);
+    final borderSide = BorderSide(color: look.border);
+    final (quoteDecoration, quotePadding) = switch (look.quote) {
+      QuoteLook.line => (
+        BoxDecoration(
+          border: Border(
+            left: BorderSide(
+              color: look.quoteBorder,
+              width: look.chrome.quoteWidth,
+            ),
+          ),
+        ),
+        const EdgeInsets.fromLTRB(14, 2, 0, 2),
+      ),
+      QuoteLook.tinted => (
+        BoxDecoration(
+          color: look.quoteBackground,
+          borderRadius: radius,
+          border: Border(
+            left: BorderSide(
+              color: look.quoteBorder,
+              width: look.chrome.quoteWidth,
+            ),
+          ),
+        ),
+        const EdgeInsets.fromLTRB(14, 10, 12, 10),
+      ),
+      QuoteLook.card => (
+        BoxDecoration(
+          color: look.quoteBackground,
+          borderRadius: radius,
+          border: Border(
+            left: BorderSide(
+              color: look.quoteBorder,
+              width: look.chrome.quoteWidth,
+            ),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 3,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        const EdgeInsets.fromLTRB(14, 10, 12, 10),
+      ),
+    };
+    final (tableBorder, headDecoration, cellDecoration) = switch (look.table) {
+      TableLook.grid => (
+        TableBorder.all(color: look.border),
+        look.chrome.tableHeaderTint ? BoxDecoration(color: look.surface) : null,
+        null,
+      ),
+      TableLook.lines => (
+        TableBorder(horizontalInside: borderSide, bottom: borderSide),
+        null,
+        null,
+      ),
+      TableLook.card => (
+        TableBorder(
+          top: borderSide,
+          bottom: borderSide,
+          left: borderSide,
+          right: borderSide,
+          horizontalInside: borderSide,
+          borderRadius: radius,
+        ),
+        BoxDecoration(color: look.cardBackground),
+        BoxDecoration(color: look.cardBackground),
+      ),
+    };
+    return MarkdownStyleSheet.fromTheme(theme).copyWith(
+      p: bodyStyle,
+      listBullet: bodyStyle,
+      h1: heading(look.headingScale[0], look.heading1),
+      h2: heading(look.headingScale[1], look.heading2),
+      h3: heading(look.headingScale[2], look.text),
+      h4: heading(1.1, look.text),
+      h5: heading(1, look.text),
+      h6: heading(1, look.muted),
+      blockSpacing: look.blockSpacing,
+      tableBody: bodyStyle?.copyWith(height: 1.5),
+      tableHead: bodyStyle?.copyWith(
+        height: 1.5,
+        fontWeight: FontWeight.w600,
+        color: look.minimal ? look.muted : look.text,
+      ),
+      code: theme.textTheme.bodyMedium?.copyWith(
+        fontFamily: 'monospace',
+        fontSize: size * 0.88,
+        color: look.inlineCode,
+        backgroundColor: look.codeBackground,
+      ),
+      a: TextStyle(
+        color: look.chrome.mutedUnderline ? look.text : look.link,
+        decoration: look.chrome.linkUnderline
+            ? TextDecoration.underline
+            : TextDecoration.none,
+        decorationColor: look.chrome.mutedUnderline
+            ? look.muted.withValues(alpha: 0.5)
+            : look.link.withValues(alpha: 0.4),
+      ),
+      blockquote: look.minimal
+          ? bodyStyle?.copyWith(fontSize: size * 1.1)
+          : bodyStyle,
+      // Tables decide between fitting the screen and scrolling sideways.
+      tableColumnWidth: ReadableColumnWidth(
+        availableWidth:
+            MediaQuery.sizeOf(context).width - widget.padding.horizontal,
+      ),
+      tableScrollbarThumbVisibility: true,
+      tableCellsPadding: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 8,
+      ),
+      tableBorder: tableBorder,
+      tableHeadCellsDecoration: headDecoration,
+      tableCellsDecoration: cellDecoration,
+      blockquoteDecoration: quoteDecoration,
+      blockquotePadding: quotePadding,
+      horizontalRuleDecoration: BoxDecoration(
+        border: Border(top: BorderSide(color: look.border, width: 1)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -1423,7 +1660,9 @@ class _DocumentViewState extends State<_DocumentView> {
       ReaderCjkFont.ming => <String>['serif'],
       ReaderCjkFont.kai => <String>['cursive'],
     };
+    final look = ReaderLook.of(context);
     final bodyStyle = theme.textTheme.bodyLarge?.copyWith(
+      fontSize: (theme.textTheme.bodyLarge?.fontSize ?? 16) * look.bodyScale,
       height: widget.lineHeight,
       fontFamily: fontFamily,
       fontFamilyFallback: fontFallback,
@@ -1449,44 +1688,10 @@ class _DocumentViewState extends State<_DocumentView> {
       );
     }
 
-    final colors = theme.colorScheme;
     late final NoteMarkdownConfig config;
     config = NoteMarkdownConfig(
       note: _preparedNote,
-      styleSheet: MarkdownStyleSheet.fromTheme(theme).copyWith(
-        p: bodyStyle,
-        listBullet: bodyStyle,
-        tableBody: bodyStyle?.copyWith(height: 1.5),
-        code: theme.textTheme.bodyMedium?.copyWith(
-          fontFamily: 'monospace',
-          fontSize: (bodyStyle?.fontSize ?? 16) * 0.88,
-          backgroundColor: colors.surfaceContainerHighest,
-        ),
-        a: TextStyle(
-          color: colors.primary,
-          decoration: TextDecoration.underline,
-          decorationColor: colors.primary.withValues(alpha: 0.4),
-        ),
-        // Tables decide between fitting the screen and scrolling sideways.
-        tableColumnWidth: ReadableColumnWidth(
-          availableWidth:
-              MediaQuery.sizeOf(context).width - widget.padding.horizontal,
-        ),
-        tableScrollbarThumbVisibility: true,
-        tableCellsPadding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 8,
-        ),
-        blockquoteDecoration: BoxDecoration(
-          color: colors.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        horizontalRuleDecoration: BoxDecoration(
-          border: Border(
-            top: BorderSide(color: colors.outlineVariant, width: 1),
-          ),
-        ),
-      ),
+      styleSheet: _styleSheet(theme, look, bodyStyle),
       onTapLink: (text, href, title) => _handleLink(config, href),
       imageBuilder: (uri, title, alt) => _ZoomableMarkdownImage(
         uri: uri,
@@ -1506,13 +1711,13 @@ class _DocumentViewState extends State<_DocumentView> {
         child: Column(
           children: [
             Expanded(
+              // Keyed by document so a selection never carries over to
+              // the next document.
               child: SelectionArea(
-                child: KeyedSubtree(
-                  key: ValueKey(widget.document.id),
-                  child: config.document(
-                    controller: widget.scrollController,
-                    padding: widget.padding,
-                  ),
+                key: ValueKey(widget.document.id),
+                child: config.document(
+                  controller: widget.scrollController,
+                  padding: widget.padding,
                 ),
               ),
             ),

@@ -11,6 +11,7 @@ import 'package:markdown/markdown.dart' as md;
 import '../../core/markdown/frontmatter.dart';
 import '../../core/markdown/note_syntax.dart';
 import '../../infrastructure/diagram_render_service.dart';
+import '../theme/parchment_theme.dart';
 import 'diagram_view.dart';
 
 /// Resolves wiki links and embeds against the opened folder.
@@ -102,6 +103,11 @@ class NoteMarkdownConfig {
     'abbr': _AbbreviationBuilder(),
     'wikilink': _WikiLinkBuilder(),
     'wiki-embed': _WikiEmbedBuilder(),
+    'kbd': _KbdBuilder(),
+    'hr': _RuleBuilder(),
+    'html-img': _HtmlImageBuilder(),
+    'html-details': _HtmlDetailsBuilder(),
+    'html-block': _HtmlBlockBuilder(),
   };
 
   /// Non-scrolling Markdown for nested content.
@@ -355,15 +361,10 @@ class _InlineStyleBuilder extends MarkdownElementBuilder {
   ) {
     final base = parentStyle ?? DefaultTextStyle.of(context).style;
     final text = element.textContent;
-    final dark = Theme.of(context).brightness == Brightness.dark;
     return Text.rich(switch (style) {
       _InlineStyle.mark => TextSpan(
         text: text,
-        style: base.copyWith(
-          backgroundColor: dark
-              ? const Color(0x80A07C00)
-              : const Color(0xFFFFEB8A),
-        ),
+        style: base.copyWith(backgroundColor: ReaderLook.of(context).mark),
       ),
       _InlineStyle.ins => TextSpan(
         text: text,
@@ -515,6 +516,233 @@ class _WikiEmbedBuilder extends MarkdownElementBuilder {
   }
 }
 
+/* ──────────────────── HTML ──────────────────── */
+
+/// Horizontal rule; parchment draws a `❦` ornament.
+class _RuleBuilder extends MarkdownElementBuilder {
+  @override
+  bool isBlockElement() => true;
+
+  @override
+  Widget? visitElementAfterWithContext(
+    BuildContext context,
+    md.Element element,
+    TextStyle? preferredStyle,
+    TextStyle? parentStyle,
+  ) {
+    final look = ReaderLook.of(context);
+    final line = Expanded(child: Divider(color: look.border, thickness: 1));
+    if (!look.chrome.ornamentRule) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(children: [line]),
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      child: Row(
+        children: [
+          line,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              '❦',
+              style: TextStyle(fontSize: 20, color: look.quoteBorder),
+            ),
+          ),
+          line,
+        ],
+      ),
+    );
+  }
+}
+
+/// `<kbd>Ctrl</kbd>`: a small key cap.
+class _KbdBuilder extends MarkdownElementBuilder {
+  @override
+  Widget? visitElementAfterWithContext(
+    BuildContext context,
+    md.Element element,
+    TextStyle? preferredStyle,
+    TextStyle? parentStyle,
+  ) {
+    final base = parentStyle ?? DefaultTextStyle.of(context).style;
+    final colors = Theme.of(context).colorScheme;
+    final fontSize = (base.fontSize ?? 16) * 0.82;
+    return Text.rich(
+      WidgetSpan(
+        alignment: PlaceholderAlignment.middle,
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 1),
+          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+          decoration: BoxDecoration(
+            color: colors.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(color: colors.outlineVariant),
+            boxShadow: [
+              BoxShadow(color: colors.outline, offset: const Offset(0, 1.5)),
+            ],
+          ),
+          child: Text(
+            element.textContent,
+            style: base.copyWith(
+              fontFamily: 'monospace',
+              fontSize: fontSize,
+              height: 1.3,
+              color: colors.onSurface,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// `<img src="…" width="200">`, shown like a Markdown image.
+class _HtmlImageBuilder extends MarkdownElementBuilder {
+  @override
+  Widget? visitElementAfterWithContext(
+    BuildContext context,
+    md.Element element,
+    TextStyle? preferredStyle,
+    TextStyle? parentStyle,
+  ) {
+    final config = NoteMarkdownScope.of(context);
+    final uri = Uri.tryParse(element.attributes['src'] ?? '');
+    if (uri == null) return const SizedBox.shrink();
+    final image = config.imageBuilder(
+      uri,
+      element.attributes['title'],
+      element.attributes['alt'],
+    );
+    double? size(String name) => double.tryParse(
+      (element.attributes[name] ?? '').replaceFirst(RegExp(r'px$'), ''),
+    );
+    final width = size('width');
+    final height = size('height');
+    if (width == null && height == null) return image;
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: width ?? double.infinity,
+        maxHeight: height ?? double.infinity,
+      ),
+      child: image,
+    );
+  }
+}
+
+/// `<details><summary>…</summary>…</details>`: a fold-out section.
+class _HtmlDetailsBuilder extends MarkdownElementBuilder {
+  @override
+  bool isBlockElement() => true;
+
+  @override
+  Widget? visitElementAfterWithContext(
+    BuildContext context,
+    md.Element element,
+    TextStyle? preferredStyle,
+    TextStyle? parentStyle,
+  ) {
+    return HtmlDetailsView(
+      summary: element.attributes['summary'] ?? '',
+      body: element.attributes['body'] ?? '',
+      initiallyOpen: element.attributes['open'] == 'true',
+    );
+  }
+}
+
+/// Wrapper HTML (`<div>`, `<p align="center">` …) shown as its content.
+class _HtmlBlockBuilder extends MarkdownElementBuilder {
+  @override
+  bool isBlockElement() => true;
+
+  @override
+  Widget? visitElementAfterWithContext(
+    BuildContext context,
+    md.Element element,
+    TextStyle? preferredStyle,
+    TextStyle? parentStyle,
+  ) {
+    final body = NoteMarkdownScope.of(
+      context,
+    ).body(element.attributes['markdown'] ?? '');
+    if (element.attributes['center'] != 'true') return body;
+    return Align(
+      child: DefaultTextStyle.merge(textAlign: TextAlign.center, child: body),
+    );
+  }
+}
+
+class HtmlDetailsView extends StatefulWidget {
+  const HtmlDetailsView({
+    required this.summary,
+    required this.body,
+    required this.initiallyOpen,
+    super.key,
+  });
+
+  final String summary;
+  final String body;
+  final bool initiallyOpen;
+
+  @override
+  State<HtmlDetailsView> createState() => _HtmlDetailsViewState();
+}
+
+class _HtmlDetailsViewState extends State<HtmlDetailsView> {
+  late bool _open = widget.initiallyOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final config = NoteMarkdownScope.of(context);
+    final colors = Theme.of(context).colorScheme;
+    final summary = widget.summary.isEmpty ? '詳細內容' : widget.summary;
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      decoration: BoxDecoration(
+        color: ReaderLook.of(context).cardBackground,
+        border: Border.all(color: colors.outlineVariant),
+        borderRadius: BorderRadius.circular(ReaderLook.of(context).radius + 2),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Semantics(
+            button: true,
+            expanded: _open,
+            child: InkWell(
+              onTap: () => setState(() => _open = !_open),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(8, 8, 12, 8),
+                child: Row(
+                  children: [
+                    AnimatedRotation(
+                      turns: _open ? 0.25 : 0,
+                      duration: const Duration(milliseconds: 150),
+                      child: Icon(
+                        Icons.chevron_right_rounded,
+                        color: colors.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Expanded(child: config.body(summary)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          if (_open && widget.body.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: config.body(widget.body),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 /* ──────────────────── Widgets ──────────────────── */
 
 /// Source state of every task plus the user's unsaved toggles.
@@ -563,18 +791,9 @@ class TaskCheckbox extends StatelessWidget {
       listenable: store,
       builder: (context, _) {
         final value = store.valueOf(index);
-        return Semantics(
+        return ThemedCheckBox(
           checked: value,
-          child: SizedBox(
-            width: 28,
-            height: 28,
-            child: Checkbox(
-              value: value,
-              visualDensity: VisualDensity.compact,
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              onChanged: (next) => store.set(index, next ?? false),
-            ),
-          ),
+          onChanged: () => store.set(index, !value),
         );
       },
     );
@@ -587,14 +806,61 @@ class _StaticTaskBox extends StatelessWidget {
   final bool checked;
 
   @override
+  Widget build(BuildContext context) => ThemedCheckBox(checked: checked);
+}
+
+/// Task checkbox drawn in the palette's style: a square, a rounded square
+/// or an iOS-style circle.
+class ThemedCheckBox extends StatelessWidget {
+  const ThemedCheckBox({required this.checked, this.onChanged, super.key});
+
+  final bool checked;
+
+  /// `null` for read-only boxes (embeds, callouts).
+  final VoidCallback? onChanged;
+
+  @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.only(top: 4),
-      child: Icon(
-        checked ? Icons.check_box : Icons.check_box_outline_blank,
-        size: 20,
-        color: checked ? colors.primary : colors.onSurfaceVariant,
+    final look = ReaderLook.of(context);
+    final chrome = look.chrome;
+    final fill = chrome.checkedColor ?? look.primary;
+    const size = 18.0;
+    final shape = switch (chrome.check) {
+      CheckLook.circle => const CircleBorder(),
+      CheckLook.rounded => RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(4),
+      ),
+      CheckLook.square => RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(2),
+      ),
+    };
+    final onFill = fill.computeLuminance() > 0.45
+        ? const Color(0xFF111111)
+        : Colors.white;
+    final box = AnimatedContainer(
+      duration: const Duration(milliseconds: 120),
+      width: size,
+      height: size,
+      decoration: ShapeDecoration(
+        color: checked ? fill : null,
+        shape: shape.copyWith(
+          side: BorderSide(
+            color: checked ? fill : look.muted,
+            width: chrome.check == CheckLook.circle ? 1.6 : 1.4,
+          ),
+        ),
+      ),
+      child: checked
+          ? Icon(Icons.check_rounded, size: size - 4, color: onFill)
+          : null,
+    );
+    return Semantics(
+      checked: checked,
+      enabled: onChanged != null,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onChanged,
+        child: SizedBox(width: 28, height: 28, child: Center(child: box)),
       ),
     );
   }
@@ -855,52 +1121,108 @@ class _CalloutViewState extends State<CalloutView> {
     final (icon, accent) = _calloutStyles[_category]!;
     final dark = Theme.of(context).brightness == Brightness.dark;
     final collapsible = widget.fold.isNotEmpty;
+    final look = ReaderLook.of(context);
+    final style = look.chrome.callout;
+    final titleColor = style == CalloutLook.plain ? look.text : accent;
     final titleStyle = Theme.of(context).textTheme.titleSmall?.copyWith(
-      color: accent,
-      fontWeight: FontWeight.w700,
+      color: titleColor,
+      fontWeight: style == CalloutLook.inset
+          ? FontWeight.w600
+          : FontWeight.w700,
     );
+
+    // Windows 11 InfoBar puts the icon in a filled circle.
+    final iconWidget = style == CalloutLook.infoBar
+        ? Container(
+            width: 22,
+            height: 22,
+            decoration: BoxDecoration(color: accent, shape: BoxShape.circle),
+            child: Icon(icon, size: 14, color: Colors.white),
+          )
+        : Icon(icon, size: 20, color: accent);
 
     final header = Row(
       children: [
-        Icon(icon, size: 20, color: accent),
+        iconWidget,
         const SizedBox(width: 8),
         Expanded(child: Text(_title, style: titleStyle)),
         if (collapsible)
           AnimatedRotation(
             turns: _expanded ? 0.25 : 0,
             duration: const Duration(milliseconds: 150),
-            child: Icon(Icons.chevron_right, size: 20, color: accent),
+            child: Icon(Icons.chevron_right, size: 20, color: titleColor),
           ),
       ],
     );
 
+    final tint = accent.withValues(alpha: dark ? 0.16 : 0.09);
+    final (radius, decoration) = switch (style) {
+      CalloutLook.edge => (
+        BorderRadius.circular(look.radius),
+        BoxDecoration(
+          color: tint,
+          borderRadius: BorderRadius.circular(look.radius),
+          border: Border(left: BorderSide(color: accent, width: 3)),
+        ),
+      ),
+      CalloutLook.soft => (
+        BorderRadius.circular(4),
+        BoxDecoration(
+          color: accent.withValues(alpha: dark ? 0.14 : 0.1),
+          borderRadius: BorderRadius.circular(4),
+        ),
+      ),
+      CalloutLook.plain => (
+        BorderRadius.circular(4),
+        BoxDecoration(
+          color: dark ? const Color(0xFF252525) : const Color(0xFFF1F1EF),
+          borderRadius: BorderRadius.circular(4),
+        ),
+      ),
+      CalloutLook.infoBar => (
+        BorderRadius.circular(8),
+        BoxDecoration(
+          color: Color.lerp(
+            look.cardBackground ?? look.background,
+            accent,
+            dark ? 0.12 : 0.06,
+          ),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: accent.withValues(alpha: 0.35)),
+        ),
+      ),
+      CalloutLook.inset => (
+        BorderRadius.circular(14),
+        BoxDecoration(
+          color: accent.withValues(alpha: dark ? 0.18 : 0.08),
+          borderRadius: BorderRadius.circular(14),
+        ),
+      ),
+    };
+    final pad = style == CalloutLook.inset ? 14.0 : 12.0;
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
-      decoration: BoxDecoration(
-        color: accent.withValues(alpha: dark ? 0.16 : 0.09),
-        borderRadius: BorderRadius.circular(10),
-        border: Border(left: BorderSide(color: accent, width: 3)),
-      ),
+      decoration: decoration,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (collapsible)
             InkWell(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: radius,
               onTap: () => setState(() => _expanded = !_expanded),
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                padding: EdgeInsets.fromLTRB(pad, 10, pad, 10),
                 child: header,
               ),
             )
           else
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
+              padding: EdgeInsets.fromLTRB(pad, 10, pad, 4),
               child: header,
             ),
           if (_expanded && widget.body.trim().isNotEmpty)
             Padding(
-              padding: EdgeInsets.fromLTRB(12, collapsible ? 0 : 2, 12, 10),
+              padding: EdgeInsets.fromLTRB(pad, collapsible ? 0 : 2, pad, 10),
               child: config.body(widget.body),
             ),
         ],
@@ -1095,64 +1417,115 @@ class CodeBlockView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colors = theme.colorScheme;
     final dark = theme.brightness == Brightness.dark;
+    final look = ReaderLook.of(context);
+    final style = look.chrome.code;
     final codeStyle = TextStyle(
       fontFamily: 'monospace',
       fontFamilyFallback: const ['Menlo', 'Roboto Mono', 'Courier'],
       fontSize: 13.5,
       height: 1.5,
-      color: dark ? const Color(0xFFE6EDF3) : const Color(0xFF1F2328),
+      color: look.text,
     );
+    final label = Text(
+      language.isEmpty
+          ? (style == CodeLook.label ? 'Plain Text' : 'text')
+          : language,
+      style: theme.textTheme.labelSmall?.copyWith(
+        color: look.muted,
+        fontWeight: style == CodeLook.card ? FontWeight.w600 : null,
+      ),
+    );
+    final copy = IconButton(
+      tooltip: '複製程式碼',
+      visualDensity: VisualDensity.compact,
+      iconSize: 18,
+      color: look.muted,
+      onPressed: () async {
+        await Clipboard.setData(ClipboardData(text: source));
+        if (!context.mounted) return;
+        ScaffoldMessenger.maybeOf(context)
+          ?..hideCurrentSnackBar()
+          ..showSnackBar(const SnackBar(content: Text('已複製程式碼')));
+      },
+      icon: const Icon(Icons.copy_rounded),
+    );
+    final code = SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: EdgeInsets.fromLTRB(
+        16,
+        style == CodeLook.framed || style == CodeLook.card ? 10 : 0,
+        16,
+        14,
+      ),
+      child: Text.rich(
+        TextSpan(
+          style: codeStyle,
+          children: _highlight(source, language, dark),
+        ),
+        softWrap: false,
+      ),
+    );
+
+    // Header: label and copy button, arranged per palette.
+    final header = switch (style) {
+      // Obsidian: no visible header, language and copy in the corner.
+      CodeLook.flat => Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [label, copy],
+      ),
+      _ => Padding(
+        padding: const EdgeInsets.only(left: 14),
+        child: Row(
+          children: [
+            Expanded(child: label),
+            copy,
+          ],
+        ),
+      ),
+    };
+    final separated = style == CodeLook.framed || style == CodeLook.card;
+    final radius = switch (style) {
+      CodeLook.framed => look.radius,
+      CodeLook.flat || CodeLook.label => 4.0,
+      CodeLook.card => 8.0,
+      CodeLook.inset => 12.0,
+    };
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: dark ? const Color(0xFF161B22) : const Color(0xFFF6F8FA),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: colors.outlineVariant.withValues(alpha: 0.5)),
+        color: look.codeBackground,
+        borderRadius: BorderRadius.circular(radius),
+        border: style == CodeLook.framed || style == CodeLook.card
+            ? Border.all(color: look.codeBorder)
+            : null,
+        boxShadow: style == CodeLook.card
+            ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: dark ? 0.2 : 0.05),
+                  blurRadius: 2,
+                  offset: const Offset(0, 1),
+                ),
+              ]
+            : null,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 2, 2, 0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    language.isEmpty ? 'text' : language,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: colors.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  tooltip: '複製程式碼',
-                  visualDensity: VisualDensity.compact,
-                  iconSize: 18,
-                  onPressed: () async {
-                    await Clipboard.setData(ClipboardData(text: source));
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.maybeOf(context)
-                      ?..hideCurrentSnackBar()
-                      ..showSnackBar(const SnackBar(content: Text('已複製程式碼')));
-                  },
-                  icon: const Icon(Icons.copy_rounded),
-                ),
-              ],
-            ),
-          ),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
-            child: Text.rich(
-              TextSpan(
-                style: codeStyle,
-                children: _highlight(source, language, dark),
+          if (separated)
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: style == CodeLook.card
+                    ? Color.lerp(look.codeBackground, look.border, 0.25)
+                    : null,
+                border: Border(bottom: BorderSide(color: look.codeBorder)),
               ),
-              softWrap: false,
-            ),
-          ),
+              child: header,
+            )
+          else
+            header,
+          code,
         ],
       ),
     );

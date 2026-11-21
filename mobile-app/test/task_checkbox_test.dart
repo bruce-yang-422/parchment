@@ -36,13 +36,13 @@ Future<TaskStateStore> pumpNote(WidgetTester tester, String markdown) async {
 }
 
 bool checkboxValue(WidgetTester tester, int index) => tester
-    .widget<Checkbox>(
+    .widget<ThemedCheckBox>(
       find.descendant(
         of: find.byKey(ValueKey('task-$index')),
-        matching: find.byType(Checkbox),
+        matching: find.byType(ThemedCheckBox),
       ),
     )
-    .value!;
+    .checked;
 
 void main() {
   testWidgets('工作清單可勾選，且巢狀項目各自對應', (tester) async {
