@@ -284,15 +284,31 @@ class MainActivity : FlutterActivity() {
     private fun stat(uri: Uri): Map<String, Any?> {
         var size: Long? = null
         var modified: Long? = null
+        var storagePath: String? = null
+        var absolutePath: String? = null
         try {
             contentResolver.query(uri, null, null, null, null)?.use { cursor ->
                 if (cursor.moveToFirst()) {
-                    val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
-                    if (sizeIndex >= 0 && !cursor.isNull(sizeIndex)) size = cursor.getLong(sizeIndex)
-                    val modifiedIndex =
-                        cursor.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
-                    if (modifiedIndex >= 0 && !cursor.isNull(modifiedIndex)) {
-                        modified = cursor.getLong(modifiedIndex)
+                    fun text(column: String): String? {
+                        val index = cursor.getColumnIndex(column)
+                        return if (index >= 0 && !cursor.isNull(index)) cursor.getString(index) else null
+                    }
+                    fun number(column: String): Long? {
+                        val index = cursor.getColumnIndex(column)
+                        return if (index >= 0 && !cursor.isNull(index)) cursor.getLong(index) else null
+                    }
+                    size = number(OpenableColumns.SIZE)
+                    modified = number(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
+                        // MediaStore (files opened from a file manager) uses seconds.
+                        ?: number("date_modified")?.let { it * 1000 }
+                    // MediaStore path below the storage root, e.g.
+                    // `Documents/Notes/` + `a.md`, or the legacy absolute path.
+                    val relative = text("relative_path")
+                    val name = text("_display_name")
+                    absolutePath = text("_data")?.takeIf { it.startsWith("/") }
+                    storagePath = when {
+                        relative != null && name != null -> relative + name
+                        else -> absolutePath?.removePrefix("/storage/emulated/0/")
                     }
                 }
             }
@@ -309,6 +325,8 @@ class MainActivity : FlutterActivity() {
             "modified" to modified,
             "documentId" to documentId,
             "authority" to uri.authority,
+            "storagePath" to storagePath,
+            "absolutePath" to absolutePath,
         )
     }
 

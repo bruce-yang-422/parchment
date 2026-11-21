@@ -99,7 +99,10 @@ void main() {
       );
       expect(nodes.first.tag, 'html-block');
       expect(nodes.first.attributes['center'], 'true');
-      expect(nodes.first.attributes['markdown'], '<img src="logo.png" width="80">');
+      expect(
+        nodes.first.attributes['markdown'],
+        '<img src="logo.png" width="80">',
+      );
       expect(nodes.last.textContent, '內文');
     });
 

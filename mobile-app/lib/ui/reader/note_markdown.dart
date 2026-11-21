@@ -12,6 +12,7 @@ import '../../core/markdown/frontmatter.dart';
 import '../../core/markdown/note_syntax.dart';
 import '../../infrastructure/diagram_render_service.dart';
 import '../theme/parchment_theme.dart';
+import 'callout_styles.dart';
 import 'diagram_view.dart';
 
 /// Resolves wiki links and embeds against the opened folder.
@@ -1063,22 +1064,6 @@ const _calloutAliases = {
   'cite': 'quote',
 };
 
-const _calloutStyles = <String, (IconData, Color)>{
-  'note': (Icons.edit_note, Color(0xFF2F6FDB)),
-  'abstract': (Icons.subject, Color(0xFF13A3B5)),
-  'info': (Icons.info_outline, Color(0xFF2F6FDB)),
-  'todo': (Icons.check_circle_outline, Color(0xFF2F6FDB)),
-  'tip': (Icons.local_fire_department_outlined, Color(0xFF0E9AA7)),
-  'success': (Icons.check, Color(0xFF2E9D57)),
-  'question': (Icons.help_outline, Color(0xFFD98A1B)),
-  'warning': (Icons.warning_amber_rounded, Color(0xFFD98A1B)),
-  'failure': (Icons.close, Color(0xFFD9473F)),
-  'danger': (Icons.bolt, Color(0xFFD9473F)),
-  'bug': (Icons.bug_report_outlined, Color(0xFFD9473F)),
-  'example': (Icons.format_list_bulleted, Color(0xFF8B5CD6)),
-  'quote': (Icons.format_quote, Color(0xFF8A8F98)),
-};
-
 class CalloutView extends StatefulWidget {
   const CalloutView({
     required this.type,
@@ -1104,7 +1089,7 @@ class _CalloutViewState extends State<CalloutView> {
 
   String get _category {
     final type = _calloutAliases[widget.type] ?? widget.type;
-    return _calloutStyles.containsKey(type) ? type : 'note';
+    return calloutCategories.contains(type) ? type : 'note';
   }
 
   String get _title {
@@ -1118,33 +1103,33 @@ class _CalloutViewState extends State<CalloutView> {
   @override
   Widget build(BuildContext context) {
     final config = NoteMarkdownScope.of(context);
-    final (icon, accent) = _calloutStyles[_category]!;
     final dark = Theme.of(context).brightness == Brightness.dark;
     final collapsible = widget.fold.isNotEmpty;
     final look = ReaderLook.of(context);
     final style = look.chrome.callout;
-    final titleColor = style == CalloutLook.plain ? look.text : accent;
+    final visual = calloutVisual(style, _category, dark);
+    final accent = visual.accent;
+    // Notion and Windows 11 write the title in the text colour.
+    final titleColor =
+        style == CalloutLook.plain || style == CalloutLook.infoBar
+        ? look.text
+        : accent;
     final titleStyle = Theme.of(context).textTheme.titleSmall?.copyWith(
       color: titleColor,
+      fontFamily: look.chrome.headingFamily,
       fontWeight: style == CalloutLook.inset
           ? FontWeight.w600
           : FontWeight.w700,
     );
 
-    // Windows 11 InfoBar puts the icon in a filled circle.
-    final iconWidget = style == CalloutLook.infoBar
-        ? Container(
-            width: 22,
-            height: 22,
-            decoration: BoxDecoration(color: accent, shape: BoxShape.circle),
-            child: Icon(icon, size: 14, color: Colors.white),
-          )
-        : Icon(icon, size: 20, color: accent);
+    final iconWidget = visual.emoji != null
+        ? Text(visual.emoji!, style: const TextStyle(fontSize: 18, height: 1.2))
+        : Icon(visual.icon, size: 20, color: accent);
 
     final header = Row(
       children: [
         iconWidget,
-        const SizedBox(width: 8),
+        SizedBox(width: style == CalloutLook.plain ? 10 : 8),
         Expanded(child: Text(_title, style: titleStyle)),
         if (collapsible)
           AnimatedRotation(
@@ -1175,20 +1160,16 @@ class _CalloutViewState extends State<CalloutView> {
       CalloutLook.plain => (
         BorderRadius.circular(4),
         BoxDecoration(
-          color: dark ? const Color(0xFF252525) : const Color(0xFFF1F1EF),
+          color: visual.background,
           borderRadius: BorderRadius.circular(4),
         ),
       ),
       CalloutLook.infoBar => (
         BorderRadius.circular(8),
         BoxDecoration(
-          color: Color.lerp(
-            look.cardBackground ?? look.background,
-            accent,
-            dark ? 0.12 : 0.06,
-          ),
+          color: visual.background,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: accent.withValues(alpha: 0.35)),
+          border: Border.all(color: look.border),
         ),
       ),
       CalloutLook.inset => (

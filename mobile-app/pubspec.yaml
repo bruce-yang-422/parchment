@@ -18,6 +18,9 @@ dependencies:
   android_file_picker: 2.2.0
   shared_preferences: ^2.5.6
   url_launcher: ^6.3.3
+  crypto: ^3.0.6
+  google_fonts: ^9.0.0
+  path_provider: ^2.1.6
 
 dev_dependencies:
   flutter_test:
@@ -31,6 +34,39 @@ flutter:
     - assets/diagram/
     - assets/diagram/vendor/
     - assets/branding/
+    - assets/fonts/LICENSES.txt
+    - assets/fonts/taipei-sans/OFL.txt
+    - assets/fonts/huninn/LICENSE.txt
+    - assets/fonts/iansui/OFL.txt
+    - assets/fonts/naikai/OFL.txt
+    - assets/fonts/genjyuu/OFL.txt
+    - assets/fonts/line-seed-jp/OFL.txt
+    - assets/fonts/pretendard/OFL.txt
+
+  # Bundled reading fonts (SIL Open Font License 1.1, unmodified). The
+  # Google Fonts choices are downloaded when picked; see reader_fonts.dart.
+  fonts:
+    - family: TaipeiSansTC
+      fonts:
+        - asset: assets/fonts/taipei-sans/TaipeiSansTCBeta-Regular.ttf
+    - family: jfOpenHuninn
+      fonts:
+        - asset: assets/fonts/huninn/jf-openhuninn-2.1.ttf
+    - family: Iansui
+      fonts:
+        - asset: assets/fonts/iansui/Iansui-Regular.ttf
+    - family: NaikaiFont
+      fonts:
+        - asset: assets/fonts/naikai/NaikaiFont-Regular-Lite.ttf
+    - family: GenJyuuGothic
+      fonts:
+        - asset: assets/fonts/genjyuu/GenJyuuGothic-Regular.ttf
+    - family: LINESeedJP
+      fonts:
+        - asset: assets/fonts/line-seed-jp/LINESeedJP-Regular.otf
+    - family: Pretendard
+      fonts:
+        - asset: assets/fonts/pretendard/Pretendard-Regular.otf
 
 # Launcher icons: python tool/make_icons.py && dart run flutter_launcher_icons
 flutter_launcher_icons:

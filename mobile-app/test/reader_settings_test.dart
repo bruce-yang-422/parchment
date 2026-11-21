@@ -28,7 +28,7 @@ void main() {
       textScale: 1.2,
       lineHeight: 2,
       locale: ReaderLocale.ja,
-      cjkFont: ReaderCjkFont.ming,
+      cjkFont: ReaderCjkFont.huninn,
       latinFont: ReaderLatinFont.serif,
       palette: ReaderPalette.lake,
     );
@@ -49,6 +49,27 @@ void main() {
     expect(restored.lineHeight, 1.75);
     expect(restored.palette, ReaderPalette.parchment);
     expect(restored.locale, ReaderLocale.ko);
+    // Font names saved by older versions map to their replacements.
+    expect(
+      ReaderSettings.fromJson({'cjkFont': 'kai'}).cjkFont,
+      ReaderCjkFont.wenkai,
+    );
+    expect(
+      ReaderSettings.fromJson({'cjkFont': 'jhenghei'}).cjkFont,
+      ReaderCjkFont.notoSans,
+    );
+    // Fonts removed from the app fall back to a close or default choice.
+    expect(
+      ReaderSettings.fromJson({'cjkFont': 'taipeiSans'}).cjkFont,
+      ReaderCjkFont.taipeiSans,
+    );
+    expect(
+      ReaderSettings.fromJson({'cjkFont': 'seto'}).cjkFont,
+      ReaderCjkFont.system,
+    );
+    // Every language starts with the system font; the font list shows a
+    // sample of each choice.
+    expect(const ReaderSettings().cjkFont, ReaderCjkFont.system);
     expect(
       ReaderSettings.fromJson('not a map').palette,
       ReaderPalette.parchment,

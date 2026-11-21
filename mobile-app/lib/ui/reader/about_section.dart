@@ -2,17 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../app/app_info.dart';
+import '../localization/reader_strings.dart';
 import 'open_source_licenses_page.dart';
 
-/// "關於 Parchment" block at the bottom of the settings sheet.
+/// "About Parchment" block at the bottom of the settings sheet, in the
+/// interface language.
 class AboutSection extends StatelessWidget {
-  const AboutSection({super.key});
+  const AboutSection({required this.strings, super.key});
+
+  final ReaderStrings strings;
 
   Future<void> _open(BuildContext context, Uri uri) async {
     final messenger = ScaffoldMessenger.maybeOf(context);
     final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!opened) {
-      messenger?.showSnackBar(SnackBar(content: Text('無法開啟網頁')));
+      messenger?.showSnackBar(SnackBar(content: Text(strings.cannotOpenPage)));
     }
   }
 
@@ -25,7 +29,7 @@ class AboutSection extends StatelessWidget {
       child: Row(
         children: [
           SizedBox(
-            width: 84,
+            width: MediaQuery.textScalerOf(context).scale(96),
             child: Text(
               label,
               style: theme.textTheme.bodyMedium?.copyWith(
@@ -71,11 +75,11 @@ class AboutSection extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '關於 ${AppInfo.name}',
+                    strings.about(AppInfo.name),
                     style: theme.textTheme.titleMedium,
                   ),
                   Text(
-                    '在手機上閱讀 .md 與 .txt 文件',
+                    strings.aboutTagline,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: colors.onSurfaceVariant,
                     ),
@@ -86,13 +90,17 @@ class AboutSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 12),
-        row('版本', AppInfo.version),
-        row('最後更新', AppInfo.lastUpdated),
-        row('作者', AppInfo.author),
-        row('授權', '免費使用（${AppInfo.license} 授權）'),
+        row(strings.version, AppInfo.version),
+        row(strings.lastUpdated, AppInfo.lastUpdated),
+        row(strings.author, AppInfo.author),
+        row(strings.licenseLabel, strings.licenseValue(AppInfo.license)),
         const SizedBox(height: 4),
-        link(Icons.public, '官方網站', AppInfo.website),
-        link(Icons.privacy_tip_outlined, '隱私權政策', AppInfo.privacy),
+        link(Icons.public, strings.website, AppInfo.website),
+        link(
+          Icons.privacy_tip_outlined,
+          strings.privacyPolicy,
+          AppInfo.privacy,
+        ),
         ListTile(
           contentPadding: EdgeInsets.zero,
           dense: true,
@@ -102,7 +110,7 @@ class AboutSection extends StatelessWidget {
             size: 20,
             color: colors.primary,
           ),
-          title: const Text('使用的開放原始碼元件'),
+          title: Text(strings.openSourceComponents),
           trailing: Icon(
             Icons.chevron_right,
             size: 20,
@@ -110,7 +118,7 @@ class AboutSection extends StatelessWidget {
           ),
           onTap: () => Navigator.of(context).push(
             MaterialPageRoute<void>(
-              builder: (_) => const OpenSourceLicensesPage(),
+              builder: (_) => OpenSourceLicensesPage(strings: strings),
             ),
           ),
         ),

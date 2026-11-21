@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
+import '../../core/markdown/wiki_paths.dart';
 import '../../core/models/local_document.dart';
 import '../../core/models/note_folder.dart';
 import '../../core/models/reader_preferences.dart';
@@ -173,7 +174,7 @@ class ReaderController extends ChangeNotifier {
 
   /// Platform metadata (size, modified time, location) of the open file.
   Future<DocumentStat?> statDocument() async {
-    final uri = _document?.sourceUri;
+    final uri = _document?.originUri;
     final inspector = _inspector;
     if (uri == null || inspector == null) return null;
     try {
@@ -430,11 +431,7 @@ class ReaderController extends ChangeNotifier {
   /// (for paths such as `../image/logo.png` that point outside the folder).
   FolderEntry? resolveLink(String href, {bool markdown = false}) {
     var path = href.split('#').first.split('?').first;
-    try {
-      path = Uri.decodeComponent(path);
-    } on ArgumentError {
-      // Keep the raw path.
-    }
+    path = decodePercent(path);
     if (path.isEmpty) return null;
     final name = path.split('/').where((part) => part.isNotEmpty).lastOrNull;
     return resolveRelative(path) ??

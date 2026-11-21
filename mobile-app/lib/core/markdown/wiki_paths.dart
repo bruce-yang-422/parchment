@@ -2,6 +2,8 @@
 /// web reader's `noteSyntax.js` so both resolve links the same way.
 library;
 
+import 'dart:convert';
+
 import 'frontmatter.dart';
 
 /// Resolves a wiki link target:
@@ -9,6 +11,22 @@ import 'frontmatter.dart';
 /// 3. by file name anywhere (same folder first, then the shortest path).
 ///
 /// With [markdown], a target without an extension also tries `.md`.
+/// Decodes valid `%XX` escapes (UTF-8) and leaves everything else as it is.
+///
+/// [Uri.decodeComponent] throws on text that is already decoded, such as
+/// `筆記.md`, and on a lone `%` (`100%`); links in notes often mix both.
+String decodePercent(String value) {
+  if (!value.contains('%')) return value;
+  return value.replaceAllMapped(RegExp(r'(?:%[0-9A-Fa-f]{2})+'), (match) {
+    final escaped = match.group(0)!;
+    final bytes = [
+      for (var i = 0; i < escaped.length; i += 3)
+        int.parse(escaped.substring(i + 1, i + 3), radix: 16),
+    ];
+    return utf8.decode(bytes, allowMalformed: true);
+  });
+}
+
 List<String>? resolveWikiPath(
   String target,
   List<String> sourcePath,
@@ -16,11 +34,7 @@ List<String>? resolveWikiPath(
   bool markdown = false,
 }) {
   var value = target.trim().replaceFirst(RegExp(r'^/+'), '');
-  try {
-    value = Uri.decodeComponent(value);
-  } on ArgumentError {
-    // Keep the raw value.
-  }
+  value = decodePercent(value);
   if (value.isEmpty) return null;
 
   final byKey = {for (final path in filePaths) _key(path): path};

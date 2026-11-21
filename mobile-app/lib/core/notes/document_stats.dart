@@ -53,12 +53,6 @@ class DocumentStats {
 
   int get words => cjkCharacters + latinWords;
 
-  /// About 400 CJK characters or 200 English words per minute.
-  Duration get readingTime {
-    final minutes = cjkCharacters / 400 + latinWords / 200;
-    return Duration(seconds: (minutes * 60).round());
-  }
-
   static final _cjk = RegExp(r'[぀-ヿ㐀-䶿一-鿿가-힯豈-﫿]');
   static final _latinWord = RegExp(r"[A-Za-z0-9À-ɏ]+(?:['’][A-Za-z]+)*");
 

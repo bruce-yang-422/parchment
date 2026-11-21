@@ -119,13 +119,24 @@ List<String> noteTags(String content) {
       add(part.trim().replaceAll(RegExp(r'''^['"]|['"]$'''), ''));
     }
   }
-  final withoutTagHeadings = body.replaceAll(
-    RegExp(r'^##[ \t]+tags[ \t]*:.*$', caseSensitive: false, multiLine: true),
-    '',
-  );
+  // Inline `#tags` as Obsidian reads them: only after a space or at the
+  // start of a line, never inside links (`[[筆記#標題]]`, `(a.md#b)`) or code.
+  final withoutTagHeadings = body
+      .replaceAll(
+        RegExp(
+          r'^##[ \t]+tags[ \t]*:.*$',
+          caseSensitive: false,
+          multiLine: true,
+        ),
+        '',
+      )
+      .replaceAll(RegExp(r'!?\[\[[^\]\n]*\]\]'), ' ')
+      .replaceAll(RegExp(r'\]\([^)\n]*\)'), ']')
+      .replaceAll(RegExp(r'`[^`\n]*`'), ' ');
   for (final match in RegExp(
-    r'(?<![\w/#&])#([\p{L}\p{N}_-]*[\p{L}_-][\p{L}\p{N}_-]*)',
+    r'(?<=^|\s)#([\p{L}\p{N}_-]*[\p{L}_-][\p{L}\p{N}_-]*)',
     unicode: true,
+    multiLine: true,
   ).allMatches(withoutTagHeadings)) {
     add(match.group(1)!);
   }

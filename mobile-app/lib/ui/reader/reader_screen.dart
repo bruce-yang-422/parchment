@@ -22,11 +22,19 @@ import '../../infrastructure/diagram_render_service.dart';
 import '../../platform/platform_profile.dart';
 import '../localization/reader_strings.dart';
 import '../theme/parchment_theme.dart';
+import '../theme/reader_fonts.dart';
 import 'about_section.dart';
 import 'document_info_sheet.dart';
 import 'notes_sheet.dart';
 import 'readable_table.dart';
 import 'note_markdown.dart';
+
+/// While one document replaces another, the old and the new list are both
+/// attached for a moment and [ScrollController.position] throws; this
+/// returns the newest position instead, or `null` when none is attached.
+extension on ScrollController {
+  ScrollPosition? get current => positions.isEmpty ? null : positions.last;
+}
 
 class ReaderScreen extends StatefulWidget {
   const ReaderScreen({required this.controller, super.key});
@@ -181,9 +189,38 @@ class _ReaderScreenState extends State<ReaderScreen> {
                         lineHeight: controller.lineHeight,
                         cjkFont: controller.cjkFont,
                         latinFont: controller.latinFont,
+                        locale: controller.locale,
                       ),
               ),
-              const Positioned(left: 0, bottom: 0, child: DiagramRenderHost()),
+              // Floating layers get a fixed size: if one ever fails to
+              // build, its error box must not grow over the whole screen
+              // and swallow every tap.
+              const Positioned(
+                left: 0,
+                bottom: 0,
+                width: 1,
+                height: 1,
+                child: DiagramRenderHost(),
+              ),
+              if (document != null)
+                Positioned(
+                  right: 16,
+                  bottom: 16,
+                  width: 44,
+                  // Room for the button, its lift above the unsaved-tasks
+                  // bar and the system navigation inset.
+                  height: 44 + 64 + 48,
+                  child: Align(
+                    alignment: Alignment.bottomRight,
+                    child: SafeArea(
+                      top: false,
+                      child: _BackToTopButton(
+                        controller: _scrollController,
+                        taskStore: taskStore,
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
           bottomNavigationBar: _ReaderToolbar(
@@ -318,11 +355,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
     final hash = href.indexOf('#');
     final path = hash >= 0 ? href.substring(0, hash) : href;
     var heading = hash >= 0 ? href.substring(hash + 1) : '';
-    try {
-      heading = Uri.decodeComponent(heading);
-    } on ArgumentError {
-      // Keep the raw fragment.
-    }
+    heading = decodePercent(heading);
     final current = controller.document!;
     if (path.isEmpty) {
       if (heading.isNotEmpty) _scrollToHeadingText(current, heading);
@@ -379,7 +412,7 @@ class _ReaderScreenState extends State<ReaderScreen> {
     if (entry == null) {
       final name = uri.scheme == 'parchment-wiki'
           ? uri.queryParameters['target'] ?? ''
-          : Uri.decodeComponent(uri.path);
+          : decodePercent(uri.path);
       return Future.error(_ImageNotFound(name));
     }
     return controller.readFolderFile(entry);
@@ -485,7 +518,9 @@ class _ReaderScreenState extends State<ReaderScreen> {
     final ratio = heading.offset / document.content.length.clamp(1, 1 << 30);
     await WidgetsBinding.instance.endOfFrame;
     for (var attempt = 0; attempt < 40; attempt++) {
-      if (!mounted || !_scrollController.hasClients) return;
+      if (!mounted) return;
+      final position = _scrollController.current;
+      if (position == null) return;
       final found = _findHeading(heading.title, occurrence);
       if (found != null && found.mounted) {
         await Scrollable.ensureVisible(
@@ -495,7 +530,6 @@ class _ReaderScreenState extends State<ReaderScreen> {
         );
         return;
       }
-      final position = _scrollController.position;
       final built = _builtHeadingIndex(headings, targetIndex);
       double next;
       if (attempt == 0 || built == null || targetIndex < 0) {
@@ -683,6 +717,8 @@ class _ReaderScreenState extends State<ReaderScreen> {
   }
 
   void _showSettings(BuildContext context) {
+    // Checked once per opening; a font chosen now shows its sample next time.
+    final downloads = ReaderFonts.downloadedGoogleFonts();
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -710,16 +746,58 @@ class _ReaderScreenState extends State<ReaderScreen> {
                         values: strings.languageNames,
                         onChanged: controller.setLocale,
                       ),
-                      _SettingDropdown<ReaderCjkFont>(
-                        title: strings.cjkFont,
-                        value: controller.cjkFont,
-                        values: strings.cjkFontNames,
-                        onChanged: controller.setCjkFont,
-                      ),
+                      // Latin-script interfaces have a single font list.
+                      if (!ReaderFonts.isLatinLocale(controller.locale))
+                        _SettingDropdown<ReaderCjkFont>(
+                          title: strings.cjkFont,
+                          preview: (font) => _FontSample(
+                            sample: ReaderFonts.cjkSample(controller.locale),
+                            fonts: () => ReaderFonts.resolve(
+                              latin: ReaderLatinFont.system,
+                              cjk: font,
+                              locale: controller.locale,
+                            ),
+                            googleFamily: ReaderFonts.googleFamily(
+                              font,
+                              controller.locale,
+                            ),
+                            current: font == controller.cjkFont,
+                            downloads: downloads,
+                          ),
+                          value: controller.cjkFont,
+                          // Popular fonts of the interface language first.
+                          values: {
+                            for (final font in ReaderFonts.cjkChoices(
+                              controller.locale,
+                              current: controller.cjkFont,
+                            ))
+                              font: strings.cjkFontNames[font]!,
+                          },
+                          onChanged: controller.setCjkFont,
+                        ),
                       _SettingDropdown<ReaderLatinFont>(
-                        title: strings.latinFont,
+                        title: ReaderFonts.isLatinLocale(controller.locale)
+                            ? strings.font
+                            : strings.latinFont,
+                        preview: (font) => _FontSample(
+                          sample: ReaderFonts.latinSample(controller.locale),
+                          fonts: () => ReaderFonts.resolve(
+                            latin: font,
+                            cjk: controller.cjkFont,
+                            locale: controller.locale,
+                          ),
+                          googleFamily: ReaderFonts.googleLatinFamily(font),
+                          current: font == controller.latinFont,
+                          downloads: downloads,
+                        ),
                         value: controller.latinFont,
-                        values: strings.latinFontNames,
+                        values: {
+                          for (final font in ReaderFonts.latinChoices(
+                            controller.locale,
+                            current: controller.latinFont,
+                          ))
+                            font: strings.latinFontNames[font]!,
+                        },
                         onChanged: controller.setLatinFont,
                       ),
                       _SettingDropdown<ReaderPalette>(
@@ -767,13 +845,107 @@ class _ReaderScreenState extends State<ReaderScreen> {
                       ),
                     ],
                   ),
-                  const AboutSection(),
+                  AboutSection(strings: strings),
                 ],
               ),
             ),
           );
         },
       ),
+    );
+  }
+}
+
+/// Floating "back to top" button, as on the website's phone layout: shown
+/// only when the document is longer than four screens and the reader is
+/// more than two screens down.
+class _BackToTopButton extends StatelessWidget {
+  const _BackToTopButton({required this.controller, this.taskStore});
+
+  final ScrollController controller;
+
+  /// Moves the button above the unsaved-tasks bar while it is shown.
+  final TaskStateStore? taskStore;
+
+  static bool _visible(ScrollController controller) {
+    final position = controller.current;
+    if (position == null) return false;
+    if (!position.hasContentDimensions || !position.hasViewportDimension) {
+      return false;
+    }
+    final screen = position.viewportDimension;
+    final length = position.maxScrollExtent + screen;
+    return length > screen * 4 && position.pixels > screen * 2;
+  }
+
+  Future<void> _scrollToTop() async {
+    final position = controller.current;
+    if (position == null) return;
+    // Far away: jump most of the way, so the lazy list does not build every
+    // block on the way up.
+    final screen = position.viewportDimension;
+    if (position.pixels > screen * 6) position.jumpTo(screen * 2);
+    await position.animateTo(
+      0,
+      duration: const Duration(milliseconds: 320),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final look = ReaderLook.of(context);
+    final colors = Theme.of(context).colorScheme;
+    final shape = look.chrome.controlRadius == null
+        ? const CircleBorder()
+        : RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(look.chrome.controlRadius! + 4),
+          );
+    return ListenableBuilder(
+      listenable: Listenable.merge([controller, ?taskStore]),
+      builder: (context, _) {
+        final visible = _visible(controller);
+        final lift = (taskStore?.hasChanges ?? false) ? 64.0 : 0.0;
+        return AnimatedPadding(
+          duration: const Duration(milliseconds: 180),
+          padding: EdgeInsets.only(bottom: lift),
+          child: IgnorePointer(
+            ignoring: !visible,
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 180),
+              opacity: visible ? 1 : 0,
+              child: AnimatedScale(
+                duration: const Duration(milliseconds: 180),
+                scale: visible ? 1 : 0.8,
+                child: Tooltip(
+                  message: '回到頂端',
+                  child: Material(
+                    color: colors.surfaceContainerLow,
+                    elevation: 3,
+                    shadowColor: Colors.black.withValues(alpha: 0.3),
+                    shape: shape.copyWith(
+                      side: BorderSide(color: look.border, width: 0.5),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                      onTap: _scrollToTop,
+                      child: SizedBox(
+                        width: 44,
+                        height: 44,
+                        child: Icon(
+                          Icons.arrow_upward_rounded,
+                          color: colors.primary,
+                          semanticLabel: '回到頂端',
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -1062,18 +1234,93 @@ class _RelationSection extends StatelessWidget {
   }
 }
 
+/// One line of sample text in a font, under its name in the font list.
+/// Google Fonts that are not on the phone yet show a download mark
+/// instead, so opening the list never downloads anything.
+class _FontSample extends StatelessWidget {
+  const _FontSample({
+    required this.sample,
+    required this.fonts,
+    required this.googleFamily,
+    required this.current,
+    required this.downloads,
+  });
+
+  final String sample;
+
+  /// Resolved only when the sample is shown: asking google_fonts for a
+  /// family starts its download.
+  final ({String? family, List<String> fallback}) Function() fonts;
+
+  /// Google Fonts name, or `null` for system and bundled fonts.
+  final String? googleFamily;
+
+  /// The chosen font is in use already, so its sample is always shown.
+  final bool current;
+  final Future<Set<String>> downloads;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final style = theme.textTheme.bodyLarge?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+      height: 1.5,
+    );
+    final family = googleFamily;
+    if (family == null || current) return _line(style);
+    return FutureBuilder<Set<String>>(
+      future: downloads,
+      builder: (context, snapshot) {
+        final downloaded = snapshot.data;
+        if (downloaded == null) return const SizedBox(height: 24);
+        if (ReaderFonts.isDownloaded(family, downloaded)) return _line(style);
+        return Align(
+          alignment: Alignment.centerLeft,
+          child: Icon(
+            Icons.cloud_download_outlined,
+            size: 20,
+            color: theme.colorScheme.onSurfaceVariant,
+            semanticLabel: '選擇後下載',
+          ),
+        );
+      },
+    );
+  }
+
+  /// Built only when the font is bundled or already downloaded, so the
+  /// style never starts a download.
+  Widget _line(TextStyle? style) {
+    final resolved = fonts();
+    return Text(
+      sample,
+      maxLines: 1,
+      overflow: TextOverflow.fade,
+      softWrap: false,
+      style: style?.copyWith(
+        fontFamily: resolved.family,
+        fontFamilyFallback: resolved.fallback,
+      ),
+    );
+  }
+}
+
 class _SettingDropdown<T extends Enum> extends StatelessWidget {
   const _SettingDropdown({
     required this.title,
     required this.value,
     required this.values,
     required this.onChanged,
+    this.preview,
   });
 
   final String title;
   final T value;
   final Map<T, String> values;
   final ValueChanged<T> onChanged;
+
+  /// Shown under each choice, e.g. a sample line in that font, so the
+  /// difference between choices is visible before picking.
+  final Widget? Function(T choice)? preview;
 
   @override
   Widget build(BuildContext context) {
@@ -1123,6 +1370,7 @@ class _SettingDropdown<T extends Enum> extends StatelessWidget {
               ...values.entries.map(
                 (entry) => ListTile(
                   title: Text(entry.value),
+                  subtitle: preview?.call(entry.key),
                   trailing: entry.key == value
                       ? Icon(
                           Icons.check,
@@ -1410,6 +1658,7 @@ class _DocumentView extends StatefulWidget {
     required this.textScale,
     required this.lineHeight,
     required this.cjkFont,
+    required this.locale,
     required this.latinFont,
   });
 
@@ -1426,6 +1675,9 @@ class _DocumentView extends StatefulWidget {
   final double lineHeight;
   final ReaderCjkFont cjkFont;
   final ReaderLatinFont latinFont;
+
+  /// Picks the regional Noto variant (TC, SC, JP, KR).
+  final ReaderLocale locale;
 
   @override
   State<_DocumentView> createState() => _DocumentViewState();
@@ -1503,6 +1755,10 @@ class _DocumentViewState extends State<_DocumentView> {
     );
   }
 
+  bool get _usesChosenFont =>
+      widget.latinFont != ReaderLatinFont.system ||
+      widget.cjkFont != ReaderCjkFont.system;
+
   /// Markdown styles for the current palette (see [ReaderLook]).
   MarkdownStyleSheet _styleSheet(
     ThemeData theme,
@@ -1514,7 +1770,11 @@ class _DocumentViewState extends State<_DocumentView> {
       fontSize: size * scale,
       height: 1.3,
       color: color,
-      fontFamily: look.chrome.headingFamily ?? bodyStyle.fontFamily,
+      // The palette's heading font (parchment serif) only applies while the
+      // reader keeps the system fonts; a chosen font is used throughout.
+      fontFamily: _usesChosenFont
+          ? bodyStyle.fontFamily
+          : look.chrome.headingFamily ?? bodyStyle.fontFamily,
       fontWeight: look.headingWeight,
       letterSpacing: size * scale * look.headingLetterSpacing,
     );
@@ -1648,24 +1908,17 @@ class _DocumentViewState extends State<_DocumentView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final fontFamily = switch (widget.latinFont) {
-      ReaderLatinFont.system => null,
-      ReaderLatinFont.sans => 'sans-serif',
-      ReaderLatinFont.serif => 'serif',
-      ReaderLatinFont.mono => 'monospace',
-    };
-    final fontFallback = switch (widget.cjkFont) {
-      ReaderCjkFont.system => <String>[],
-      ReaderCjkFont.jhenghei => <String>['sans-serif'],
-      ReaderCjkFont.ming => <String>['serif'],
-      ReaderCjkFont.kai => <String>['cursive'],
-    };
+    final fonts = ReaderFonts.resolve(
+      latin: widget.latinFont,
+      cjk: widget.cjkFont,
+      locale: widget.locale,
+    );
     final look = ReaderLook.of(context);
     final bodyStyle = theme.textTheme.bodyLarge?.copyWith(
       fontSize: (theme.textTheme.bodyLarge?.fontSize ?? 16) * look.bodyScale,
       height: widget.lineHeight,
-      fontFamily: fontFamily,
-      fontFamilyFallback: fontFallback,
+      fontFamily: fonts.family,
+      fontFamilyFallback: fonts.fallback,
     );
     // Multiply instead of replacing so the system accessibility text size
     // still applies on top of the reader setting.

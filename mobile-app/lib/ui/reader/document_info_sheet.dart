@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,6 +9,7 @@ import '../../core/models/local_document.dart';
 import '../../core/notes/document_stats.dart';
 import '../../core/notes/note_index.dart';
 import '../../core/services/document_inspector.dart';
+import '../theme/parchment_theme.dart';
 import 'note_markdown.dart';
 
 /// The "資訊" sheet: file details, statistics and quick copy actions.
@@ -53,6 +55,8 @@ class DocumentInfoSheet extends StatelessWidget {
             final location = describeLocation(
               documentId: info?.documentId,
               authority: info?.authority,
+              storagePath: info?.storagePath,
+              absolutePath: info?.absolutePath,
             );
             final size = info?.size ?? document.byteLength;
             return ListView(
@@ -75,21 +79,22 @@ class DocumentInfoSheet extends StatelessWidget {
                     if (location?.path != null || folderPath != null)
                       _CopyChip(
                         label: '複製檔案位置',
-                        value: location?.display ?? folderPath!,
+                        value:
+                            location?.absolute ??
+                            location?.display ??
+                            folderPath!,
                       ),
                     if (_markdown)
                       _CopyChip(label: '複製筆記連結', value: '[[$baseName]]'),
                     _CopyChip(label: '複製全文', value: document.content),
                   ],
                 ),
+                // Ordered by how often people look for each item; the
+                // technical details come last.
                 _Section(
-                  title: '檔案',
+                  title: '基本資訊',
                   rows: [
                     _Row('檔名', document.name, copyable: true),
-                    if (location != null)
-                      _Row('位置', location.display, copyable: true),
-                    if (folderName != null && folderPath != null)
-                      _Row('資料夾內', '$folderName/$folderPath', copyable: true),
                     _Row('大小', size == null ? '未知' : _formatSize(size)),
                     _Row(
                       '修改時間',
@@ -99,19 +104,6 @@ class DocumentInfoSheet extends StatelessWidget {
                                 : '讀取中…')
                           : _formatTime(info!.modified!),
                     ),
-                    _Row(
-                      '建立時間',
-                      info?.created == null
-                          ? '系統未提供'
-                          : _formatTime(info!.created!),
-                      muted: info?.created == null,
-                    ),
-                    _Row('勾選後儲存', canWriteInPlace ? '可以直接存回這個檔案' : '只能另存新檔'),
-                  ],
-                ),
-                _Section(
-                  title: '內容統計',
-                  rows: [
                     _Row('字數', _number(stats.words)),
                     if (stats.cjkCharacters > 0 && stats.latinWords > 0)
                       _Row(
@@ -120,21 +112,36 @@ class DocumentInfoSheet extends StatelessWidget {
                             '英文 ${_number(stats.latinWords)} 字',
                         muted: true,
                       ),
-                    _Row(
-                      '字元數',
-                      '${_number(stats.characters)}'
-                          '（不含空白 ${_number(stats.charactersWithoutSpaces)}）',
-                    ),
-                    _Row('行數', _number(stats.lines)),
-                    _Row('段落', _number(stats.paragraphs)),
-                    _Row('閱讀時間', _formatReading(stats.readingTime)),
+                    if (_markdown && stats.tasks > 0) _taskRow(stats),
+                    if (tags.isNotEmpty)
+                      _Row('標籤', tags.map((tag) => '#$tag').join('  ')),
                   ],
                 ),
-                if (_markdown)
-                  _Section(
-                    title: '文件內容',
-                    rows: [
-                      _Row('標題', _number(stats.headings)),
+                _Section(
+                  title: '檔案位置',
+                  rows: [
+                    if (location != null)
+                      _Row('位置', location.display, copyable: true),
+                    if (location?.absolute != null)
+                      _Row('完整路徑', location!.absolute!, copyable: true),
+                    if (folderName != null && folderPath != null)
+                      _Row('資料夾內', '$folderName/$folderPath', copyable: true),
+                    _Row('勾選後儲存', canWriteInPlace ? '可以直接存回這個檔案' : '只能另存新檔'),
+                    _Row(
+                      '建立時間',
+                      info?.created == null
+                          ? '系統未提供'
+                          : _formatTime(info!.created!),
+                      muted: info?.created == null,
+                    ),
+                  ],
+                ),
+                _Section(
+                  title: '文件內容',
+                  rows: [
+                    if (_markdown) _Row('標題', _number(stats.headings)),
+                    _Row('段落', _number(stats.paragraphs)),
+                    if (_markdown) ...[
                       _Row(
                         '連結',
                         '其他筆記 ${stats.wikiLinks + stats.markdownLinks}・'
@@ -147,16 +154,20 @@ class DocumentInfoSheet extends StatelessWidget {
                       ),
                       if (stats.footnotes > 0)
                         _Row('附註', _number(stats.footnotes)),
-                      if (stats.tasks > 0) _taskRow(stats),
                       if (stats.properties > 0)
                         _Row('文件資料', '${stats.properties} 項'),
-                      if (tags.isNotEmpty)
-                        _Row('標籤', tags.map((tag) => '#$tag').join('  ')),
                     ],
-                  ),
+                  ],
+                ),
                 _Section(
                   title: '進階資訊（給技術人員）',
                   rows: [
+                    _Row(
+                      '字元數',
+                      '${_number(stats.characters)}'
+                          '（不含空白 ${_number(stats.charactersWithoutSpaces)}）',
+                    ),
+                    _Row('行數', _number(stats.lines)),
                     _Row('類型', _markdown ? 'Markdown' : '純文字'),
                     _Row(
                       '編碼',
@@ -173,6 +184,13 @@ class DocumentInfoSheet extends StatelessWidget {
                       LineEnding.mixed => '混合 LF 與 CRLF',
                     }),
                     if (size != null) _Row('位元組', _number(size)),
+                    if (document.sha256 != null)
+                      _Row(
+                        'SHA-256',
+                        document.sha256!,
+                        copyable: true,
+                        monospace: true,
+                      ),
                     if (document.sourceUri != null)
                       _Row(
                         'URI',
@@ -226,12 +244,6 @@ class DocumentInfoSheet extends StatelessWidget {
     return '${time.year}/${two(time.month)}/${two(time.day)} '
         '${two(time.hour)}:${two(time.minute)}';
   }
-
-  static String _formatReading(Duration duration) {
-    final minutes = duration.inSeconds / 60;
-    if (minutes < 1) return '不到 1 分鐘';
-    return '約 ${minutes.round()} 分鐘';
-  }
 }
 
 class _Row {
@@ -240,12 +252,16 @@ class _Row {
     this.value, {
     this.copyable = false,
     this.muted = false,
+    this.monospace = false,
   });
 
   final String label;
   final String value;
   final bool copyable;
   final bool muted;
+
+  /// Fixed-width digits, for hashes.
+  final bool monospace;
 }
 
 class _Section extends StatelessWidget {
@@ -284,7 +300,12 @@ class _Section extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           SizedBox(
-                            width: 92,
+                            // Labels grow with the system font size, up to
+                            // about 40% of the screen.
+                            width: math.min(
+                              MediaQuery.textScalerOf(context).scale(92),
+                              MediaQuery.sizeOf(context).width * 0.38,
+                            ),
                             child: Text(
                               row.label,
                               style: theme.textTheme.bodyMedium?.copyWith(
@@ -295,11 +316,20 @@ class _Section extends StatelessWidget {
                           Expanded(
                             child: SelectableText(
                               row.value,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: row.muted
-                                    ? colors.onSurfaceVariant
-                                    : null,
-                              ),
+                              // A row without a label is a note on the row
+                              // above it.
+                              style:
+                                  (row.label.isEmpty
+                                          ? theme.textTheme.bodySmall
+                                          : theme.textTheme.bodyMedium)
+                                      ?.copyWith(
+                                        color: row.muted
+                                            ? colors.onSurfaceVariant
+                                            : null,
+                                        fontFamily: row.monospace
+                                            ? 'monospace'
+                                            : null,
+                                      ),
                             ),
                           ),
                           if (row.copyable)
@@ -389,20 +419,118 @@ class _CopyChipState extends State<_CopyChip> {
     super.dispose();
   }
 
+  Future<void> _copy() async {
+    await Clipboard.setData(ClipboardData(text: widget.value));
+    if (!mounted) return;
+    setState(() => _copied = true);
+    _timer?.cancel();
+    _timer = Timer(const Duration(milliseconds: 1500), () {
+      if (mounted) setState(() => _copied = false);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return ActionChip(
-      avatar: Icon(_copied ? Icons.check : Icons.copy_rounded, size: 18),
-      label: Text(_copied ? '已複製' : widget.label),
-      onPressed: () async {
-        await Clipboard.setData(ClipboardData(text: widget.value));
-        if (!mounted) return;
-        setState(() => _copied = true);
-        _timer?.cancel();
-        _timer = Timer(const Duration(milliseconds: 1500), () {
-          if (mounted) setState(() => _copied = false);
-        });
-      },
+    final look = ReaderLook.of(context);
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final style = look.chrome.button;
+    final small = BorderRadius.circular(4);
+    final capsule = BorderRadius.circular(999);
+    final white = dark
+        ? Color.lerp(look.surface, Colors.white, 0.06)!
+        : Colors.white;
+    final (background, foreground, border, radius) = switch (style) {
+      ButtonLook.outlined => (
+        Colors.transparent,
+        look.primary,
+        Border.all(color: look.border),
+        capsule,
+      ),
+      ButtonLook.filled => (
+        Color.lerp(look.surface, look.border, 0.6)!,
+        look.text,
+        null,
+        small,
+      ),
+      ButtonLook.subtle => (
+        white,
+        look.muted,
+        Border.all(color: look.border),
+        small,
+      ),
+      ButtonLook.fluent => (
+        white,
+        look.text,
+        Border.all(color: look.border),
+        small,
+      ),
+      ButtonLook.tinted => (
+        look.primary.withValues(alpha: dark ? 0.22 : 0.12),
+        look.primary,
+        null,
+        capsule,
+      ),
+    };
+    final iconColor = style == ButtonLook.filled || style == ButtonLook.fluent
+        ? look.primary
+        : foreground;
+    return Semantics(
+      button: true,
+      label: _copied ? '已複製' : widget.label,
+      excludeSemantics: true,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: radius,
+          onTap: _copy,
+          child: Ink(
+            decoration: BoxDecoration(
+              color: background,
+              borderRadius: radius,
+              border: border,
+              // Fluent buttons have a slightly darker bottom edge.
+              boxShadow: style == ButtonLook.fluent
+                  ? [
+                      BoxShadow(
+                        color: Color.lerp(look.border, look.text, 0.25)!,
+                        offset: const Offset(0, 1),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: ClipRRect(
+              borderRadius: radius,
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: style == ButtonLook.tinted ? 14 : 12,
+                  vertical: 8,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _copied ? Icons.check : Icons.copy_rounded,
+                      size: 16,
+                      color: iconColor,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      _copied ? '已複製' : widget.label,
+                      style: TextStyle(
+                        color: foreground,
+                        fontSize: 13.5,
+                        fontWeight: style == ButtonLook.tinted
+                            ? FontWeight.w600
+                            : FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

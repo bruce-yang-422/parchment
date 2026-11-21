@@ -49,14 +49,25 @@ class ReaderSettings {
         : fallback;
 
     final themeMode = value['themeMode'];
+    final locale = pick(ReaderLocale.values, value['locale'], defaults.locale);
     return ReaderSettings(
       themeMode: const {'system', 'light', 'dark'}.contains(themeMode)
           ? themeMode as String
           : defaults.themeMode,
       textScale: number(value['textScale'], defaults.textScale, 0.85, 1.35),
       lineHeight: number(value['lineHeight'], defaults.lineHeight, 1.3, 2.2),
-      locale: pick(ReaderLocale.values, value['locale'], defaults.locale),
-      cjkFont: pick(ReaderCjkFont.values, value['cjkFont'], defaults.cjkFont),
+      locale: locale,
+      cjkFont: pick(
+        ReaderCjkFont.values,
+        // Names used before the bundled fonts were added.
+        switch (value['cjkFont']) {
+          'jhenghei' => 'notoSans',
+          'ming' => 'notoSerif',
+          'kai' => 'wenkai',
+          final other => other,
+        },
+        defaults.cjkFont,
+      ),
       latinFont: pick(
         ReaderLatinFont.values,
         value['latinFont'],

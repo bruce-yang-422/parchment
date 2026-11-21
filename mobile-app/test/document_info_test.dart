@@ -1,10 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:parchment_mobile/core/models/local_document.dart';
 import 'package:parchment_mobile/core/notes/document_stats.dart';
+import 'package:parchment_mobile/core/notes/note_index.dart';
 import 'package:parchment_mobile/core/services/document_inspector.dart';
 
 void main() {
-  test('中英文字數、字元、行數與閱讀時間', () {
+  test('中英文字數、字元與行數', () {
     final stats = DocumentStats.of(
       '你好世界 Hello world, it\'s 2026.\n\n第二段',
       markdown: false,
@@ -17,7 +18,6 @@ void main() {
     expect(stats.lineEnding, LineEnding.lf);
     expect(stats.characters, 33);
     expect(stats.charactersWithoutSpaces, 27);
-    expect(stats.readingTime.inSeconds, greaterThan(0));
   });
 
   test('Markdown 結構統計忽略程式碼與連結網址', () {
@@ -92,7 +92,62 @@ void main() {
       describeLocation(
         authority: 'jp.naver.line.android.fileprovider',
       )?.display,
-      '來源：jp.naver.line.android.fileprovider',
+      '來自 LINE',
+    );
+    expect(
+      describeLocation(
+        authority: 'media',
+        storagePath: 'Documents/Parchment示範/示範.md',
+      )?.display,
+      '內部儲存空間/Documents/Parchment示範/示範.md',
+    );
+    expect(describeLocation(authority: 'com.example.app')?.display, '來自其他 App');
+    expect(
+      describeLocation(
+        documentId: 'primary:Documents/筆記/a.md',
+        authority: 'com.android.externalstorage.documents',
+      )?.absolute,
+      '/storage/emulated/0/Documents/筆記/a.md',
+    );
+    expect(
+      describeLocation(
+        documentId: '1234-ABCD:Notes/a.md',
+        authority: 'com.android.externalstorage.documents',
+      )?.absolute,
+      '/storage/1234-ABCD/Notes/a.md',
+    );
+    expect(
+      describeLocation(
+        authority: 'media',
+        storagePath: 'Documents/a.md',
+        absolutePath: '/storage/emulated/0/Documents/a.md',
+      )?.absolute,
+      '/storage/emulated/0/Documents/a.md',
+    );
+    expect(describeLocation(authority: 'com.example.app')?.absolute, isNull);
+  });
+
+  test('內文標籤只認空白後的 #，連結與程式碼裡的 # 不算', () {
+    expect(
+      noteTags('#一 文字#不是 [[筆記#標題]] [連結](a.md#b) `#程式` \n#二\n## tags: 甲, 乙'),
+      ['甲', '乙', '一', '二'],
+    );
+  });
+
+  test('讀檔時計算 SHA-256，存檔後依新內容重算', () {
+    final document = LocalDocument.decode(
+      name: 'a.md',
+      bytes: 'abc'.codeUnits,
+      format: DocumentFormat.markdown,
+    );
+    expect(
+      document.sha256,
+      'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad',
+    );
+    final saved = document.copyWith(content: '');
+    expect(
+      saved.sha256,
+      'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
     );
   });
 }

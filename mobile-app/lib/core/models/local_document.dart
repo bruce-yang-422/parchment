@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:crypto/crypto.dart' as crypto;
+
 enum DocumentFormat { markdown, plainText }
 
 class LocalDocument {
@@ -8,12 +10,15 @@ class LocalDocument {
     required this.content,
     required this.format,
     this.sourceUri,
+    String? originUri,
     this.lossless = true,
     this.folderPath,
     this.byteLength,
     this.hasBom = false,
+    this.sha256,
     int? id,
-  }) : id = id ?? ++_nextId;
+  }) : id = id ?? ++_nextId,
+       originUri = originUri ?? sourceUri;
 
   /// Decodes UTF-8 [bytes]; invalid sequences are replaced for display and
   /// mark the document as not [lossless].
@@ -22,6 +27,7 @@ class LocalDocument {
     required List<int> bytes,
     required DocumentFormat format,
     String? sourceUri,
+    String? originUri,
     List<String>? folderPath,
   }) {
     final content = utf8.decode(bytes, allowMalformed: true);
@@ -35,6 +41,7 @@ class LocalDocument {
       content: content,
       format: format,
       sourceUri: sourceUri,
+      originUri: originUri,
       lossless: lossless,
       folderPath: folderPath,
       byteLength: bytes.length,
@@ -43,6 +50,7 @@ class LocalDocument {
           bytes[0] == 0xEF &&
           bytes[1] == 0xBB &&
           bytes[2] == 0xBF,
+      sha256: crypto.sha256.convert(bytes).toString(),
     );
   }
 
@@ -60,6 +68,10 @@ class LocalDocument {
   /// document was opened as a read-only copy.
   final String? sourceUri;
 
+  /// URI the file was read from, also when it is read-only (files shared
+  /// from LINE or a file manager); used to look up its location and times.
+  final String? originUri;
+
   /// Whether [content] re-encodes to exactly the original bytes. Documents
   /// with invalid UTF-8 are never written in place.
   final bool lossless;
@@ -74,17 +86,25 @@ class LocalDocument {
   /// Whether the file starts with a UTF-8 byte order mark.
   final bool hasBom;
 
+  /// SHA-256 of the file as read (lower-case hex), when known.
+  final String? sha256;
+
   LocalDocument copyWith({required String content}) {
+    // A byte order mark stays in [content] as U+FEFF, so re-encoding gives
+    // exactly the bytes that were saved.
+    final bytes = utf8.encode(content);
     return LocalDocument(
       id: id,
       name: name,
       content: content,
       format: format,
       sourceUri: sourceUri,
+      originUri: originUri,
       lossless: lossless,
       folderPath: folderPath,
-      byteLength: utf8.encode(content).length,
+      byteLength: bytes.length,
       hasBom: hasBom,
+      sha256: crypto.sha256.convert(bytes).toString(),
     );
   }
 

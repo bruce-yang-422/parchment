@@ -81,11 +81,7 @@ class NoteFolder {
   /// Resolves a Markdown relative URL (`../img.png`) against [sourcePath].
   FolderEntry? resolveRelative(String href, List<String>? sourcePath) {
     var value = href.split('#').first.split('?').first;
-    try {
-      value = Uri.decodeComponent(value);
-    } on ArgumentError {
-      // Keep the raw value.
-    }
+    value = decodePercent(value);
     final directory = (sourcePath ?? const <String>[]).isEmpty
         ? const <String>[]
         : sourcePath!.sublist(0, sourcePath.length - 1);

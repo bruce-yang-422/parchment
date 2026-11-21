@@ -51,6 +51,24 @@ enum CodeLook {
   inset,
 }
 
+/// Small action buttons (copy chips and the like).
+enum ButtonLook {
+  /// Capsule with a thin outline (parchment).
+  outlined,
+
+  /// Small-radius grey fill, no outline (Obsidian).
+  filled,
+
+  /// Small-radius white button with a hairline border (Notion).
+  subtle,
+
+  /// Fluent standard button: white, rounded 4, darker bottom edge.
+  fluent,
+
+  /// Capsule tinted with the accent colour (iOS).
+  tinted,
+}
+
 /// How quotes are drawn.
 enum QuoteLook {
   /// Tinted box with a coloured left edge.
@@ -93,6 +111,7 @@ class ReaderChrome {
     required this.check,
     required this.callout,
     required this.code,
+    required this.button,
     this.quoteWidth = 3,
     this.checkedColor,
     this.tableHeaderTint = true,
@@ -130,6 +149,7 @@ class ReaderChrome {
   final CheckLook check;
   final CalloutLook callout;
   final CodeLook code;
+  final ButtonLook button;
 
   /// Width of the quote's left line.
   final double quoteWidth;
@@ -448,6 +468,7 @@ class ParchmentTheme {
     check: CheckLook.square,
     callout: CalloutLook.edge,
     code: CodeLook.framed,
+    button: ButtonLook.outlined,
   );
 
   /// Obsidian: square-ish controls, purple links without underline.
@@ -460,6 +481,7 @@ class ParchmentTheme {
     check: CheckLook.rounded,
     callout: CalloutLook.soft,
     code: CodeLook.flat,
+    button: ButtonLook.filled,
     quoteWidth: 2,
     tableHeaderTint: false,
   );
@@ -475,6 +497,7 @@ class ParchmentTheme {
     check: CheckLook.square,
     callout: CalloutLook.plain,
     code: CodeLook.label,
+    button: ButtonLook.subtle,
     checkedColor: Color(0xFF2383E2),
     tableHeaderTint: false,
   );
@@ -490,6 +513,7 @@ class ParchmentTheme {
     check: CheckLook.rounded,
     callout: CalloutLook.infoBar,
     code: CodeLook.card,
+    button: ButtonLook.fluent,
   );
 
   /// iOS / macOS: large titles, capsule buttons, grouped lists.
@@ -504,6 +528,7 @@ class ParchmentTheme {
     check: CheckLook.circle,
     callout: CalloutLook.inset,
     code: CodeLook.inset,
+    button: ButtonLook.tinted,
   );
 
   static const _light = <ReaderPalette, ReaderLook>{

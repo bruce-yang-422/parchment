@@ -58,6 +58,7 @@ class AndroidDocumentChannel
       bytes: bytes,
       format: LocalDocument.formatForFileName(name),
       sourceUri: (picked['writable'] as bool? ?? false) ? uri : null,
+      originUri: uri,
     );
   }
 
@@ -124,8 +125,10 @@ class AndroidDocumentChannel
   }
 
   static String _folderName(Uri tree) {
-    // Tree document ids look like `primary:Download/Notes`.
-    final id = Uri.decodeComponent(tree.pathSegments.last);
+    // Tree document ids look like `primary:Download/Notes`; pathSegments
+    // are already decoded, so they must not be decoded again (that fails
+    // on names such as `筆記` or `100%`).
+    final id = tree.pathSegments.isEmpty ? '' : tree.pathSegments.last;
     final path = id.contains(':') ? id.substring(id.indexOf(':') + 1) : id;
     final name = path.split('/').where((part) => part.isNotEmpty).lastOrNull;
     return name ?? '資料夾';
@@ -157,6 +160,8 @@ class AndroidDocumentChannel
           : DateTime.fromMillisecondsSinceEpoch(modified),
       documentId: map['documentId'] as String?,
       authority: map['authority'] as String?,
+      storagePath: map['storagePath'] as String?,
+      absolutePath: map['absolutePath'] as String?,
     );
   }
 
@@ -224,6 +229,7 @@ class AndroidDocumentChannel
       bytes: bytes,
       format: format,
       sourceUri: incoming.writable ? uri : null,
+      originUri: uri,
     );
   }
 }

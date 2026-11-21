@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'app/parchment_app.dart';
 import 'infrastructure/android_document_channel.dart';
@@ -26,6 +27,7 @@ Future<void> main() async {
       ),
     );
   }
+  _registerFontLicenses();
   final settingsStore = PreferencesReaderSettings();
   final initialSettings = await settingsStore.load().catchError(
     (Object _) => null,
@@ -45,4 +47,29 @@ Future<void> main() async {
       initialSettings: initialSettings,
     ),
   );
+}
+
+/// Licences of the bundled and downloadable reading fonts, shown on the
+/// open-source licences page.
+void _registerFontLicenses() {
+  const fonts = {
+    'Taipei Sans TC Beta': 'assets/fonts/taipei-sans/OFL.txt',
+    'jf open 粉圓 (jf open huninn)': 'assets/fonts/huninn/LICENSE.txt',
+    'Iansui (芫荽)': 'assets/fonts/iansui/OFL.txt',
+    'NaikaiFont (內海字體)': 'assets/fonts/naikai/OFL.txt',
+    'GenJyuuGothic (源柔ゴシック)': 'assets/fonts/genjyuu/OFL.txt',
+    'LINE Seed JP': 'assets/fonts/line-seed-jp/OFL.txt',
+    'Pretendard': 'assets/fonts/pretendard/OFL.txt',
+    'Google Fonts: Inter, Merriweather, Roboto, Open Sans, Lato, '
+            'Montserrat, Noto CJK, '
+            'LXGW WenKai TC, ZCOOL XiaoWei, M PLUS Rounded 1c, Nanum':
+        'assets/fonts/LICENSES.txt',
+  };
+  LicenseRegistry.addLicense(() async* {
+    for (final entry in fonts.entries) {
+      yield LicenseEntryWithLineBreaks([
+        entry.key,
+      ], await rootBundle.loadString(entry.value));
+    }
+  });
 }

@@ -1,4 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Web images in documents and fonts chosen from Google Fonts.
+         Documents themselves are never uploaded. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="Parchment"
         android:name="${applicationName}"

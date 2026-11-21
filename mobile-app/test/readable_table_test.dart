@@ -99,6 +99,21 @@ void main() {
     });
   });
 
+  test('文字放大 2 倍時，欄寬上下限跟著放大', () {
+    final normal = layoutColumns([cjk(300), cjk(900)], 340, rows: 3);
+    final large = layoutColumns(
+      [cjk(600), cjk(1800)],
+      340,
+      rows: 3,
+      limits: TableLayoutLimits.scaled(2),
+    );
+    // Twice the text needs twice the width, so the table scrolls instead of
+    // squeezing each column to half as many characters.
+    expect(normal.reduce((a, b) => a + b), lessThanOrEqualTo(340.01));
+    expect(large.reduce((a, b) => a + b), greaterThan(340));
+    expect(large[0], greaterThanOrEqualTo(112 * 2));
+  });
+
   // The test font has no CJK glyphs and does not break between them, so
   // widget tests use space-separated words; CJK cases are covered by the
   // layoutColumns tests above.

@@ -1,12 +1,16 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../localization/reader_strings.dart';
+
 /// A compact alternative to Flutter's stock license page.
 ///
 /// Components are searchable and collapsed by default, so users see a useful
 /// overview instead of a continuous wall of legal text.
 class OpenSourceLicensesPage extends StatefulWidget {
-  const OpenSourceLicensesPage({super.key});
+  const OpenSourceLicensesPage({required this.strings, super.key});
+
+  final ReaderStrings strings;
 
   @override
   State<OpenSourceLicensesPage> createState() => _OpenSourceLicensesPageState();
@@ -43,12 +47,12 @@ class _OpenSourceLicensesPageState extends State<OpenSourceLicensesPage> {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     return Scaffold(
-      appBar: AppBar(title: const Text('開放原始碼元件')),
+      appBar: AppBar(title: Text(widget.strings.licensesTitle)),
       body: FutureBuilder<List<_PackageLicenses>>(
         future: _licenses,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return const Center(child: Text('無法讀取授權資訊'));
+            return Center(child: Text(widget.strings.licensesLoadFailed));
           }
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
@@ -88,12 +92,12 @@ class _OpenSourceLicensesPageState extends State<OpenSourceLicensesPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    '${all.length} 個開放原始碼元件',
+                                    widget.strings.componentCount(all.length),
                                     style: theme.textTheme.titleMedium,
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    'Parchment 感謝這些專案。點選元件才會展開完整授權文字。',
+                                    widget.strings.licensesThanks,
                                     style: theme.textTheme.bodyMedium?.copyWith(
                                       color: colors.onSurfaceVariant,
                                     ),
@@ -110,12 +114,12 @@ class _OpenSourceLicensesPageState extends State<OpenSourceLicensesPage> {
                         onChanged: (value) => setState(() => _query = value),
                         textInputAction: TextInputAction.search,
                         decoration: InputDecoration(
-                          hintText: '搜尋元件名稱',
+                          hintText: widget.strings.searchComponents,
                           prefixIcon: const Icon(Icons.search_rounded),
                           suffixIcon: _query.isEmpty
                               ? null
                               : IconButton(
-                                  tooltip: '清除',
+                                  tooltip: widget.strings.clear,
                                   onPressed: () {
                                     _search.clear();
                                     setState(() => _query = '');
@@ -127,8 +131,8 @@ class _OpenSourceLicensesPageState extends State<OpenSourceLicensesPage> {
                       const SizedBox(height: 16),
                       Text(
                         normalized.isEmpty
-                            ? '所有元件'
-                            : '找到 ${visible.length} 個元件',
+                            ? widget.strings.allComponents
+                            : widget.strings.foundComponents(visible.length),
                         style: theme.textTheme.titleSmall?.copyWith(
                           color: colors.onSurfaceVariant,
                         ),
@@ -138,9 +142,11 @@ class _OpenSourceLicensesPageState extends State<OpenSourceLicensesPage> {
                 ),
               ),
               if (visible.isEmpty)
-                const SliverFillRemaining(
+                SliverFillRemaining(
                   hasScrollBody: false,
-                  child: Center(child: Text('找不到符合的元件')),
+                  child: Center(
+                    child: Text(widget.strings.noMatchingComponents),
+                  ),
                 )
               else
                 SliverPadding(
@@ -148,8 +154,10 @@ class _OpenSourceLicensesPageState extends State<OpenSourceLicensesPage> {
                   sliver: SliverList.separated(
                     itemCount: visible.length,
                     separatorBuilder: (_, _) => const SizedBox(height: 8),
-                    itemBuilder: (context, index) =>
-                        _LicenseCard(package: visible[index]),
+                    itemBuilder: (context, index) => _LicenseCard(
+                      package: visible[index],
+                      strings: widget.strings,
+                    ),
                   ),
                 ),
             ],
@@ -161,9 +169,10 @@ class _OpenSourceLicensesPageState extends State<OpenSourceLicensesPage> {
 }
 
 class _LicenseCard extends StatelessWidget {
-  const _LicenseCard({required this.package});
+  const _LicenseCard({required this.package, required this.strings});
 
   final _PackageLicenses package;
+  final ReaderStrings strings;
 
   @override
   Widget build(BuildContext context) {
@@ -189,8 +198,8 @@ class _LicenseCard extends StatelessWidget {
         title: Text(package.name, style: theme.textTheme.titleSmall),
         subtitle: Text(
           package.entries.length == 1
-              ? '授權資訊'
-              : '${package.entries.length} 份授權資訊',
+              ? strings.licenseInfo
+              : strings.licenseInfoCount(package.entries.length),
         ),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
@@ -201,7 +210,7 @@ class _LicenseCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 12, bottom: 4),
                 child: Text(
-                  '授權 ${index + 1}',
+                  strings.licenseNumber(index + 1),
                   style: theme.textTheme.labelLarge?.copyWith(
                     color: colors.primary,
                   ),

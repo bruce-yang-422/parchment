@@ -51,23 +51,41 @@ class ReadableColumnWidth extends IntrinsicColumnWidth {
         : availableWidth;
     // The header row does not count towards the table's height.
     final rows = math.max(parent.rows - 1, 1);
-    return layoutColumns(columns, available, rows: rows)[index];
+    // Width limits are in "characters", so they grow with the text size
+    // (system font size × reader text size).
+    final scale = columns.fold<double>(
+      1,
+      (value, column) => math.max(value, column.textScale),
+    );
+    return layoutColumns(
+      columns,
+      available,
+      rows: rows,
+      limits: TableLayoutLimits.scaled(scale),
+    )[index];
   }
 }
 
 /// Measurements of one table column.
 class TableColumnStats {
-  const TableColumnStats({required this.natural, required this.word});
+  const TableColumnStats({
+    required this.natural,
+    required this.word,
+    this.textScale = 1,
+  });
 
   static TableColumnStats measure(Iterable<RenderBox> cells) {
     var natural = 0.0;
     var word = 0.0;
+    var scale = 1.0;
     for (final cell in cells) {
       final cellNatural = cell.getMaxIntrinsicWidth(double.infinity);
       natural = math.max(natural, cellNatural);
-      word = math.max(word, _longestWord(cell, cellNatural));
+      final measured = _longestWord(cell, cellNatural);
+      word = math.max(word, measured.width);
+      scale = math.max(scale, measured.scale);
     }
-    return TableColumnStats(natural: natural, word: word);
+    return TableColumnStats(natural: natural, word: word, textScale: scale);
   }
 
   /// Characters that never break inside a run: Latin letters, digits and
@@ -80,11 +98,16 @@ class TableColumnStats {
   /// RenderParagraph's min intrinsic width treats a run of CJK characters as
   /// one word, which would make every Chinese cell look unbreakable, so the
   /// runs are measured here instead.
-  static double _longestWord(RenderBox cell, double cellNatural) {
+  static ({double width, double scale}) _longestWord(
+    RenderBox cell,
+    double cellNatural,
+  ) {
     var longest = 0.0;
     var textNatural = 0.0;
+    var scale = 1.0;
     void visit(RenderObject node) {
       if (node is RenderParagraph) {
+        scale = math.max(scale, node.textScaler.scale(16) / 16);
         textNatural = math.max(
           textNatural,
           node.getMaxIntrinsicWidth(double.infinity),
@@ -96,23 +119,33 @@ class TableColumnStats {
     }
 
     visit(cell);
-    if (longest == 0) return 0;
+    if (longest == 0) return (width: 0, scale: scale);
     final padding = math.max(0.0, cellNatural - textNatural);
-    return longest + padding;
+    return (width: longest + padding, scale: scale);
   }
 
   /// Measured runs per paragraph. Tables are measured several times per
   /// layout (once per column, minimum and maximum), so text is only
-  /// measured again when it or its scale changes.
+  /// measured again when it, its scale or the loaded fonts change (a
+  /// downloaded font makes the same text wider).
   static final _wordCache =
-      Expando<({InlineSpan span, TextScaler scaler, double width})>();
+      Expando<
+        ({InlineSpan span, TextScaler scaler, int fonts, double width})
+      >();
+  static int _fontGeneration = 0;
+  static bool _watchingFonts = false;
 
   static double _paragraphWord(RenderParagraph node) {
+    if (!_watchingFonts) {
+      _watchingFonts = true;
+      PaintingBinding.instance.systemFonts.addListener(() => _fontGeneration++);
+    }
     final span = node.text;
     final cached = _wordCache[node];
     if (cached != null &&
         identical(cached.span, span) &&
-        cached.scaler == node.textScaler) {
+        cached.scaler == node.textScaler &&
+        cached.fonts == _fontGeneration) {
       return cached.width;
     }
     final style = span.style ?? _styleOf(span);
@@ -126,7 +159,12 @@ class TableColumnStats {
       longest = math.max(longest, painter.width);
       painter.dispose();
     }
-    _wordCache[node] = (span: span, scaler: node.textScaler, width: longest);
+    _wordCache[node] = (
+      span: span,
+      scaler: node.textScaler,
+      fonts: _fontGeneration,
+      width: longest,
+    );
     return longest;
   }
 
@@ -148,6 +186,9 @@ class TableColumnStats {
   /// Width of the longest unbreakable string (an English word, a URL, a
   /// number). CJK text breaks between characters, so this stays small.
   final double word;
+
+  /// Text size factor of the column (system font size × reader size).
+  final double textScale;
 }
 
 /// Width limits used by [layoutColumns].
@@ -157,6 +198,13 @@ class TableLayoutLimits {
     this.readable = 112,
     this.maximum = 220,
   });
+
+  /// Limits for text shown [scale] times larger than normal.
+  factory TableLayoutLimits.scaled(double scale) => TableLayoutLimits(
+    minimum: 64 * scale,
+    readable: 112 * scale,
+    maximum: 220 * scale,
+  );
 
   /// Narrowest column for wrapped text (about four CJK characters).
   final double minimum;
