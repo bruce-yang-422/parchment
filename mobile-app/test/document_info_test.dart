@@ -3,6 +3,7 @@ import 'package:parchment_mobile/core/models/local_document.dart';
 import 'package:parchment_mobile/core/notes/document_stats.dart';
 import 'package:parchment_mobile/core/notes/note_index.dart';
 import 'package:parchment_mobile/core/services/document_inspector.dart';
+import 'package:parchment_mobile/infrastructure/android_document_channel.dart';
 
 void main() {
   test('中英文字數、字元與行數', () {
@@ -125,6 +126,30 @@ void main() {
       '/storage/emulated/0/Documents/a.md',
     );
     expect(describeLocation(authority: 'com.example.app')?.absolute, isNull);
+  });
+
+  test('外部開檔以正式顯示名稱取代 MediaStore 數字 ID', () {
+    expect(
+      resolveIncomingFileName(
+        '1000102238',
+        const DocumentStat(
+          displayName: '住院準備指南.md',
+          storagePath: 'Download/Telegram/住院準備指南.md',
+        ),
+      ),
+      '住院準備指南.md',
+    );
+    expect(
+      resolveIncomingFileName(
+        '1000102238',
+        const DocumentStat(
+          displayName: '1000102238',
+          absolutePath: '/storage/emulated/0/Download/Telegram/住院準備指南.md',
+        ),
+      ),
+      '住院準備指南.md',
+    );
+    expect(resolveIncomingFileName('note.md', null), 'note.md');
   });
 
   test('內文標籤只認空白後的 #，連結與程式碼裡的 # 不算', () {

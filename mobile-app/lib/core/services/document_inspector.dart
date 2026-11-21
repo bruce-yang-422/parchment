@@ -3,6 +3,7 @@ import '../l10n/tr.dart';
 /// File metadata from the platform (size, modification time, location).
 class DocumentStat {
   const DocumentStat({
+    this.displayName,
     this.size,
     this.modified,
     this.created,
@@ -11,6 +12,9 @@ class DocumentStat {
     this.storagePath,
     this.absolutePath,
   });
+
+  /// Name reported by the Android document provider.
+  final String? displayName;
 
   final int? size;
   final DateTime? modified;

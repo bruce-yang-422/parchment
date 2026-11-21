@@ -160,6 +160,7 @@ class AndroidDocumentChannel
     if (map == null) return null;
     final modified = map['modified'] as int?;
     return DocumentStat(
+      displayName: map['displayName'] as String?,
       size: map['size'] as int?,
       modified: modified == null || modified <= 0
           ? null
@@ -213,11 +214,20 @@ class AndroidDocumentChannel
     }
     final uri = incoming.uri;
     if (uri == null) throw FormatException(tr('沒有收到可開啟的檔案'));
-    final format = LocalDocument.formatForIncoming(
-      incoming.name,
-      incoming.mimeType,
-    );
-    if (incoming.size case final size?
+    // Incoming intents are described on Android's UI thread, where querying a
+    // slow content provider can trigger an ANR. Resolve the provider's real
+    // display name here on the background I/O channel before creating the
+    // document. MediaStore URIs often end in a numeric row id, which is not a
+    // user-visible file name.
+    DocumentStat? metadata;
+    try {
+      metadata = await stat(uri);
+    } on Object {
+      // The file can still be read when a provider refuses metadata queries.
+    }
+    final name = resolveIncomingFileName(incoming.name, metadata);
+    final format = LocalDocument.formatForIncoming(name, incoming.mimeType);
+    if ((incoming.size ?? metadata?.size) case final size?
         when LargeDocumentPolicy.requiresPagedReading(size)) {
       throw PagedReadingRequiredException(size);
     }
@@ -228,9 +238,7 @@ class AndroidDocumentChannel
       } on FileSystemException {
         // Old-style file paths need a storage permission the app does
         // not ask for; the picker grants access to the same file.
-        throw FormatException(
-          tr('沒有權限讀取這個檔案，請在 Parchment 按「開啟檔案」選取它'),
-        );
+        throw FormatException(tr('沒有權限讀取這個檔案，請在 Parchment 按「開啟檔案」選取它'));
       }
     } else {
       bytes = await _read(uri);
@@ -239,11 +247,31 @@ class AndroidDocumentChannel
       throw PagedReadingRequiredException(bytes.length);
     }
     return LocalDocument.decode(
-      name: incoming.name,
+      name: name,
       bytes: bytes,
       format: format,
       sourceUri: incoming.writable ? uri : null,
       originUri: uri,
     );
   }
+}
+
+/// Chooses a human-readable file name after Android has queried the provider.
+///
+/// A content URI may end in a MediaStore row id such as `1000102238`. Prefer
+/// the provider display name, then a known storage path, and keep the initial
+/// URI-derived value only when no real supported file name is available.
+String resolveIncomingFileName(String initial, DocumentStat? metadata) {
+  final candidates = <String?>[
+    metadata?.displayName,
+    metadata?.storagePath,
+    metadata?.absolutePath,
+  ];
+  for (final candidate in candidates) {
+    if (candidate == null || candidate.isEmpty) continue;
+    final normalized = candidate.replaceAll('\\', '/');
+    final name = normalized.substring(normalized.lastIndexOf('/') + 1);
+    if (LocalDocument.supportsFileName(name)) return name;
+  }
+  return initial;
 }

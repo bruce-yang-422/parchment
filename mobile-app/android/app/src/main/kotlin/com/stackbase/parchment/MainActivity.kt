@@ -320,6 +320,7 @@ class MainActivity : FlutterActivity() {
     /* ──────────────── Metadata for the document info sheet ──────────────── */
 
     private fun stat(uri: Uri): Map<String, Any?> {
+        var displayName: String? = null
         var size: Long? = null
         var modified: Long? = null
         var storagePath: String? = null
@@ -342,10 +343,10 @@ class MainActivity : FlutterActivity() {
                     // MediaStore path below the storage root, e.g.
                     // `Documents/Notes/` + `a.md`, or the legacy absolute path.
                     val relative = text("relative_path")
-                    val name = text("_display_name")
+                    displayName = text(OpenableColumns.DISPLAY_NAME)
                     absolutePath = text("_data")?.takeIf { it.startsWith("/") }
                     storagePath = when {
-                        relative != null && name != null -> relative + name
+                        relative != null && displayName != null -> relative + displayName
                         else -> absolutePath?.removePrefix("/storage/emulated/0/")
                     }
                 }
@@ -359,6 +360,7 @@ class MainActivity : FlutterActivity() {
             null
         }
         return mapOf(
+            "displayName" to displayName,
             "size" to size,
             "modified" to modified,
             "documentId" to documentId,
