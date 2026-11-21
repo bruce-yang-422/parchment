@@ -94,7 +94,7 @@
         <li><strong>文件與資料夾存取</strong>：只存取你透過系統選檔器主動選擇或由其他 App 分享給 Parchment 的文件。App 不要求傳統的廣泛儲存空間權限。</li>
         <li><strong>讀寫權限</strong>：讀取用於顯示；寫入只發生在你明確儲存 TODO 勾選或另存新檔時。</li>
         <li><strong>離線圖表</strong>：Mermaid、Graphviz 與 DOMPurify 隨 App 封裝，在隱藏的本機 WebView 中執行，不依賴外部 CDN，也不會把圖表原始碼送到網路。</li>
-        <li><strong>網路</strong>：使用系統字型或 App 內建字型時，閱讀本機文件與產生圖表都在手機上完成，不需要連線。以下情況裝置會連線：你開啟隱私權政策、官方網站或文件中的外部連結；文件引用遠端圖片；或你在閱讀設定中選用標示下載圖示的 Google Fonts 字型（第一次使用時從 Google 下載並存在手機上，之後可離線使用）。下載字型只會送出字型檔的請求，不會傳送文件內容。</li>
+        <li><strong>網路</strong>：使用系統字型或 App 內建字型時，閱讀本機文件與產生圖表都在手機上完成，不需要連線。以下情況裝置會連線：你開啟隱私權政策、官方網站或文件中的外部連結；文件引用遠端圖片；或你在閱讀設定中選用標示下載圖示的 Google Fonts 字型（第一次使用時從 Google 下載並存在手機上，之後可離線使用）。遠端圖片由 App 直接向文件指定的網址請求，設有逾時及 20 MiB 上限；該網站仍可能看到 IP 位址等一般連線資訊，但 Parchment 不會把文件內容一併送出。下載字型只會送出字型檔的請求，不會傳送文件內容。</li>
       </ul>
 
       <h2>第三方服務</h2>
@@ -176,7 +176,7 @@
         <li><strong>Files and folders</strong>: accesses only documents you select through the system picker or share with Parchment from another app. It does not request legacy broad storage permission.</li>
         <li><strong>Read and write access</strong>: reads files for display; writes only when you explicitly save TODO checkbox changes or use Save As.</li>
         <li><strong>Offline diagrams</strong>: Mermaid, Graphviz and DOMPurify ship with the app and run in a hidden local WebView. No CDN is required, and diagram source is not sent over the network.</li>
-        <li><strong>Network</strong>: with the system font or a font bundled with the app, reading local documents and rendering diagrams happen on the phone without a connection. The device connects only when you open the privacy policy, the official website or an external link; when a document references a remote image; or when you choose a Google Fonts typeface marked with a download icon in the reading settings (downloaded from Google the first time and stored on the phone for offline use). A font download requests only the font file; document content is never sent.</li>
+        <li><strong>Network</strong>: with the system font or a font bundled with the app, reading local documents and rendering diagrams happen on the phone without a connection. The device connects only when you open the privacy policy, the official website or an external link; when a document references a remote image; or when you choose a Google Fonts typeface marked with a download icon in the reading settings (downloaded from Google the first time and stored on the phone for offline use). The app requests a remote image directly from the URL written in the document, with timeouts and a 20 MiB limit. That host may receive ordinary connection data such as your IP address, but Parchment does not send the document content with the request. A font download requests only the font file; document content is never sent.</li>
       </ul>
 
       <h2>Third-party services</h2>

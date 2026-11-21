@@ -255,7 +255,9 @@ parchment/
 - 單檔與整個資料夾模式皆支援 `.md`／`.txt`；選檔器中其他檔案會變灰色無法選取。
 - Android 可從 LINE、Gmail 等 App 的「開啟方式」或分享選單直接以 Parchment 開啟文件。
 - 語法與網頁版一致：Frontmatter 屬性、Callouts、註腳、縮寫、上下標、螢光標記、KaTeX、程式碼高亮與 Wiki Links。
+- 程式碼區塊超出畫面時會顯示水平捲動軸；可在設定開啟「顯示行號」，行號與空白行、多語文字及斜體程式碼維持對齊，預設關閉。
 - Android 資料夾模式提供檔案樹、Wiki Links、內嵌筆記與圖片、全文搜尋、標籤、雙向連結，並記住最近的資料夾。
+- 支援 Markdown 與白名單 HTML 中的點陣圖、GIF 及 SVG；相對圖片無法存取或不存在時會顯示明確原因，而不是假設資料夾中一定有圖片。置中的標誌與徽章會依可用寬度自然換行。
 - 圖表使用清理後的 SVG 顯示，燈箱縮放不失真，可另存 4 倍解析度 PNG；語法錯誤會保留原始碼與錯誤訊息。
 - 表格依欄數、文字長度與列數自動判斷：放得下就滿版換行，放不下才左右滑動，且滑動時仍會換行。
 - 「資訊」面板顯示字數、大小、修改時間、位置與待辦進度，並可一鍵複製檔名、位置或全文。
@@ -264,6 +266,7 @@ parchment/
 - 中英文[隱私權政策](privacy.html)同時涵蓋網站、PWA、瀏覽器外掛及 Android／iOS App，說明檔案授權、本機偏好、離線圖表與外部連結行為。
 - 介面採用 iOS／macOS 風格的半圓膠囊按鈕、輕量 Dock 與圓角面板，支援五套深淺配色、文字大小及行距。
 - Android 最低支援 7.0（API 24）；Google Play AAB 會依手機自動提供合適內容，直接下載版為包含 ARM32、ARM64 與 x86_64 的 Universal APK。
+- Android 選檔、外部「開啟方式」、檔案資訊與讀取作業皆避開主執行緒；即使文件提供者回應較慢，也不會用同步查詢卡住介面。
 
 開發、平台差異、測試與 Android 封裝方式請參閱 [手機 App README](mobile-app/README.md)。`mobile-app/apk/` 在本機保留 Google Play 上架 AAB 與可供各品牌 Android 手機直接安裝的 Universal APK（目前為 v1.1.1，雜湊值與簽署資訊見 [apk/README.md](mobile-app/apk/README.md)）；封裝檔不提交至 Git。
 

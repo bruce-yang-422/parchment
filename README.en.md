@@ -255,7 +255,9 @@ Run `npm run pwa` and then `npm run extension` to build it. See [browser-extensi
 
 - Single-file and whole-folder modes accept `.md` and `.txt` documents; Android can also open files shared from LINE, Gmail and other apps.
 - Syntax matches the web version, including footnotes with non-ASCII labels (the end-of-document back button is a drawn vector icon). Common HTML (`<kbd>`, `<details>`, `<u>`, centring and more) is turned into native layout through an allowlist; `<script>` and similar tags are removed.
+- Wide code blocks show a horizontal scrollbar. An optional **Show line numbers** setting keeps the gutter aligned with blank lines, multilingual text, and italic code; it is off by default.
 - Android folder mode provides a file tree, Wiki Links, note and image embeds, full-text search, tags, and backlinks.
+- Markdown and allow-listed HTML support raster images, GIF, and SVG. Missing or inaccessible relative images show the actual reason instead of assuming that opening a folder will fix them; centered logos and badges wrap naturally to the available width.
 - Diagrams use sanitized SVG, remain sharp when zoomed in the lightbox, and preserve source plus an error message when syntax is invalid.
 - Open-source notices use a concise summary, package-name search, and collapsible cards; full legal text is shown only when a component is expanded.
 - TODO checkboxes are the sole exception to read-only behavior: changes are written only after explicit confirmation, only checkbox markers are changed, and external modifications are detected first.
@@ -265,6 +267,7 @@ Run `npm run pwa` and then `npm run extension` to build it. See [browser-extensi
 - The interface is available in eight languages (Traditional and Simplified Chinese, English, Japanese, Korean, French, German, Spanish). Language, fonts, palette, appearance, text size and line spacing are remembered.
 - The document info sheet is ordered by everyday relevance and shows word count, size, modified time, to-do progress, a plain-language location and the full path on the phone; the advanced section adds encoding, line endings and SHA-256.
 - Android 7.0 (API 24) is the minimum. Google Play serves the appropriate content from the AAB; the direct-download Universal APK contains ARM32, ARM64, and x86_64 and is not tied to any phone brand.
+- Android file picking, incoming Open With actions, document metadata, and file reads run away from the UI thread, so a slow document provider does not block the interface with a synchronous query.
 
 See the [mobile app README](mobile-app/README.md) (Traditional Chinese) for development, platform differences, tests, and Android packaging. `mobile-app/apk/` locally contains the Google Play AAB and a Universal APK for direct installation on supported Android devices; release binaries are not committed to Git.
 

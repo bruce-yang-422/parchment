@@ -14,8 +14,9 @@ Parchment 的 Android／iOS 版本，以 Flutter 開發。畫面、文件模型�
 | 類別 | 內容 | 主要程式 |
 | --- | --- | --- |
 | 閱讀 | Markdown 與純文字閱讀、文字選取（切換文件時清除）、深淺色、五套配色、字型、文字大小、行距、回到頂端按鈕（文件超過四個畫面且已捲動兩個畫面才出現）；Windows 換行（CRLF）文件同樣支援 | `lib/ui/reader/reader_screen.dart` |
-| Markdown 語法 | 與網頁版一致：YAML Frontmatter 屬性、Callouts（可收合）、註腳（點擊預覽）、縮寫、定義清單、`==螢光==`、`++插入++`、`^上標^`、`~下標~`、Emoji、KaTeX、程式碼高亮與複製、Wiki Links、內嵌、`## tags:` 屬性；程式碼超出寬度時會固定顯示可拖曳的水平捲動軸 | `lib/core/markdown/note_syntax.dart`、`lib/ui/reader/note_markdown.dart` |
-| HTML | 白名單轉成原生排版：`<b>` `<i>` `<u>` `<s>` `<mark>` `<sup>` `<sub>` `<kbd>` `<br>` `<a>`（僅 http(s)、mailto、tel 與相對路徑）、`<img>`、`<details>`／`<summary>`、置中的 `<p>`／`<div>`、`<h1>`–`<h6>`；`<script>`、`<style>`、`<iframe>` 等連同內容移除，註解隱藏，未知標籤（如 `List<String>`）原樣顯示 | `lib/core/markdown/html_syntax.dart` |
+| Markdown 語法 | 與網頁版一致：YAML Frontmatter 屬性、Callouts（可收合）、註腳（點擊預覽）、縮寫、定義清單、`==螢光==`、`++插入++`、`^上標^`、`~下標~`、Emoji、KaTeX、程式碼高亮與複製、Wiki Links、內嵌、`## tags:` 屬性；程式碼超出寬度時固定顯示可拖曳的水平捲動軸。設定中的「顯示行號」（Show line numbers）預設關閉；開啟後使用固定欄位與正文共用行高規則，空白行、多語文字與斜體程式碼仍能逐行對齊 | `lib/core/markdown/note_syntax.dart`、`lib/ui/reader/note_markdown.dart` |
+| HTML | 白名單轉成原生排版：`<b>` `<i>` `<u>` `<s>` `<mark>` `<sup>` `<sub>` `<kbd>` `<br>` `<a>`（僅 http(s)、mailto、tel 與相對路徑）、`<img>`、`<details>`／`<summary>`、置中的 `<p>`／`<div>`、`<h1>`–`<h6>`；單獨的 `<img>` 不再遞迴解析。置中的純圖片群組以原生 `Wrap` 依可用寬度排列標誌與徽章，不會被強制拆成直向清單；`<script>`、`<style>`、`<iframe>` 等連同內容移除，註解隱藏，未知標籤（如 `List<String>`）原樣顯示 | `lib/core/markdown/html_syntax.dart` |
+| 圖片 | 支援本機、資料夾相對路徑及遠端的點陣圖、GIF 與 SVG；SVG 以向量方式顯示並在燈箱中保持清晰。遠端圖片設連線／讀取逾時與 20 MiB 上限；Shields.io 徽章優先要求 PNG，避開部分 SVG 文字轉換在 Flutter 中的相容問題。找不到或無權讀取時顯示「缺圖」，點擊可查看「無法存取相對路徑圖片，或圖片不存在」等實際原因，不會宣稱開啟資料夾一定能修復 | `lib/ui/reader/reader_screen.dart`、`lib/ui/reader/note_markdown.dart` |
 | 圖表 | Mermaid 與 Graphviz 在隱藏的本機 WebView 中產生 SVG，以 DOMPurify 清理；點擊開啟向量燈箱，縮放不失真；可另存 4 倍解析度 PNG | `lib/infrastructure/diagram_render_service.dart`、`lib/ui/reader/diagram_view.dart`、`assets/diagram/` |
 | 表格 | 寬度上下限隨字級（系統字級 × 閱讀字級）放大；字型載入完成後重新量測字寬。每欄先算「合理寬度」：不拆開最長的英文字／網址（超過 220 才斷）、短文字可換成兩行、長文字依資料列數控制每格行數（列多則每格少換行，避免表格過高）、單欄上限 220。一行放得下維持原寬；合理寬度總和放得下則滿版，多餘寬度依平方根分給長欄；放不下才左右滑動，滑動時每欄仍換行。中文字串以自訂方式量測可斷點（Flutter 會把整串中文視為一個字） | `lib/ui/reader/readable_table.dart` |
 | 目錄 | 略過程式碼區塊與 Frontmatter；先依比例跳轉，再依畫面上已建立的標題逐步逼近，最後對齊實際標題 | `extractHeadings`、`_scrollToHeading` |
@@ -30,13 +31,13 @@ Parchment 的 Android／iOS 版本，以 Flutter 開發。畫面、文件模型�
 | 配色 | 五套配色各自模仿一種環境，除色票外也改變外框與區塊：羊皮紙（紙張暗角、襯線標題、❦ 分隔線）、紫晶（Obsidian）、墨白（Notion）、湖藍（Windows 11）、鋁銀（iOS／macOS）。按鈕與面板圓角、標題大小、設定分組、引用、勾選框（方形／圓角／圓形）、表格、提示框圖示與顏色、程式碼區塊、複製按鈕都依配色不同 | `lib/ui/theme/parchment_theme.dart`、`lib/ui/reader/callout_styles.dart` |
 | 字型 | 內建（OFL，未修改）：台北黑體、jf 粉圓、芫荽、內海（精簡版）、源柔哥德體、LINE Seed JP、Pretendard；Google Fonts 選了才下載並快取（思源黑體／宋體、霞鶩文楷、站酷小薇、M PLUS Rounded 1c、Nanum、Roboto、Open Sans、Lato、Montserrat、Inter、Merriweather）。清單依介面語言只列收錄該語言文字的字型（實測：簡體常用字只有台北黑體完整收錄），英法德西只有一列字型、不顯示中文字型列；每個選項附範例文字，未下載的 Google 字型只顯示下載圖示，不會為了預覽而下載 | `lib/ui/theme/reader_fonts.dart`、`assets/fonts/` |
 | 多語系 | 介面 8 種語言（繁中、簡中、英、日、韓、法、德、西）。設定列與「關於」使用 `ReaderStrings`；其餘文字以繁中原文為鍵呼叫 `tr()`（與網頁版 `i18n.js` 相同做法），`test/l10n_test.dart` 檢查每個 `tr()` 都有 7 種翻譯且佔位符一致 | `lib/core/l10n/tr.dart`、`lib/ui/localization/reader_strings.dart` |
-| 設定保存 | 語言、字型、配色、明暗、文字大小、行距存在 `SharedPreferences`，啟動前讀取避免閃爍；滑桿停手 0.4 秒後才儲存；壞掉或未知的值改用預設 | `lib/core/services/reader_settings.dart`、`lib/infrastructure/preferences_reader_settings.dart` |
+| 設定保存 | 語言、字型、配色、明暗、文字大小、行距、全螢幕與程式碼行號存在 `SharedPreferences`，啟動前讀取避免閃爍；滑桿停手 0.4 秒後才儲存；壞掉或未知的值改用預設 | `lib/core/services/reader_settings.dart`、`lib/infrastructure/preferences_reader_settings.dart` |
 | 閱讀顯示 | 文字大小以 8–32 pt（0.5×–2×）調整；可選擇全螢幕沉浸閱讀。「主題」與「外觀」（跟隨系統／淺色／深色）使用下拉選單，讓較長的多語名稱也能完整顯示 | `lib/core/services/reader_settings.dart`、`lib/ui/reader/reader_screen.dart` |
 | 註腳 | 行內編號使用高對比膠囊與較大的觸控區；點擊後以底部面板顯示「註腳 1」及完整內容，文末返回連結可平滑捲回對應引用位置。markdown 套件會把註腳名稱編碼並轉小寫，查詢時先解碼再不分大小寫比對，`[^說明]` 這類中文名稱也能點開。底部面板固定為畫面寬度的 96%。文末註腳區由 App 自行繪製（編號、內容，以及緊接在內容後面、向量繪製的小型返回箭頭），不使用套件預設、Android 會顯示成彩色表情符號的 ↩；文件底部預留空白，回到頂端按鈕不會蓋住最後一行 | `lib/ui/reader/note_markdown.dart`、`lib/ui/reader/reader_screen.dart` |
 
 介面採用輕量底部 Dock、圓角面板與細分隔線；按鈕形狀、面板圓角與標題樣式隨配色改變，所有元件支援深色模式。切換介面語言會立即更新全部介面文字；文件內容不會被翻譯。
 
-穩定性：浮動元件（回到頂端、圖表渲染器）固定尺寸，即使建構失敗也不會蓋住整個畫面；切換文件時新舊清單會短暫同時掛在捲動控制器上，讀取捲動位置一律取最新的一個。正式版元件出錯時顯示「這部分內容無法顯示」而非灰色區塊。效能：Markdown 元件在樣式表或設定物件「不相等」時會整份重新解析並重建，因此文件畫面快取設定與樣式表（`ReadableColumnWidth` 以數值比較、主題依配色快取），只在文件、配色、字型、字級或閱讀寬度改變時重建；工作清單編號在重新解析時從 0 起算。讀寫、檔案資訊與資料夾列表走 `documents_io` 背景任務佇列通道，不經 Android 主執行緒；Manifest 關閉 `flutter_deeplinking_enabled`，避免外部開檔的 `content://` 被當成 App 路由。原生端讀檔連記憶體不足等嚴重錯誤也轉成錯誤訊息，解析外部 App 傳來的檔案失敗時不會讓 App 閃退；首頁錯誤只顯示白話訊息，不帶例外名稱。
+穩定性：浮動元件（回到頂端、圖表渲染器）固定尺寸，即使建構失敗也不會蓋住整個畫面；切換文件時新舊清單會短暫同時掛在捲動控制器上，讀取捲動位置一律取最新的一個。正式版元件出錯時顯示「這部分內容無法顯示」而非灰色區塊。效能：Markdown 元件在樣式表或設定物件「不相等」時會整份重新解析並重建，因此文件畫面快取設定與樣式表（`ReadableColumnWidth` 以數值比較、主題依配色快取），只在文件、配色、字型、字級或閱讀寬度改變時重建；工作清單編號在重新解析時從 0 起算。讀寫、檔案資訊、選檔結果與資料夾列表走 `documents_io` 背景任務佇列通道，不經 Android 主執行緒；外部「開啟方式」在啟動階段不先同步查詢文件提供者的名稱與大小，避免慢速提供者造成「沒有回應」。Manifest 關閉 `flutter_deeplinking_enabled`，避免外部開檔的 `content://` 被當成 App 路由。原生端讀檔連記憶體不足等嚴重錯誤也轉成錯誤訊息，解析外部 App 傳來的檔案失敗時不會讓 App 閃退；首頁錯誤只顯示白話訊息，不帶例外名稱。
 
 ## 平台支援
 
