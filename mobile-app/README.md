@@ -116,7 +116,7 @@ mobile-app/
 
 ## 發布前檢查
 
-1. 同步更新 `pubspec.yaml` 的 `version`（例如 `1.1.2+2`，`+` 後的組建編號每次上架都要遞增）與 `lib/app/app_info.dart` 的 `version`、`buildNumber`、`lastUpdated`。`test/app_info_test.dart` 會檢查兩邊一致。
+1. 同步更新 `pubspec.yaml` 的 `version`（例如 `1.1.2+2`，`+` 後的組建編號每次上傳新的 AAB 都要遞增）與 `lib/app/app_info.dart` 的 `version`、`buildNumber`、`lastUpdated`。`test/app_info_test.dart` 會檢查兩邊一致。
 2. 執行 `flutter analyze` 與 `flutter test`。
 3. 檢查 `privacy.html` 是否涵蓋 App 權限（含網路：網頁圖片與 Google Fonts 下載）、本機偏好、TODO 寫回與第三方商店行為。
 4. 若網站更新了圖表套件或標誌，依「資產同步」重新產生。

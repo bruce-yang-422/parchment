@@ -268,7 +268,7 @@ parchment/
 - Android 最低支援 7.0（API 24）；Google Play AAB 會依手機自動提供合適內容，直接下載版為包含 ARM32、ARM64 與 x86_64 的 Universal APK。
 - Android 選檔、外部「開啟方式」、檔案資訊與讀取作業皆避開主執行緒；即使文件提供者回應較慢，也不會用同步查詢卡住介面。
 
-開發、平台差異、測試與 Android 封裝方式請參閱 [手機 App README](mobile-app/README.md)。`mobile-app/apk/` 在本機保留 Google Play 上架 AAB 與可供各品牌 Android 手機直接安裝的 Universal APK（目前為 v1.1.1，雜湊值與簽署資訊見 [apk/README.md](mobile-app/apk/README.md)）；封裝檔不提交至 Git。
+開發、平台差異、測試與 Android 封裝方式請參閱 [手機 App README](mobile-app/README.md)。`mobile-app/apk/` 在本機保留 Google Play 上架 AAB 與可供各品牌 Android 手機直接安裝的 Universal APK（目前為 v1.1.2，雜湊值與簽署資訊見 [apk/README.md](mobile-app/apk/README.md)）；封裝檔不提交至 Git。
 
 ## 部署
 

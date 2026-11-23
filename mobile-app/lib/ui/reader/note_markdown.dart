@@ -105,42 +105,102 @@ class NoteMarkdownConfig {
   }
 
   final Map<String, GlobalKey> _footnoteReferenceKeys = {};
-  final Map<String, double> _footnoteReferenceOffsets = {};
+  final GlobalKey _footnoteListKey = GlobalKey();
   ScrollController? _documentController;
+  int _footnoteJump = 0;
+
+  late final _footnoteBlocks = _indexFootnoteBlocks();
+
+  ({int count, Map<String, int> references}) _indexFootnoteBlocks() {
+    final references = <String, int>{};
+    if (note.footnotes.isEmpty) return (count: 0, references: references);
+    final blocks = note.parse(note.markdown);
+    void index(md.Node node, int block) {
+      if (node is! md.Element || node.attributes['class'] == 'footnotes') {
+        return;
+      }
+      final id = node.attributes['id'];
+      if (node.tag == 'a' && id != null && id.startsWith('fnref-')) {
+        references.putIfAbsent(id, () => block);
+      }
+      for (final child in node.children ?? const <md.Node>[]) {
+        index(child, block);
+      }
+    }
+
+    for (var i = 0; i < blocks.length; i++) {
+      index(blocks[i], i);
+    }
+    return (count: blocks.length, references: references);
+  }
 
   GlobalKey footnoteReferenceKey(String id) =>
       _footnoteReferenceKeys.putIfAbsent(id, GlobalKey.new);
 
-  void rememberFootnoteReference(String id) {
-    final referenceContext = _footnoteReferenceKeys[id]?.currentContext;
-    final renderObject = referenceContext?.findRenderObject();
-    if (renderObject == null || !renderObject.attached) return;
-    final viewport = RenderAbstractViewport.maybeOf(renderObject);
-    if (viewport == null) return;
-    _footnoteReferenceOffsets[id] = viewport
-        .getOffsetToReveal(renderObject, 0.24)
-        .offset;
-  }
-
   Future<void> scrollToFootnoteReference(String id) async {
-    final referenceContext = _footnoteReferenceKeys[id]?.currentContext;
-    if (referenceContext != null) {
-      await Scrollable.ensureVisible(
-        referenceContext,
-        alignment: 0.24,
-        duration: const Duration(milliseconds: 280),
-        curve: Curves.easeOutCubic,
-      );
-      return;
+    final jump = ++_footnoteJump;
+    final targetBlock = _footnoteBlocks.references[id];
+    double? before;
+    double? after;
+    for (var attempt = 0; attempt < 40 && jump == _footnoteJump; attempt++) {
+      final reference = _footnoteReferenceKeys[id]?.currentContext;
+      if (reference != null &&
+          reference.mounted &&
+          reference.findRenderObject()?.attached == true) {
+        await Scrollable.ensureVisible(
+          reference,
+          alignment: 0.24,
+          duration: const Duration(milliseconds: 280),
+          curve: Curves.easeOutCubic,
+        );
+        return;
+      }
+      final list = _footnoteListKey.currentContext?.findRenderObject();
+      final position = _documentController?.positions.lastOrNull;
+      if (targetBlock == null ||
+          list is! RenderSliverList ||
+          position == null) {
+        return;
+      }
+      final first = list.firstChild;
+      final last = list.lastChild;
+      if (first == null || last == null) return;
+      // The Markdown renderer inserts a spacing child between blocks.
+      final target = targetBlock * 2;
+      final firstIndex = list.indexOf(first);
+      final lastIndex = list.indexOf(last);
+      if (target >= firstIndex && target <= lastIndex) return;
+
+      // Estimate the distance using the blocks that are laid out. If a
+      // variable-height block makes us overshoot, narrow the search range.
+      final forward = target > lastIndex;
+      final pixels = position.pixels;
+      if (forward) {
+        before = pixels;
+      } else {
+        after = pixels;
+      }
+      final nearest = forward ? lastIndex : firstIndex;
+      final laidOutExtent =
+          list.childScrollOffset(last)! -
+          list.childScrollOffset(first)! +
+          last.size.height;
+      final estimate =
+          (target - nearest).abs() *
+          laidOutExtent /
+          (lastIndex - firstIndex + 1);
+      final step = math.max(estimate, position.viewportDimension * 0.5);
+      var next = pixels + (forward ? step : -step);
+      if (before != null &&
+          after != null &&
+          (next <= before || next >= after)) {
+        next = (before + after) / 2;
+      }
+      next = next.clamp(position.minScrollExtent, position.maxScrollExtent);
+      if ((next - pixels).abs() < 0.5) return;
+      position.jumpTo(next);
+      await WidgetsBinding.instance.endOfFrame;
     }
-    final controller = _documentController;
-    final offset = _footnoteReferenceOffsets[id];
-    if (controller == null || offset == null || !controller.hasClients) return;
-    await controller.animateTo(
-      offset.clamp(0, controller.position.maxScrollExtent),
-      duration: const Duration(milliseconds: 320),
-      curve: Curves.easeOutCubic,
-    );
   }
 
   late final Map<String, MarkdownElementBuilder> _documentBuilders = {
@@ -203,18 +263,53 @@ class NoteMarkdownConfig {
     required EdgeInsets padding,
   }) {
     _documentController = controller;
-    return Markdown(
+    return _FootnoteMarkdown(
+      config: this,
       controller: controller,
-      data: note.markdown,
       padding: padding,
-      styleSheet: styleSheet,
-      builders: _documentBuilders,
-      extensionSet: note.extensionSet,
-      blockSyntaxes: note.blockSyntaxes,
-      inlineSyntaxes: note.inlineSyntaxes,
-      onTapLink: onTapLink,
-      imageBuilder: imageBuilder,
-      checkboxBuilder: _taskCheckbox,
+    );
+  }
+}
+
+class _FootnoteMarkdown extends Markdown {
+  _FootnoteMarkdown({
+    required this.config,
+    required super.controller,
+    required super.padding,
+  }) : super(
+         data: config.note.markdown,
+         styleSheet: config.styleSheet,
+         builders: config._documentBuilders,
+         extensionSet: config.note.extensionSet,
+         blockSyntaxes: config.note.blockSyntaxes,
+         inlineSyntaxes: config.note.inlineSyntaxes,
+         onTapLink: config.onTapLink,
+         imageBuilder: config.imageBuilder,
+         checkboxBuilder: config._taskCheckbox,
+       );
+
+  final NoteMarkdownConfig config;
+
+  @override
+  Widget build(BuildContext context, List<Widget>? children) {
+    final indexed = config._footnoteBlocks;
+    if (children == null ||
+        indexed.references.isEmpty ||
+        children.length != indexed.count * 2 - 1) {
+      return super.build(context, children);
+    }
+    return CustomScrollView(
+      controller: controller,
+      semanticChildCount: children.length,
+      slivers: [
+        SliverPadding(
+          padding: padding,
+          sliver: SliverList.list(
+            key: config._footnoteListKey,
+            children: children,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -623,9 +718,6 @@ class _FootnoteReferenceBuilder extends MarkdownElementBuilder {
     if (href == null || !href.startsWith('#fn-')) return null;
     final number = link.textContent;
     final referenceId = link.attributes['id'] ?? 'fnref-${href.substring(4)}';
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => config.rememberFootnoteReference(referenceId),
-    );
     final colors = Theme.of(context).colorScheme;
     final base = parentStyle ?? DefaultTextStyle.of(context).style;
     final visualSize = math.max(12.0, (base.fontSize ?? 16) * 0.78);
