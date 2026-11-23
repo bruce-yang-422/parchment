@@ -7,8 +7,8 @@ class AppInfo {
   const AppInfo._();
 
   static const name = 'Parchment';
-  static const version = '1.1.2';
-  static const buildNumber = 2;
+  static const version = '1.1.4';
+  static const buildNumber = 4;
   static const lastUpdated = '2026-11-23';
   static const author = 'Bruce Yang';
   static const license = 'MIT';

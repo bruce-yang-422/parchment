@@ -43,6 +43,7 @@ class DiagramRenderService {
 
   final Map<int, Completer<DiagramRenderResult>> _pending = {};
   final Map<String, Future<DiagramRenderResult>> _cache = {};
+  final Map<String, DiagramRenderResult> _completed = {};
   late final WebViewController _controller;
   final Completer<void> _ready = Completer<void>();
   bool _initialized = false;
@@ -59,18 +60,40 @@ class DiagramRenderService {
     required DiagramKind kind,
     required bool dark,
   }) {
-    final key = '${kind.name}|$dark|$source';
+    final key = _key(source, kind: kind, dark: dark);
     final cached = _cache[key];
     if (cached != null) return cached;
     final future = _render(source, kind: kind, dark: dark);
     _cache[key] = future;
     // Failed renders are not cached so a later rebuild can retry.
     future.then((result) {
-      if (!result.isSuccess) _cache.remove(key);
+      if (!result.isSuccess) {
+        _cache.remove(key);
+      } else if (_cache.containsKey(key)) {
+        _completed[key] = result;
+      }
     });
-    if (_cache.length > 48) _cache.remove(_cache.keys.first);
+    if (_cache.length > 48) {
+      final oldest = _cache.keys.first;
+      _cache.remove(oldest);
+      _completed.remove(oldest);
+    }
     return future;
   }
+
+  /// A finished render, available synchronously so a diagram that scrolls
+  /// back into view is laid out at its final size on the first frame.
+  DiagramRenderResult? completed(
+    String source, {
+    required DiagramKind kind,
+    required bool dark,
+  }) => _completed[_key(source, kind: kind, dark: dark)];
+
+  static String _key(
+    String source, {
+    required DiagramKind kind,
+    required bool dark,
+  }) => '${kind.name}|$dark|$source';
 
   /// Re-rasterizes a rendered diagram at export quality.
   Future<DiagramRenderResult> rasterize(

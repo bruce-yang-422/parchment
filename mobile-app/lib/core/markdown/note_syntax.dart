@@ -520,16 +520,28 @@ class NoteHeading {
   final int offset;
 }
 
-/// Extracts ATX headings outside fenced code and frontmatter.
+/// Extracts ATX and setext headings outside fenced code and frontmatter.
 List<NoteHeading> extractHeadings(String content) {
   final frontmatter = Frontmatter.parse(content);
   var offset = content.length - frontmatter.body.length;
   final headings = <NoteHeading>[];
   final pattern = RegExp(r'^\s{0,3}(#{1,6})[ \t]+(.+?)[ \t]*#*[ \t]*$');
+  final setextUnderline = RegExp(r'^ {0,3}(=+|-+)[ \t]*$');
+  // Lines that end, or cannot start, a paragraph that a setext underline
+  // would turn into a heading: indented code, list items, quotes, HTML,
+  // tables, ATX headings and thematic breaks.
+  final notParagraph = RegExp(
+    r'^(?: {4}|\t| {0,3}(?:[-+*][ \t]|\d{1,9}[.)][ \t]|>|<|\||'
+    r'#{1,6}(?:[ \t]|$)|(?:[-*_][ \t]*){3,}$))',
+  );
+  final paragraph = <String>[];
+  var paragraphOffset = 0;
   String? fence;
-  for (final line in frontmatter.body.split('\n')) {
+  for (final raw in frontmatter.body.split('\n')) {
+    final line = raw.endsWith('\r') ? raw.substring(0, raw.length - 1) : raw;
     final fenceMatch = _fencePattern.firstMatch(line);
     if (fenceMatch != null) {
+      paragraph.clear();
       final marker = fenceMatch.group(1)![0];
       if (fence == null) {
         fence = marker;
@@ -537,24 +549,39 @@ List<NoteHeading> extractHeadings(String content) {
         fence = null;
       }
     } else if (fence == null) {
-      final match = pattern.firstMatch(
-        line.endsWith('\r') ? line.substring(0, line.length - 1) : line,
-      );
-      if (match != null &&
-          !RegExp(
-            r'^tags[ \t]*:',
-            caseSensitive: false,
-          ).hasMatch(match.group(2)!)) {
+      final match = pattern.firstMatch(line);
+      final underline = setextUnderline.firstMatch(line);
+      if (match != null) {
+        paragraph.clear();
+        if (!RegExp(
+          r'^tags[ \t]*:',
+          caseSensitive: false,
+        ).hasMatch(match.group(2)!)) {
+          headings.add(
+            NoteHeading(
+              level: match.group(1)!.length,
+              title: _plainHeading(match.group(2)!),
+              offset: offset,
+            ),
+          );
+        }
+      } else if (underline != null && paragraph.isNotEmpty) {
         headings.add(
           NoteHeading(
-            level: match.group(1)!.length,
-            title: _plainHeading(match.group(2)!),
-            offset: offset,
+            level: underline.group(1)![0] == '=' ? 1 : 2,
+            title: _plainHeading(paragraph.map((l) => l.trim()).join(' ')),
+            offset: paragraphOffset,
           ),
         );
+        paragraph.clear();
+      } else if (line.trim().isEmpty || notParagraph.hasMatch(line)) {
+        paragraph.clear();
+      } else {
+        if (paragraph.isEmpty) paragraphOffset = offset;
+        paragraph.add(line);
       }
     }
-    offset += line.length + 1;
+    offset += raw.length + 1;
   }
   return headings;
 }

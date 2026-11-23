@@ -109,6 +109,16 @@ void main() {
     expect(headings.map((h) => h.title), ['一', '二']);
   });
 
+  test('目錄包含底線式（setext）標題，分隔線與清單不算標題', () {
+    const source =
+        '# 一\n\n另一種寫法\n=====\n\n第二層\n---\n\n段落\n\n---\n\n- 項目\n---\n';
+    final headings = extractHeadings(source);
+    expect(headings.map((h) => h.title), ['一', '另一種寫法', '第二層']);
+    expect(headings.map((h) => h.level), [1, 1, 2]);
+    expect(headings[1].offset, source.indexOf('另一種寫法'));
+    expect(headings[2].offset, source.indexOf('第二層'));
+  });
+
   test('範例文件不再顯示原始語法符號', () {
     final source = File('test/fixtures/parchment-guide.md').readAsStringSync();
     final html = render(source).replaceFirst(

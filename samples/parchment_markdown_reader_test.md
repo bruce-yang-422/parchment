@@ -2,7 +2,7 @@
 title: Parchment Markdown 閱讀測試
 author: Parchment
 tags: [測試, markdown, multilingual, 多國語言]
-version: 1.1.2
+version: 1.1.4
 date: 2026-11-23
 ---
 
@@ -171,6 +171,11 @@ Tiếng Việt có dấu: ă â đ ê ô ơ ư — Trăm năm trong cõi ngườ
 需要連上網路才能顯示：
 
 ![Parchment Logo](https://raw.githubusercontent.com/bruce-yang-422/parchment/main/image/parchment-logo-transparent.png)
+
+### 維基百科圖片
+北宋 范寬〈谿山行旅圖〉（國立故宮博物院藏，公有領域，圖片來源：[Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg)）。直立長圖，可點一下放大檢視：
+
+![范寬〈谿山行旅圖〉](https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg/1280px-Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg)
 
 ### 用 HTML 指定寬度
 <img src="https://raw.githubusercontent.com/bruce-yang-422/parchment/main/image/parchment-logo-transparent.png" alt="Parchment Logo 小圖" width="120">

@@ -25,6 +25,7 @@ class DiagramView extends StatefulWidget {
 
 class _DiagramViewState extends State<DiagramView> {
   late Future<DiagramRenderResult> _result;
+  DiagramRenderResult? _initial;
 
   @override
   void initState() {
@@ -43,7 +44,13 @@ class _DiagramViewState extends State<DiagramView> {
   }
 
   void _render() {
-    _result = DiagramRenderService.instance.render(
+    final service = DiagramRenderService.instance;
+    _initial = service.completed(
+      widget.source,
+      kind: widget.kind,
+      dark: widget.dark,
+    );
+    _result = service.render(
       widget.source,
       kind: widget.kind,
       dark: widget.dark,
@@ -59,6 +66,7 @@ class _DiagramViewState extends State<DiagramView> {
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: FutureBuilder<DiagramRenderResult>(
         future: _result,
+        initialData: _initial,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return _DiagramError(

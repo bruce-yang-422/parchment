@@ -9,7 +9,7 @@ Universal APK 同時包含 ARM32、ARM64 與 x86_64；最低支援 Android 7.0�
 
 ## Google Play 上傳
 
-在 Google Play Console 上傳 [parchment-v1.1.2-google-play.aab](parchment-v1.1.2-google-play.aab)。這份封裝的版本為 `1.1.2`（`versionCode 2`）。先前的 `versionCode 1` 已在上傳時被 Google Play 記錄，當時尚未發布。目錄內的 `v1.1.1` 封裝留作備份。
+在 Google Play Console 上傳 [parchment-v1.1.4-google-play.aab](parchment-v1.1.4-google-play.aab)。這份封裝的版本為 `1.1.4`（`versionCode 4`）。`versionCode 1`～`3` 都已被 Google Play 記錄，不能再使用。目錄內的 `v1.1.3` 封裝（已上傳）留作備份，但它有往上滑會跳動、文件內跳轉連結無效等問題，請勿再發給測試者。
 
 下次上傳新的 AAB 前，請提高 `pubspec.yaml` 中 `version` 的組建編號（`+` 後的數字），同步更新 `lib/app/app_info.dart` 再重新封裝。[Android 版本設定說明](https://developer.android.com/studio/publish/versioning)
 
@@ -20,7 +20,7 @@ Universal APK 同時包含 ARM32、ARM64 與 x86_64；最低支援 Android 7.0�
 | 項目 | 內容 |
 | --- | --- |
 | App ID | `com.stackbase.parchment` |
-| 版本 | 1.1.2（versionCode 2） |
+| 版本 | 1.1.4（versionCode 4） |
 | 最低／目標 Android | API 24（7.0）／API 36（16） |
 | 架構 | `arm64-v8a`、`armeabi-v7a`、`x86_64` |
 | 簽署憑證 | `CN=Parchment, OU=Mobile, O=StackBase, L=Taipei, ST=Taiwan, C=TW` |
@@ -28,14 +28,21 @@ Universal APK 同時包含 ARM32、ARM64 與 x86_64；最低支援 Android 7.0�
 
 | 檔案 | 大小 | SHA-256 |
 | --- | --- | --- |
-| `parchment-v1.1.2-android-universal.apk` | 93.0 MiB（97,513,847 bytes） | `E7C846F90F31498697AEDF1D43573F8CB394246CC75A8DB345A4FF88EE21AACE` |
-| `parchment-v1.1.2-google-play.aab` | 90.0 MiB（94,377,925 bytes） | `C146CE2F1CFAD16686E432B0E767A6EE2937EEBF71C0176631358D011FBD73CE` |
+| `parchment-v1.1.4-android-universal.apk` | 93.0 MiB（97,513,939 bytes） | `56BABF8135566FB6B3B89B0351F05D1A8B766AB9C8E9AA811BC80663A1164712` |
+| `parchment-v1.1.4-google-play.aab` | 90.0 MiB（94,385,940 bytes） | `7E088BEA5DA0714CE6F1E85060D706181C0ACB503116A5B2D8EB6311EA5BCB28` |
 
-Google Play AAB 與 Universal APK 均包含文末註腳返回修正。即使長文中的對應引用還未出現在畫面上，點擊返回箭頭也能定位到該引用。
+v1.1.4 修正：
+
+- 往上滑經過圖表或網路圖片時畫面來回跳動：畫好的圖表與下載過的圖片會記住大小，滑回來時直接顯示，不再重新載入。
+- 文件內跳轉連結（例如 `[回到表格](#8-表格-tables)`）在沒開啟筆記資料夾時也能使用，不再出現「要先開啟整個筆記資料夾」的提示。
+- 目錄會列出底線式（`===`、`---`）標題，也能點選跳轉。
+- 文件中的網址與 E-mail 連結：點一下會先顯示完整網址，可選「開啟」（用瀏覽器或郵件 App）、「複製網址」或「取消」；以前只能複製。
+
+v1.1.3 修正部分網路圖片不顯示的問題：檔案資訊裡夾帶 SVG 文字的 PNG（例如 AI 產生的圖片）先前會被誤判成 SVG，畫面上什麼都不顯示，現在能正常顯示；下載網路圖片時會附上 Parchment 名稱與網站，符合維基百科等圖庫的要求，避免被拒絕。也包含 v1.1.2 的文末註腳返回修正：即使長文中的對應引用還未出現在畫面上，點擊返回箭頭也能定位到該引用。
 
 本次封裝包含：
 
-- 閱讀：Frontmatter、Callouts、註腳（中文名稱註腳也能點開；文末返回鍵為自繪向量圖示；註腳面板固定 96% 寬）、HTML 白名單（`<kbd>`、`<details>` 等）、SVG／GIF／點陣圖片、向量圖表燈箱與高解析 PNG、表格自動排版（隨字級放大）、回到頂端按鈕；缺圖會顯示無法存取或不存在的原因。
+- 閱讀：Frontmatter、Callouts、註腳（中文名稱註腳也能點開；文末返回鍵為自繪向量圖示；註腳面板固定 96% 寬）、HTML 白名單（`<kbd>`、`<details>` 等）、SVG／GIF／點陣圖片（含網路圖片）、向量圖表燈箱與高解析 PNG、表格自動排版（隨字級放大）、回到頂端按鈕；缺圖會顯示無法存取或不存在的原因。
 - 程式碼：寬內容固定顯示水平捲動軸；可選擇顯示行號（預設關閉），行號與空白行、多語文字及斜體內容維持對齊。
 - 配色：羊皮紙、紫晶（Obsidian）、墨白（Notion）、湖藍（Windows 11）、鋁銀（iOS）各自的版面、提示框圖示與按鈕樣式。
 - 字型：內建台北黑體、jf 粉圓、芫荽、內海、源柔哥德體、LINE Seed JP、Pretendard；Google Fonts 選了才下載；清單依介面語言、附範例文字。
@@ -48,10 +55,10 @@ Google Play AAB 與 Universal APK 均包含文末註腳返回修正。即使長�
 ## 驗證
 
 ```powershell
-apksigner verify --print-certs parchment-v1.1.2-android-universal.apk
-jarsigner '-J-Duser.language=en' '-J-Duser.country=US' -verify parchment-v1.1.2-google-play.aab
-keytool '-J-Duser.language=en' '-J-Duser.country=US' -printcert -jarfile parchment-v1.1.2-google-play.aab
-Get-FileHash parchment-v1.1.2-*.* -Algorithm SHA256
+apksigner verify --print-certs parchment-v1.1.4-android-universal.apk
+jarsigner '-J-Duser.language=en' '-J-Duser.country=US' -verify parchment-v1.1.4-google-play.aab
+keytool '-J-Duser.language=en' '-J-Duser.country=US' -printcert -jarfile parchment-v1.1.4-google-play.aab
+Get-FileHash parchment-v1.1.4-*.* -Algorithm SHA256
 ```
 
 請勿把 Flutter 的完整 `build/` 目錄複製到這裡。Release 檔案必須使用 `android/keystore/` 的 Upload Key 簽署；金鑰與 `android/key.properties` 不可提交到 Git，且必須另外安全備份。

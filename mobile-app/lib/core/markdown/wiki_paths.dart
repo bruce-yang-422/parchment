@@ -183,3 +183,15 @@ String headingKey(String text) => text
     .replaceAll(RegExp(r'[*_`~=]'), '')
     .trim()
     .toLowerCase();
+
+/// GitHub-style anchor for a heading, as used by `[text](#8-表格-tables)`:
+/// lower case, punctuation removed and spaces turned into hyphens.
+String headingSlug(String text) => headingKey(text)
+    .replaceAll(RegExp(r'[^\p{L}\p{N}\p{M}\s_-]', unicode: true), '')
+    .replaceAll(RegExp(r'\s'), '-');
+
+/// Whether the link target [wanted] (heading text or anchor) names [title].
+bool headingMatches(String title, String wanted) {
+  final key = headingKey(wanted);
+  return headingKey(title) == key || headingSlug(title) == key;
+}

@@ -8,7 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../app/app_info.dart';
 import '../../core/markdown/frontmatter.dart';
 import '../../core/markdown/note_syntax.dart';
 import '../../core/markdown/task_markers.dart';
@@ -346,10 +348,9 @@ class _ReaderScreenState extends State<ReaderScreen>
   }
 
   void _scrollToHeadingText(LocalDocument document, String heading) {
-    final wanted = headingKey(heading);
     final match = extractHeadings(
       document.content,
-    ).where((item) => headingKey(item.title) == wanted).firstOrNull;
+    ).where((item) => headingMatches(item.title, heading)).firstOrNull;
     if (match == null) {
       _showSnack(tr('找不到段落「{heading}」', {'heading': heading}));
       return;
@@ -389,17 +390,19 @@ class _ReaderScreenState extends State<ReaderScreen>
 
   /// Follows a relative Markdown link (`[text](other.md#heading)`).
   bool _openRelativeLink(String href) {
-    if (controller.folder == null || controller.document?.folderPath == null) {
-      return false;
-    }
+    final current = controller.document;
+    if (current == null) return false;
     final hash = href.indexOf('#');
     final path = hash >= 0 ? href.substring(0, hash) : href;
     var heading = hash >= 0 ? href.substring(hash + 1) : '';
     heading = decodePercent(heading);
-    final current = controller.document!;
+    // `#heading` points inside this document, which works without a folder.
     if (path.isEmpty) {
       if (heading.isNotEmpty) _scrollToHeadingText(current, heading);
       return true;
+    }
+    if (controller.folder == null || current.folderPath == null) {
+      return false;
     }
     final entry = controller.resolveLink(path, markdown: true);
     if (entry == null || !entry.isNote) {
@@ -1782,12 +1785,65 @@ class _DocumentViewState extends State<_DocumentView> {
     }
     final uri = Uri.tryParse(href);
     if (uri != null && uri.hasScheme) {
-      Clipboard.setData(ClipboardData(text: href));
-      _showMessage(tr('已複製連結：{href}', {'href': href}));
+      if (const {'http', 'https', 'mailto'}.contains(uri.scheme)) {
+        unawaited(_confirmExternalLink(uri, href));
+      } else {
+        _copyLink(href);
+      }
       return;
     }
     if (widget.openRelativeLink(href)) return;
     _showMessage(tr('這個連結指向其他檔案，要先開啟整個筆記資料夾才能跳過去'));
+  }
+
+  void _copyLink(String href) {
+    Clipboard.setData(ClipboardData(text: href));
+    _showMessage(tr('已複製連結：{href}', {'href': href}));
+  }
+
+  /// Shows the full address before leaving the app, so a link whose text
+  /// hides where it goes cannot open a page by surprise.
+  Future<void> _confirmExternalLink(Uri uri, String href) async {
+    final choice = await showDialog<_LinkChoice>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(
+          uri.scheme == 'mailto'
+              ? tr('要用郵件 App 寫信到這個地址嗎？')
+              : tr('要用瀏覽器開啟這個連結嗎？'),
+        ),
+        content: SelectableText(href),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(tr('取消')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, _LinkChoice.copy),
+            child: Text(tr('複製網址')),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, _LinkChoice.open),
+            child: Text(tr('開啟')),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || choice == null) return;
+    if (choice == _LinkChoice.copy) {
+      _copyLink(href);
+      return;
+    }
+    var opened = false;
+    try {
+      opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      opened = false;
+    }
+    if (!opened && mounted) {
+      Clipboard.setData(ClipboardData(text: href));
+      _showMessage(tr('無法開啟這個連結，網址已複製'));
+    }
   }
 
   void _showFootnote(
@@ -2338,8 +2394,36 @@ class _ZoomableMarkdownImageState extends State<_ZoomableMarkdownImage> {
     _isFolderImage = uri.scheme == 'parchment-wiki' || !uri.hasScheme;
     _folderBytes = _isFolderImage ? widget.loadFolderImage(uri) : null;
     _networkBytes = uri.scheme == 'http' || uri.scheme == 'https'
-        ? _loadNetworkImage(uri)
+        ? _networkImage(uri)
         : null;
+  }
+
+  /// Downloaded images kept for the session so that an image scrolling back
+  /// into view keeps its size instead of reloading from an empty box, which
+  /// made the list jump while scrolling up.
+  static final Map<Uri, Uint8List> _networkCache = {};
+  static final Map<Uri, Future<Uint8List>> _networkLoads = {};
+  static int _networkCacheBytes = 0;
+  static const _networkCacheLimit = 64 * 1024 * 1024;
+
+  static Future<Uint8List> _networkImage(Uri uri) {
+    final cached = _networkCache.remove(uri);
+    if (cached != null) {
+      _networkCache[uri] = cached; // most recently used last
+      return Future.value(cached);
+    }
+    return _networkLoads[uri] ??= _loadNetworkImage(uri)
+        .then((bytes) {
+          _networkCache[uri] = bytes;
+          _networkCacheBytes += bytes.length;
+          while (_networkCacheBytes > _networkCacheLimit &&
+              _networkCache.length > 1) {
+            final oldest = _networkCache.keys.first;
+            _networkCacheBytes -= _networkCache.remove(oldest)!.length;
+          }
+          return bytes;
+        })
+        .whenComplete(() => _networkLoads.remove(uri));
   }
 
   double? _dimension(String name) =>
@@ -2359,6 +2443,7 @@ class _ZoomableMarkdownImageState extends State<_ZoomableMarkdownImage> {
       }
       return FutureBuilder<Uint8List>(
         future: bytes,
+        initialData: _isFolderImage ? null : _networkCache[uri],
         builder: (context, snapshot) {
           if (snapshot.error case final _ImageNotFound missing) {
             return _ImageUnavailable(
@@ -2387,7 +2472,7 @@ class _ZoomableMarkdownImageState extends State<_ZoomableMarkdownImage> {
   }
 
   Widget _bytesImage(BuildContext context, Uint8List data) {
-    if (_looksLikeSvg(data)) {
+    if (looksLikeSvg(data)) {
       final picture = SvgPicture.memory(
         data,
         width: _dimension('width'),
@@ -2479,14 +2564,6 @@ class _ZoomableMarkdownImageState extends State<_ZoomableMarkdownImage> {
     );
   }
 
-  static bool _looksLikeSvg(Uint8List bytes) {
-    final prefix = utf8.decode(
-      bytes.take(math.min(bytes.length, 1024)).toList(),
-      allowMalformed: true,
-    );
-    return RegExp(r'<svg\b', caseSensitive: false).hasMatch(prefix);
-  }
-
   static Future<Uint8List> _loadNetworkImage(Uri uri) async {
     // Shields' SVGs rely on textLength/transform details that are rendered
     // inconsistently by mobile SVG engines (oversized, clipped label text).
@@ -2496,8 +2573,11 @@ class _ZoomableMarkdownImageState extends State<_ZoomableMarkdownImage> {
             !uri.path.toLowerCase().endsWith('.png')
         ? uri.replace(path: '${uri.path}.png')
         : uri;
+    // Image hosts such as Wikimedia throttle or reject the generic Dart
+    // User-Agent; identify the app as their policies ask.
     final client = HttpClient()
-      ..connectionTimeout = const Duration(seconds: 12);
+      ..connectionTimeout = const Duration(seconds: 12)
+      ..userAgent = imageUserAgent;
     try {
       final request = await client
           .getUrl(requestUri)
@@ -2605,3 +2685,29 @@ _DocumentRelations _extractRelations(String source, {required bool markdown}) {
   links.sort();
   return _DocumentRelations(tags: tags, links: links);
 }
+
+/// Whether [bytes] hold an SVG document rather than a raster image.
+///
+/// Raster files may embed SVG text in their metadata (for example the C2PA
+/// provenance icon in AI-generated PNGs), so only text that starts with markup
+/// counts as SVG.
+@visibleForTesting
+bool looksLikeSvg(Uint8List bytes) {
+  final prefix = utf8
+      .decode(
+        bytes.take(math.min(bytes.length, 1024)).toList(),
+        allowMalformed: true,
+      )
+      .replaceFirst('﻿', '')
+      .trimLeft();
+  return prefix.startsWith('<') &&
+      RegExp(r'<svg\b', caseSensitive: false).hasMatch(prefix);
+}
+
+/// User-Agent sent when downloading images shown in a document.
+final String imageUserAgent =
+    '${AppInfo.name}/${AppInfo.version} '
+    '(${Platform.operatingSystem}; +${AppInfo.website})';
+
+/// What the reader chose for an external link.
+enum _LinkChoice { open, copy }
