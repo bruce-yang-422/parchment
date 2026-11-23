@@ -65,6 +65,7 @@ const CATALOG = Object.freeze({
   '網站資訊': ['网站信息', 'Website information', 'Web サイト情報', '웹사이트 정보', 'Informations sur le site', 'Website-Informationen', 'Información del sitio'],
   '隱私權政策': ['隐私政策', 'Privacy policy', 'プライバシーポリシー', '개인정보 처리방침', 'Politique de confidentialité', 'Datenschutzerklärung', 'Política de privacidad'],
   '下載瀏覽器外掛': ['下载浏览器扩展', 'Download browser extension', 'ブラウザー拡張機能をダウンロード', '브라우저 확장 프로그램 다운로드', 'Télécharger l’extension de navigateur', 'Browser-Erweiterung herunterladen', 'Descargar la extensión del navegador'],
+  '下載 Android App': ['下载 Android App', 'Download Android app', 'Android アプリをダウンロード', 'Android 앱 다운로드', 'Télécharger l’app Android', 'Android-App herunterladen', 'Descargar la app de Android'],
   'GitHub 原始碼': ['GitHub 源代码', 'GitHub source code', 'GitHub ソースコード', 'GitHub 소스 코드', 'Code source sur GitHub', 'GitHub-Quellcode', 'Código fuente en GitHub'],
   '勾選只儲存在此瀏覽器，不會修改 Markdown 文件': ['勾选状态仅保存在此浏览器中，不会修改 Markdown 文件', 'Checked state is stored only in this browser and does not modify the Markdown file', 'チェック状態はこのブラウザーだけに保存され、Markdown ファイルは変更されません', '체크 상태는 이 브라우저에만 저장되며 Markdown 파일은 수정되지 않습니다', 'L’état est enregistré uniquement dans ce navigateur sans modifier le fichier Markdown', 'Der Status wird nur in diesem Browser gespeichert; die Markdown-Datei bleibt unverändert', 'El estado se guarda solo en este navegador y no modifica el archivo Markdown'],
   'TODO 本機狀態': ['TODO 本地状态', 'Local TODO state', 'TODO のローカル状態', '로컬 TODO 상태', 'État local des tâches', 'Lokaler TODO-Status', 'Estado local de tareas'],

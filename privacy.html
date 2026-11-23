@@ -38,7 +38,7 @@
   <main class="legal-page">
     <article id="zh-tw" lang="zh-TW">
       <h1>隱私權政策</h1>
-      <p class="legal-meta">生效日期：2026 年 11 月 21 日</p>
+      <p class="legal-meta">生效日期：2026 年 11 月 24 日</p>
       <p>
         本政策適用於 Parchment 網站（<a href="./">parchment.stack-base.com</a>）、安裝後的 Parchment 應用程式（PWA），以及
         Chrome／Edge 的 Parchment 瀏覽器外掛和 Flutter Android／iOS 手機 App。Parchment 是本機 Markdown 與純文字檔案的唯讀優先閱讀器，設計目標是讓你的文件不離開你的裝置。
@@ -78,7 +78,7 @@
         <li><strong>IndexedDB</strong>：最近開啟的檔案與資料夾的控制代碼、名稱與時間，方便你再次開啟。重新開啟時，瀏覽器會視需要再次請求授權。</li>
         <li><strong>Service Worker 快取</strong>（僅網站與 PWA）：網站本身的程式與樣式，讓你可以離線使用。快取中不包含你的文件。</li>
         <li><strong>chrome.storage</strong>（僅瀏覽器外掛）：「以 Parchment 開啟本機 Markdown 檔」的設定。</li>
-        <li><strong>手機 App 本機偏好設定</strong>：最近資料夾的名稱、Android 文件 URI、開啟時間與系統授權狀態。文件內容不會保存到偏好設定中。</li>
+        <li><strong>手機 App 本機偏好設定</strong>：配色、字型、字級等閱讀設定，以及最近資料夾的名稱、Android 文件 URI、開啟時間與系統授權狀態。文件內容不會保存到偏好設定中。</li>
       </ul>
       <p>你可以隨時透過瀏覽器的「清除網站資料」功能刪除網站資料，移除瀏覽器外掛以刪除外掛資料，或在手機 App 中移除最近資料夾；解除安裝手機 App 會刪除 App 的本機偏好設定。</p>
 
@@ -94,7 +94,7 @@
         <li><strong>文件與資料夾存取</strong>：只存取你透過系統選檔器主動選擇或由其他 App 分享給 Parchment 的文件。App 不要求傳統的廣泛儲存空間權限。</li>
         <li><strong>讀寫權限</strong>：讀取用於顯示；寫入只發生在你明確儲存 TODO 勾選或另存新檔時。</li>
         <li><strong>離線圖表</strong>：Mermaid、Graphviz 與 DOMPurify 隨 App 封裝，在隱藏的本機 WebView 中執行，不依賴外部 CDN，也不會把圖表原始碼送到網路。</li>
-        <li><strong>網路</strong>：使用系統字型或 App 內建字型時，閱讀本機文件與產生圖表都在手機上完成，不需要連線。以下情況裝置會連線：你開啟隱私權政策、官方網站或文件中的外部連結；文件引用遠端圖片；或你在閱讀設定中選用標示下載圖示的 Google Fonts 字型（第一次使用時從 Google 下載並存在手機上，之後可離線使用）。遠端圖片由 App 直接向文件指定的網址請求，設有逾時及 20 MiB 上限；該網站仍可能看到 IP 位址等一般連線資訊，但 Parchment 不會把文件內容一併送出。下載字型只會送出字型檔的請求，不會傳送文件內容。</li>
+        <li><strong>網路</strong>：使用系統字型或 App 內建字型時，閱讀本機文件與產生圖表都在手機上完成，不需要連線。以下情況裝置會連線：你開啟隱私權政策或官方網站；你點選文件中的網址並在確認視窗選擇「開啟」（交給瀏覽器或郵件 App 處理）；文件引用遠端圖片；或你在閱讀設定中選用標示下載圖示的 Google Fonts 字型（第一次使用時從 Google 下載並存在手機上，之後可離線使用）。遠端圖片由 App 直接向文件指定的網址請求，設有逾時及 20 MiB 上限；請求會附上 App 名稱、版本、作業系統與官方網站網址（例如 <code>Parchment/1.1.4 (android; +https://parchment.stack-base.com)</code>），這是維基百科等圖庫要求的識別方式，不含任何個人資料。該網站仍可能看到 IP 位址等一般連線資訊，但 Parchment 不會把文件內容一併送出。下載的圖片只暫存在記憶體中，關閉 App 後即清除。下載字型只會送出字型檔的請求，不會傳送文件內容。</li>
       </ul>
 
       <h2>第三方服務</h2>
@@ -102,6 +102,7 @@
         <li>網站由 <a href="https://pages.github.com/" rel="noopener">GitHub Pages</a> 託管。GitHub 可能依其<a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener">隱私權聲明</a>記錄存取紀錄（例如 IP 位址）。瀏覽器外掛的內容全部打包在外掛中，使用時不會連線到 GitHub。</li>
         <li>如果你開啟的文件引用遠端內容（例如網站上的圖片），瀏覽器會像載入一般網頁一樣向該網址取得資源，這些請求受該網站的政策規範。</li>
         <li>手機 App 選用 Google Fonts 字型時，字型檔由 Google 的伺服器（fonts.gstatic.com）提供；Google 可能依其<a href="https://developers.google.com/fonts/faq/privacy" rel="noopener">字型隱私說明</a>記錄請求資訊（例如 IP 位址）。使用系統字型或內建字型則不會連線。</li>
+        <li>從 <a href="https://github.com/bruce-yang-422/parchment/releases" rel="noopener">GitHub Releases</a> 下載瀏覽器外掛或 Android APK 時，GitHub 可能依其隱私權聲明記錄下載請求（例如 IP 位址）。安裝後使用時不會連線到 GitHub。</li>
         <li>如果你透過 Google Play 或其他應用程式商店取得手機 App，商店可能依其自身政策處理下載、安裝、付款或診斷資料；Parchment 開發者不會在 App 中加入分析或追蹤 SDK。</li>
       </ul>
 
@@ -116,7 +117,7 @@
 
     <article id="en" lang="en">
       <h1>Privacy Policy</h1>
-      <p class="legal-meta">Effective date: November 21, 2026</p>
+      <p class="legal-meta">Effective date: November 24, 2026</p>
       <p>
         This policy applies to the Parchment website (<a href="./">parchment.stack-base.com</a>), the installed Parchment app (PWA), and the
         Parchment browser extension for Chrome and Edge, and the Flutter app for Android and iOS. Parchment is a read-only-first reader for local Markdown and plain-text files, designed so that your
@@ -160,7 +161,7 @@
         <li><strong>IndexedDB</strong>: handles, names and times of recently opened files and folders, so you can reopen them. The browser asks for permission again when needed.</li>
         <li><strong>Service worker cache</strong> (website and PWA only): the site's own code and styles, so it works offline. Your documents are not cached.</li>
         <li><strong>chrome.storage</strong> (browser extension only): the "open local Markdown files with Parchment" setting.</li>
-        <li><strong>Mobile app local preferences</strong>: recent-folder names, Android document URIs, open times and grant state. Document contents are not stored in preferences.</li>
+        <li><strong>Mobile app local preferences</strong>: reading settings such as theme, font and text size, plus recent-folder names, Android document URIs, open times and grant state. Document contents are not stored in preferences.</li>
       </ul>
       <p>You can delete website data with your browser's "clear site data" feature, remove the extension to delete extension data, or remove recent folders in the mobile app. Uninstalling the mobile app deletes its local preferences.</p>
 
@@ -176,7 +177,7 @@
         <li><strong>Files and folders</strong>: accesses only documents you select through the system picker or share with Parchment from another app. It does not request legacy broad storage permission.</li>
         <li><strong>Read and write access</strong>: reads files for display; writes only when you explicitly save TODO checkbox changes or use Save As.</li>
         <li><strong>Offline diagrams</strong>: Mermaid, Graphviz and DOMPurify ship with the app and run in a hidden local WebView. No CDN is required, and diagram source is not sent over the network.</li>
-        <li><strong>Network</strong>: with the system font or a font bundled with the app, reading local documents and rendering diagrams happen on the phone without a connection. The device connects only when you open the privacy policy, the official website or an external link; when a document references a remote image; or when you choose a Google Fonts typeface marked with a download icon in the reading settings (downloaded from Google the first time and stored on the phone for offline use). The app requests a remote image directly from the URL written in the document, with timeouts and a 20 MiB limit. That host may receive ordinary connection data such as your IP address, but Parchment does not send the document content with the request. A font download requests only the font file; document content is never sent.</li>
+        <li><strong>Network</strong>: with the system font or a font bundled with the app, reading local documents and rendering diagrams happen on the phone without a connection. The device connects only when you open the privacy policy or the official website; when you tap a link in a document and choose Open in the confirmation dialog (it is handed to your browser or e-mail app); when a document references a remote image; or when you choose a Google Fonts typeface marked with a download icon in the reading settings (downloaded from Google the first time and stored on the phone for offline use). The app requests a remote image directly from the URL written in the document, with timeouts and a 20 MiB limit. The request identifies the app name, version, operating system and official website (for example <code>Parchment/1.1.4 (android; +https://parchment.stack-base.com)</code>), as image libraries such as Wikipedia require; it contains no personal data. Downloaded images are kept only in memory and are cleared when the app closes. That host may receive ordinary connection data such as your IP address, but Parchment does not send the document content with the request. A font download requests only the font file; document content is never sent.</li>
       </ul>
 
       <h2>Third-party services</h2>
@@ -184,6 +185,7 @@
         <li>The website is hosted on <a href="https://pages.github.com/" rel="noopener">GitHub Pages</a>. GitHub may log access information, such as IP addresses, under its <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener">privacy statement</a>. The browser extension bundles all of its content and does not connect to GitHub.</li>
         <li>If a document you open references remote content, such as an image hosted on a website, your browser requests it from that address as it would for any web page. Those requests are governed by that site's policies.</li>
         <li>When the mobile app uses a Google Fonts typeface, the font file is served by Google (fonts.gstatic.com), which may log request information such as IP addresses under its <a href="https://developers.google.com/fonts/faq/privacy" rel="noopener">fonts privacy FAQ</a>. The system font and the bundled fonts need no connection.</li>
+        <li>When you download the browser extension or the Android APK from <a href="https://github.com/bruce-yang-422/parchment/releases" rel="noopener">GitHub Releases</a>, GitHub may log the download request, such as your IP address, under its privacy statement. The installed extension and app do not connect to GitHub.</li>
         <li>If you obtain the mobile app through Google Play or another app store, the store may process download, installation, payment or diagnostic data under its own policy. The Parchment app contains no analytics or tracking SDK.</li>
       </ul>
 

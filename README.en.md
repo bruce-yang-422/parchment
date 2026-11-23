@@ -13,7 +13,8 @@
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue"></a>
   <img alt="PWA: offline ready" src="https://img.shields.io/badge/PWA-offline%20ready-5a0fc8">
   <img alt="Version 1.1.1" src="https://img.shields.io/badge/version-1.1.1-lightgrey">
-  <a href="https://github.com/bruce-yang-422/parchment/releases/download/v1.1.1/parchment-extension-1.1.1.zip"><img alt="Download browser extension v1.1.1" src="https://img.shields.io/badge/extension-download-8b4513"></a>
+  <a href="https://github.com/bruce-yang-422/parchment/releases/download/extension-v1.1.1/parchment-extension-1.1.1.zip"><img alt="Download browser extension v1.1.1" src="https://img.shields.io/badge/extension-download-8b4513"></a>
+  <a href="https://github.com/bruce-yang-422/parchment/releases/download/android-v1.1.4/parchment-android-1.1.4.apk"><img alt="Download Android app v1.1.4" src="https://img.shields.io/badge/android-download-3ddc84"></a>
 </p>
 
 <p align="center">
@@ -245,13 +246,15 @@ For architecture, browser API usage and design decisions, see the [concept memo]
 - Open a local `.md` file in the browser and it is rendered by Parchment automatically. This needs "Allow access to file URLs" turned on in the extension's details page.
 - It only requests the `storage` and `file:///*` permissions and never accesses websites.
 
-Download [Parchment Browser Extension v1.1.1](https://github.com/bruce-yang-422/parchment/releases/download/v1.1.1/parchment-extension-1.1.1.zip), extract the archive, and load it through Chrome or Edge developer mode. See the [extension installation guide](browser-extension/README.md#安裝已發布版本) for the complete steps.
+Download [Parchment Browser Extension v1.1.1](https://github.com/bruce-yang-422/parchment/releases/download/extension-v1.1.1/parchment-extension-1.1.1.zip), extract the archive, and load it through Chrome or Edge developer mode. See the [extension installation guide](browser-extension/README.md#安裝已發布版本) for the complete steps.
 
 Run `npm run pwa` and then `npm run extension` to build it. See [browser-extension/README.md](browser-extension/README.md) (in Traditional Chinese) for loading it for testing, publishing to the Chrome Web Store, and the privacy policy.
 
 ## Flutter mobile app
 
 `mobile-app/` is the Android/iOS app built on a shared Dart core. It keeps the same open-source, read-only-first, local-first, and Obsidian-compatible positioning. Mermaid, Graphviz, KaTeX, the bundled fonts, and their assets ship inside the app, so reading and rendering work without a network connection when using the system or bundled fonts; a connection is needed only for Google Fonts typefaces, external links, or remote images.
+
+Download [Parchment Android v1.1.4](https://github.com/bruce-yang-422/parchment/releases/download/android-v1.1.4/parchment-android-1.1.4.apk) (Android 7.0 or later), open it on your phone, and allow the installation. The Google Play build is signed differently, so the two cannot update each other; uninstall first to switch sources. All versions are listed on [GitHub Releases](https://github.com/bruce-yang-422/parchment/releases).
 
 - Single-file and whole-folder modes accept `.md` and `.txt` documents; Android can also open files shared from LINE, Gmail and other apps.
 - Syntax matches the web version, including footnotes with non-ASCII labels (the end-of-document back button is a drawn vector icon). Common HTML (`<kbd>`, `<details>`, `<u>`, centring and more) is turned into native layout through an allowlist; `<script>` and similar tags are removed.

@@ -13,7 +13,8 @@
   <a href="LICENSE"><img alt="授權：MIT" src="https://img.shields.io/badge/license-MIT-blue"></a>
   <img alt="PWA：可離線使用" src="https://img.shields.io/badge/PWA-offline%20ready-5a0fc8">
   <img alt="版本 1.1.1" src="https://img.shields.io/badge/version-1.1.1-lightgrey">
-  <a href="https://github.com/bruce-yang-422/parchment/releases/download/v1.1.1/parchment-extension-1.1.1.zip"><img alt="下載瀏覽器外掛 v1.1.1" src="https://img.shields.io/badge/extension-download-8b4513"></a>
+  <a href="https://github.com/bruce-yang-422/parchment/releases/download/extension-v1.1.1/parchment-extension-1.1.1.zip"><img alt="下載瀏覽器外掛 v1.1.1" src="https://img.shields.io/badge/extension-download-8b4513"></a>
+  <a href="https://github.com/bruce-yang-422/parchment/releases/download/android-v1.1.4/parchment-android-1.1.4.apk"><img alt="下載 Android App v1.1.4" src="https://img.shields.io/badge/android-download-3ddc84"></a>
 </p>
 
 <p align="center">
@@ -243,13 +244,15 @@ parchment/
 - 在瀏覽器中開啟本機 `.md` 檔時，自動以 Parchment 顯示。需要在擴充功能詳細資料中開啟「允許存取檔案網址」。
 - 只要求 `storage` 與 `file:///*` 權限，不存取任何網站。
 
-使用者可下載 [Parchment Browser Extension v1.1.1](https://github.com/bruce-yang-422/parchment/releases/download/v1.1.1/parchment-extension-1.1.1.zip)，解壓縮後透過 Chrome 或 Edge 的開發人員模式載入。完整步驟請參閱 [外掛安裝說明](browser-extension/README.md#安裝已發布版本)。
+使用者可下載 [Parchment Browser Extension v1.1.1](https://github.com/bruce-yang-422/parchment/releases/download/extension-v1.1.1/parchment-extension-1.1.1.zip)，解壓縮後透過 Chrome 或 Edge 的開發人員模式載入。完整步驟請參閱 [外掛安裝說明](browser-extension/README.md#安裝已發布版本)。
 
 先執行 `npm run pwa`，再執行 `npm run extension` 即可建置。載入測試、上架 Chrome Web Store 與隱私權政策，請參閱 [browser-extension/README.md](browser-extension/README.md)。
 
 ## Flutter 手機 App
 
 `mobile-app/` 是共用 Dart 核心的 Android／iOS App，定位同樣是開源、唯讀優先、本機運作與相容 Obsidian Markdown。Mermaid、Graphviz、KaTeX 及相關資產全部隨 App 封裝，沒有網路也能渲染。
+
+使用者可下載 [Parchment Android v1.1.4](https://github.com/bruce-yang-422/parchment/releases/download/android-v1.1.4/parchment-android-1.1.4.apk)（Android 7.0 以上），在手機上開啟檔案並允許安裝。從 Google Play 安裝的版本與這個 APK 簽章不同，無法互相覆蓋更新，要換安裝來源請先解除安裝。所有版本請見 [GitHub Releases](https://github.com/bruce-yang-422/parchment/releases)。
 
 - 定位：讓收到 `.md` 檔的一般人也能直接閱讀，或在電腦編輯、手機閱讀。介面用語避免技術名詞，歡迎畫面以白話說明 Markdown。
 - 單檔與整個資料夾模式皆支援 `.md`／`.txt`；選檔器中其他檔案會變灰色無法選取。

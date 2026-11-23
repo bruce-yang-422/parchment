@@ -8,7 +8,7 @@
 | Target | `main` |
 | Release title | `Parchment Android v1.1.4` |
 | Release label | `Latest` |
-| 版本類型 / Version type | `Patch / Shame`（自 1.1.3 起以修正為主 / mostly fixes since 1.1.3） |
+| 版本類型 / Version type | GitHub 首發，版本號沿用 Google Play 測試版 / First GitHub release; version number continues from the Google Play test builds |
 | Binary | [`parchment-android-1.1.4.apk`](https://github.com/bruce-yang-422/parchment/releases/download/android-v1.1.4/parchment-android-1.1.4.apk) |
 
 上傳的 APK 是 `parchment-v1.1.4-android-universal.apk` 改名後的檔案，內容相同。檔案已在這個資料夾準備好，命名規則見 [RELEASING.md](../../RELEASING.md)。
@@ -17,28 +17,23 @@ The uploaded APK is `parchment-v1.1.4-android-universal.apk` renamed; the conten
 
 ## 發行說明 / Release notes
 
-整段複製，貼到 GitHub Release 的說明欄。
+這是 Android 在 GitHub 的首發，說明只介紹功能，不寫與先前版本的差異。整段複製，貼到 GitHub Release 的說明欄。
 
-Copy the whole block into the GitHub release description.
+This is the first Android release on GitHub, so the notes introduce the app rather than list changes. Copy the whole block into the GitHub release description.
 
 ````markdown
-Parchment Android v1.1.4 是第一個在 GitHub 發布的 Android 版本，可以在手機上離線閱讀 Markdown 筆記，文件不會上傳到任何地方。這個版本修正往上捲動時畫面來回跳動的問題，文件內的跳轉連結與底線式標題的目錄也都能正常使用；點選網址或 E-mail 連結時，會先顯示完整網址，確認後再開啟。
-
-### 變更內容
-
-- 修正往上捲動經過圖表或網路圖片時，畫面會來回跳動、要等一陣子才能繼續捲動的問題。
-- 修正部分網路圖片無法顯示的問題，維基百科等圖庫的圖片也能正常載入。
-- 文件內的跳轉連結（例如「回到表格段落」）不需要開啟整個筆記資料夾也能使用。
-- 目錄會列出以 `===`、`---` 底線標示的標題，也能點選跳轉。
-- 點選網址或 E-mail 連結時，先顯示完整網址，可以選擇「開啟」、「複製網址」或「取消」。
-- 長文章中，按下文末註腳的返回箭頭，就能回到對應的引用位置。
+Parchment Android 是一款 Markdown 筆記閱讀器，可以在手機上離線閱讀 `.md` 筆記。文件只在手機上開啟，不會上傳到任何地方。
 
 ### 主要功能
 
-- 開啟單一 `.md`、`.txt` 檔，或整個筆記資料夾；可以從 LINE、檔案管理員等 App 直接開啟。
-- 支援提示框（Callouts）、註腳、數學公式、Mermaid／Graphviz 圖表、表格、程式碼、待辦清單勾選存回等語法。
-- 五種配色、多款內建中日韓字型，可調整字級與版面寬度。
-- 介面支援繁中、簡中、英、日、韓、法、德、西 8 種語言。
+- **開啟檔案**：開啟單一 `.md`、`.txt` 檔或整個筆記資料夾，也可以從 LINE、檔案管理員等 App 直接開啟。
+- **完整的 Markdown 排版**：標題目錄、表格、程式碼、引用、提示框（Callouts）、註腳、數學公式、Mermaid 與 Graphviz 圖表、定義清單與縮寫說明。
+- **圖片**：支援資料夾內的圖片與網路圖片，點一下可以放大檢視；圖片找不到時會說明原因。
+- **筆記連結**：支援 `[[筆記]]` 雙括號連結與文件內的段落跳轉；網址與 E-mail 連結會先顯示完整網址，確認後才開啟。
+- **待辦清單**：可以直接勾選，並存回原本的檔案。
+- **閱讀設定**：五種配色，內建多款中日韓字型，也可以下載 Google Fonts；字級與版面寬度都能調整，設定會自動記住。
+- **多國語言**：介面支援繁中、簡中、英、日、韓、法、德、西 8 種語言。
+- **隱私**：不需要帳號，不蒐集任何資料；只有在顯示網路圖片或下載字型時才會連網。
 
 ### 安裝方式
 
@@ -56,23 +51,18 @@ Parchment Android v1.1.4 是第一個在 GitHub 發布的 Android 版本，可�
 
 ---
 
-Parchment Android v1.1.4 is the first Android release on GitHub. It lets you read Markdown notes offline on your phone; documents are never uploaded. This release fixes the page jumping back and forth while scrolling up, makes in-document links and the outline of underlined headings work, and shows the full address before opening a web or e-mail link.
+Parchment Android is a Markdown notes reader for reading `.md` notes offline on your phone. Documents are opened only on your phone and are never uploaded.
 
-### Changes
+### Features
 
-- Fixed the page jumping back and forth, and briefly getting stuck, while scrolling up past diagrams or web images.
-- Fixed some web images that did not load, including images from Wikipedia and similar media libraries.
-- In-document links (for example "back to the Tables section") now work without opening a whole notes folder.
-- The outline now lists headings underlined with `===` or `---`, and tapping them jumps to the heading.
-- Tapping a web or e-mail link first shows the full address, with **Open**, **Copy address** and **Cancel**.
-- The back arrow on an endnote now returns to its reference, even in long documents.
-
-### Highlights
-
-- Open a single `.md` or `.txt` file, or a whole notes folder, including files shared from LINE or a file manager.
-- Callouts, footnotes, math, Mermaid and Graphviz diagrams, tables, code, and task lists whose checkboxes are saved back to the file.
-- Five color themes, bundled CJK fonts, and adjustable text size and page width.
-- Interface in 8 languages: Traditional Chinese, Simplified Chinese, English, Japanese, Korean, French, German and Spanish.
+- **Open files**: open a single `.md` or `.txt` file or a whole notes folder, including files shared from LINE or a file manager.
+- **Full Markdown layout**: outline, tables, code, quotes, callouts, footnotes, math, Mermaid and Graphviz diagrams, definition lists and abbreviations.
+- **Images**: images from the notes folder and from the web; tap to zoom, and a clear message when an image cannot be found.
+- **Note links**: `[[note]]` wiki links and in-document links; web and e-mail links show the full address and open only after you confirm.
+- **Task lists**: tick tasks directly and save them back to the original file.
+- **Reading settings**: five color themes, bundled CJK fonts plus optional Google Fonts, adjustable text size and page width, all remembered.
+- **Languages**: interface in Traditional Chinese, Simplified Chinese, English, Japanese, Korean, French, German and Spanish.
+- **Privacy**: no account and no data collection; the app goes online only to show web images or download fonts.
 
 ### Installation
 

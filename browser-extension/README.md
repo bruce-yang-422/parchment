@@ -11,7 +11,7 @@
 
 ## 安裝已發布版本
 
-目前版本：[下載 Parchment Browser Extension v1.1.1](https://github.com/bruce-yang-422/parchment/releases/download/v1.1.1/parchment-extension-1.1.1.zip)
+目前版本：[下載 Parchment Browser Extension v1.1.1](https://github.com/bruce-yang-422/parchment/releases/download/extension-v1.1.1/parchment-extension-1.1.1.zip)
 
 1. 下載並解壓縮 ZIP。
 2. 開啟 `chrome://extensions` 或 `edge://extensions`，啟用**開發人員模式**。
