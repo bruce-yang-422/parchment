@@ -55,7 +55,7 @@ The interface supports Traditional Chinese, Simplified Chinese, English, Japanes
 - **Notes folder navigation**: file tree, Wiki Links, note embeds, tag filtering, backlinks and full-text search.
 - **Comfortable reading**: five color palettes with light and dark variants, separate CJK and Latin font settings, and a switchable reading width.
 - **Responsive mobile layout**: documents use the full width on narrow screens, with the file tree and document information available as touch-friendly side drawers and wide tables contained without shifting the page.
-- **Back to top**: on desktop, the shortcut appears in the reading pane's lower-right corner after scrolling down. On mobile, it appears after two screenfuls in documents longer than four screens.
+- The **Back to top** shortcut appears automatically in the reading pane's lower-right corner after scrolling down 160 px on desktop. On mobile, it appears after two screenfuls in documents longer than four screens.
 - **Eight interface languages**: Traditional Chinese, Simplified Chinese, English, Japanese, Korean, French, German and Spanish, with automatic browser-language detection and a manual selector.
 - **Browser extension**: a Chrome and Edge extension opens Parchment from the toolbar and renders local `.md` files you open in the browser.
 - **Installable and offline**: install it as a PWA to open and read local files without a network connection.
@@ -78,7 +78,7 @@ The interface supports Traditional Chinese, Simplified Chinese, English, Japanes
 - **Embeds**: `![[image.png|300]]` for images, and `![[Note]]`, `![[Note#Heading]]`, `![[Note#^block]]` for other notes or sections.
 - **Callouts**: `> [!note]`, `> [!tip]- Foldable title` and more. GitHub's `> [!NOTE]` alerts work too.
 - **YAML front matter**: rendered as a properties block; its `tags` are clickable and filter the file tree.
-- **Side panel**: table of contents, tags, linked notes, backlinks, and document details such as file name, size, modification time, word count, task progress, and folder-relative path when available.
+- **Side panel**: a tree-style outline, tags, linked notes, backlinks, and document details such as file name, size, modification time, word count, task progress, and folder-relative path when available.
 
 ### Browsing and search
 
@@ -141,6 +141,11 @@ python -m http.server 8080
 > [!NOTE]
 > Wiki Links, image and note embeds, and full-text search need to know which folder a document belongs to, so they are only available in folder mode.
 
+### Reading navigation
+
+- **Document outline.** Guide lines show how headings are nested. Use a branch arrow to expand or collapse it, or use the controls next to the outline title to expand or collapse all branches. Select a heading to jump to it. If the current section is in a collapsed branch, the outline highlights its nearest visible parent.
+- **Back to home.** On desktop, select the Parchment feather badge in the upper-left corner to return to the home screen and keep your reading position and recent items. To jump to the beginning of the open document, use **Back to top** in the reading pane.
+
 ### Keyboard shortcuts
 
 | Key | Where | Action |
@@ -148,6 +153,7 @@ python -m http.server 8080
 | `Ctrl` + `Shift` + `F` (macOS: `⌘` + `Shift` + `F`) | Folder mode | Focus full-text search |
 | `Enter` / `↓` | Search box | Move to the results |
 | `Esc` | Search box | Clear the search |
+| `Enter` / `Space` | Focused outline button | Expand or collapse a branch, or jump to the selected heading |
 | Scroll wheel / trackpad pinch | Lightbox | Zoom around the pointer |
 | `+` / `-` / `0` | Lightbox | Zoom in / zoom out / fit to window |
 | Double-click | Lightbox | Toggle between zoomed and fit to window |
