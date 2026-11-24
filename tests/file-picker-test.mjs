@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
-import { openFile } from '../assets/js/fileLoader.js';
+import { openFile, openFileFromHandle, readFileDocument } from '../assets/js/fileLoader.js';
 
-const markdown = new File(['# Note'], 'note.MD');
-const plainText = new File(['Plain text'], 'note.txt');
+const lastModified = Date.UTC(2026, 10, 24, 1, 30);
+const markdown = new File(['# Note'], 'note.MD', { lastModified });
+const plainText = new File(['記事'], 'note.txt', { lastModified });
 const unsupported = { name: 'other.text', text: () => assert.fail('Unsupported file was read') };
 let selectedFile = markdown;
 let pickerOptions;
@@ -19,8 +20,10 @@ Object.defineProperty(globalThis, 'navigator', {
   value: { userAgent: 'Desktop' },
 });
 assert.deepEqual(await openFile(), {
-  name: 'note.MD', content: '# Note', path: ['note.MD'], handle, getFileByPath: null,
+  name: 'note.MD', content: '# Note', size: 6, lastModified,
+  path: ['note.MD'], handle, getFileByPath: null,
 });
+assert.deepEqual(await openFileFromHandle(handle), await openFile());
 assert.equal(pickerOptions.excludeAcceptAllOption, true);
 assert.equal(pickerOptions.multiple, false);
 assert.deepEqual(pickerOptions.types.map(type => type.accept), [
@@ -34,7 +37,7 @@ Object.defineProperty(globalThis, 'navigator', {
   value: { userAgentData: { platform: 'Android' } },
 });
 selectedFile = plainText;
-assert.equal((await openFile()).content, 'Plain text');
+assert.equal((await openFile()).content, '記事');
 assert.deepEqual(pickerOptions.types.map(type => type.accept), [
   { 'text/markdown': ['.md'], 'text/plain': ['.txt'] },
 ]);
@@ -56,7 +59,8 @@ globalThis.document = {
     };
   },
 };
-assert.deepEqual(await openFile(), { name: 'note.txt', content: 'Plain text', path: ['note.txt'] });
+assert.deepEqual(await openFile(), { name: 'note.txt', content: '記事', size: 6, lastModified, path: ['note.txt'] });
+assert.equal((await readFileDocument(plainText, { lastModified: null })).lastModified, null);
 selectedFile = unsupported;
 await assert.rejects(openFile(), /other\.text/);
 pickerEvent = 'cancel';

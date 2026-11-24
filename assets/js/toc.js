@@ -11,12 +11,12 @@ export function renderTOC(content, sidebar, container, scrollContainer) {
 
   const headings = [...content.querySelectorAll('h1, h2, h3, h4, h5, h6')]
     .filter(heading => heading.textContent.trim() && !heading.closest('.note-embed'));
+  _contentRoot = content;
   if (!headings.length) return;
 
   const used = new Map();
   const fragment = document.createDocumentFragment();
   _headings = headings;
-  _contentRoot = content;
   _buttons = [];
 
   for (const heading of headings) {

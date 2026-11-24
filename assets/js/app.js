@@ -4,7 +4,7 @@
  */
 
 import { initTheme, cycleTheme }           from './theme.js';
-import { openFile, openDirectory, openFileFromHandle, openDirectoryFromHandle, isSupportedFile, normalizeRelativePath } from './fileLoader.js';
+import { openFile, openDirectory, openFileFromHandle, openDirectoryFromHandle, isSupportedFile, normalizeRelativePath, readFileDocument } from './fileLoader.js';
 import { setupRenderer, renderMarkdown, renderText } from './renderer.js';
 import { renderTree, clearTree, setActiveTreePath, setAllDirectoriesExpanded, hasExpandedDirectory, getExpandedDirectoryKeys } from './tree.js';
 import { sortTreeEntries, collectTreeFiles, treePathKey, isTimeSort, TREE_SORT_MODES, DEFAULT_TREE_SORT } from './treeSort.js';
@@ -26,6 +26,7 @@ import { currentLocale, initI18n, t } from './i18n.js';
 import { enhanceTableReadability } from './tableLayout.js';
 import { initMobileLayout } from './mobileLayout.js';
 import { initBackToTop } from './backToTop.js';
+import { initFootnotePreview } from './footnotePreview.js';
 
 /* ──────────────────── 初始化 ──────────────────── */
 
@@ -100,9 +101,11 @@ initBackToTop({
 
 const rightPanel = initRightPanel({
   sidebar: tocSidebar,
+  readerBody,
   onSelectTag: _filterFolderByTag,
   onOpenDocument: _openIndexedDocument,
 });
+const footnotePreview = initFootnotePreview(readerBody);
 
 const searchPanel = initSearchPanel({
   input: document.getElementById('folder-search-input'),
@@ -160,6 +163,14 @@ document.addEventListener('keydown', event => {
   }
 });
 tagFilterClear.addEventListener('click', _clearTagFilter);
+document.addEventListener('click', event => {
+  const button = event.target.closest('button.image-unavailable-toggle');
+  if (!button) return;
+  const message = button.parentElement.querySelector('.image-unavailable-message');
+  if (!message) return;
+  message.hidden = !message.hidden;
+  button.setAttribute('aria-expanded', String(!message.hidden));
+});
 readerBody.addEventListener('click', (event) => {
   const tagButton = event.target.closest('.metadata-tag');
   if (!tagButton || !readerBody.contains(tagButton)) return;
@@ -252,8 +263,7 @@ dragOverlay.addEventListener('drop', async (e) => {
   }
 
   try {
-    const content = await file.text();
-    await _displayFile({ name: file.name, content, path: [file.name] });
+    await _displayFile({ ...await readFileDocument(file), path: [file.name] });
     _enterSingleMode();
   } catch (err) {
     _showToast(t('無法讀取檔案：{message}', { message: err.message }), 'error');
@@ -276,6 +286,7 @@ function _enterSingleMode() {
 function _enterFolderMode(directory) {
   _saveReadingPosition();
   _currentDocument = null;
+  footnotePreview.close();
   if (lightboxEl && !lightboxEl.hidden) _closeImageLightbox();
   _revokeObjectUrls();
   const { rootName, entries, getFileByPath, files = [], handle = null } = directory;
@@ -315,8 +326,8 @@ function _renderFolderTree(entries, options = {}) {
   const context = _folderContext;
   _treeEntries = entries;
   if (context && isTimeSort(_treeSortMode) && !context.mtimes) _loadModifiedTimes(context);
-  renderTree(sortTreeEntries(entries, _treeSortMode, context?.mtimes || new Map()), async (entry, content) => {
-    await _displayFile({ ...entry, content, folder: _folderContext });
+  renderTree(sortTreeEntries(entries, _treeSortMode, context?.mtimes || new Map()), async (entry, file) => {
+    await _displayFile({ ...entry, ...await readFileDocument(file), folder: context });
     folderPlaceholder.hidden = true;
   }, { ...options, onExpansionChange: _syncTreeCollapseButton });
 }
@@ -475,6 +486,7 @@ async function _openSampleDocument() {
   }));
   const folder = {
     rootName: t('範例'),
+    isSample: true,
     entries,
     files: [...notePaths, ...SAMPLE_ASSETS.map(file => file.split('/'))],
     notePaths,
@@ -487,7 +499,7 @@ async function _openSampleDocument() {
   try {
     const [entry] = entries;
     const file = await entry.handle.getFile();
-    await _displayFile({ ...entry, content: await file.text(), folder });
+    await _displayFile({ ...entry, ...await readFileDocument(file, { lastModified: null }), folder });
     _enterSingleMode();
   } catch (err) {
     _showToast(t('無法開啟範例文件：{message}', { message: err.message }), 'error');
@@ -527,7 +539,7 @@ async function _openFromUrlParameter() {
     };
     const file = await folder.getFileByPath(segments);
     if (!isSupportedFile(file.name)) throw new Error(t('不支援的格式：{name}', { name: file.name }));
-    await _displayFile({ name: file.name, content: await file.text(), path: segments, folder });
+    await _displayFile({ ...await readFileDocument(file, { lastModified: null }), path: segments, folder });
     _enterSingleMode();
   } catch (err) {
     _showToast(err.message, 'error');
@@ -564,8 +576,7 @@ async function _openFileFromLaunchQueue(handle) {
     return;
   }
   await _displayFile({
-    name: file.name,
-    content: await file.text(),
+    ...await readFileDocument(file),
     handle,
     path: [file.name],
   });
@@ -582,6 +593,7 @@ async function _displayFile(doc, options = {}) {
   contentArea.scrollLeft = 0;
   if (!options.hotReload) _saveReadingPosition();
   _currentDocument = doc;
+  footnotePreview.close();
   if (lightboxEl && !lightboxEl.hidden) _closeImageLightbox();
   _revokeObjectUrls();
 
@@ -654,11 +666,8 @@ async function _displayFile(doc, options = {}) {
   readerEl.hidden = false;
 
   renderTOC(readerBody, tocSidebar, tocContainer, contentArea);
-  if (isMarkdown) {
-    rightPanel.render(doc, doc.folder ? _getFolderDocumentIndex(doc.folder) : null);
-  } else {
-    rightPanel.clear();
-  }
+  footnotePreview.prepare();
+  rightPanel.render(doc, isMarkdown && doc.folder ? _getFolderDocumentIndex(doc.folder) : null);
   _startHotReload(doc);
 
   if (doc.folder?.fileUrlBase && doc.path) {
@@ -777,7 +786,7 @@ async function _openIndexedDocument(entry, options = {}) {
   if (_activeTagFilter) _clearTagFilter();
   try {
     const file = await entry.handle.getFile();
-    await _displayFile({ ...entry, content: await file.text(), folder: _folderContext }, options);
+    await _displayFile({ ...entry, ...await readFileDocument(file), folder: _folderContext }, options);
     setActiveTreePath(entry.path);
     folderPlaceholder.hidden = true;
   } catch (error) {
@@ -983,6 +992,19 @@ function _enhanceImages(container) {
   container.querySelectorAll('img').forEach(img => {
     if (img.closest('#image-lightbox')) return;
 
+    const showFailure = () => {
+      const source = img.currentSrc || img.getAttribute('src') || '';
+      const message = /^(https?:)?\/\//i.test(source)
+        ? t('無法載入遠端圖片。請檢查網路連線或圖片網址。')
+        : t('無法讀取圖片內容。');
+      _replaceUnavailableImage(img, message);
+    };
+    if (img.complete && img.naturalWidth === 0) {
+      showFailure();
+      return;
+    }
+    img.addEventListener('error', showFailure, { once: true });
+
     if (!img.parentElement?.classList.contains('image-scroll-inner')) {
       const frame = document.createElement('div');
       frame.className = 'image-scroll-frame';
@@ -1002,6 +1024,39 @@ function _enhanceImages(container) {
       img.dataset.zoomBound = 'true';
     }
   });
+}
+
+function _replaceUnavailableImage(img, reason) {
+  const fallback = document.createElement('span');
+  fallback.className = 'image-unavailable';
+  const toggle = document.createElement('button');
+  toggle.type = 'button';
+  toggle.className = 'image-unavailable-toggle';
+  toggle.setAttribute('aria-expanded', 'false');
+  toggle.textContent = t('圖片無法顯示');
+  const alt = img.alt?.trim();
+  if (alt) {
+    const label = document.createElement('span');
+    label.className = 'image-unavailable-alt';
+    label.textContent = alt;
+    toggle.append(label);
+  }
+  const message = document.createElement('span');
+  message.className = 'image-unavailable-message';
+  message.textContent = reason;
+  message.hidden = true;
+  fallback.append(toggle, message);
+
+  const frame = img.closest('.image-scroll-frame') || img;
+  const link = img.closest('a');
+  if (!link) {
+    frame.replaceWith(fallback);
+  } else if (link.textContent.trim() || link.querySelectorAll('img, svg').length > 1) {
+    link.after(fallback);
+    frame.remove();
+  } else {
+    link.replaceWith(fallback);
+  }
 }
 
 function _openImageLightbox(img, { downloadName } = {}) {
@@ -1052,10 +1107,10 @@ async function _resolveRelativeImages(container, document) {
   await Promise.all(images.map(async img => {
     const source = img.getAttribute('src');
     if (!_isRelativeReference(source)) return;
+    img.removeAttribute('src');
 
     if (!document.folder?.getFileByPath) {
-      img.classList.add('local-resource-unavailable');
-      img.title = t('請用「開啟資料夾」授權後，才能載入本機相對圖片。');
+      _replaceUnavailableImage(img, t('請用「開啟資料夾」授權後，才能載入本機相對圖片。'));
       return;
     }
 
@@ -1073,8 +1128,10 @@ async function _resolveRelativeImages(container, document) {
       _objectUrls.push(objectUrl);
       img.src = objectUrl;
     } catch (err) {
-      img.classList.add('local-resource-unavailable');
-      img.title = t('找不到相對圖片：{source}', { source });
+      const message = err.name === 'NotFoundError'
+        ? t('找不到相對圖片：{source}', { source })
+        : t('無法存取圖片：{source}', { source });
+      _replaceUnavailableImage(img, message);
       console.warn('無法載入相對圖片：', source, err);
     }
   }));
@@ -1117,8 +1174,7 @@ function _wireDocumentLinks(container, document) {
         const file = await document.folder.getFileByPath(path);
         const entry = _findEntryByPath(document.folder.entries, path);
         await _displayFile({
-          name: file.name,
-          content: await file.text(),
+          ...await readFileDocument(file, { lastModified: document.folder.fileUrlBase || document.folder.isSample ? null : file.lastModified }),
           path,
           handle: entry?.handle,
           folder: document.folder,
@@ -1211,8 +1267,7 @@ async function _openFolderDocument(folder, path, options = {}) {
   const file = await folder.getFileByPath(path);
   const entry = _findEntryByPath(folder.entries, path);
   await _displayFile({
-    name: file.name,
-    content: await file.text(),
+    ...await readFileDocument(file, { lastModified: folder.fileUrlBase || folder.isSample ? null : file.lastModified }),
     path,
     handle: entry?.handle,
     folder,
@@ -1227,8 +1282,7 @@ async function _resolveWikiImages(container, doc) {
   await Promise.all(images.map(async img => {
     const target = img.dataset.wikiEmbed;
     if (!doc.folder?.getFileByPath) {
-      img.classList.add('local-resource-unavailable');
-      img.title = t('請用「開啟資料夾」授權後，才能載入內嵌圖片。');
+      _replaceUnavailableImage(img, t('請用「開啟資料夾」授權後，才能載入內嵌圖片。'));
       return;
     }
     const path = resolveWikiPath(target, doc.path, doc.folder.files || []);
@@ -1237,9 +1291,11 @@ async function _resolveWikiImages(container, doc) {
       const objectUrl = URL.createObjectURL(await doc.folder.getFileByPath(path));
       _objectUrls.push(objectUrl);
       img.src = objectUrl;
-    } catch {
-      img.classList.add('local-resource-unavailable');
-      img.title = t('找不到內嵌圖片：{target}', { target });
+    } catch (err) {
+      const message = err.name === 'NotFoundError'
+        ? t('找不到內嵌圖片：{target}', { target })
+        : t('無法存取圖片：{source}', { source: target });
+      _replaceUnavailableImage(img, message);
     }
   }));
 }
@@ -1542,7 +1598,7 @@ function _startHotReload(document) {
       } else if (signature !== nextSignature) {
         signature = nextSignature;
         document.folder?.mtimes?.set(treePathKey(document.path), file.lastModified);
-        const updated = { ...document, content: await file.text() };
+        const updated = { ...document, ...await readFileDocument(file) };
         if (document.folder) _invalidateDocumentIndex(document.folder);
         await _displayFile(updated, { hotReload: true });
         searchPanel.refresh();

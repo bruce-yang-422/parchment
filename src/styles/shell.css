@@ -314,6 +314,22 @@ button {
   color: var(--text-muted);
 }
 
+.right-panel-info-list { @apply m-0 px-3.5; }
+
+.right-panel-info-list > div { @apply py-2; }
+
+.right-panel-info-list > div + div { border-top: 1px solid var(--border); }
+
+.right-panel-info-list dt {
+  @apply mb-0.5 text-xs font-medium;
+  color: var(--text-muted);
+}
+
+.right-panel-info-list dd {
+  @apply m-0 text-[13px] leading-5;
+  overflow-wrap: anywhere;
+}
+
 .right-tag-list {
   @apply flex flex-wrap gap-1.5 px-3 py-2;
 }
@@ -762,7 +778,7 @@ button {
   outline-offset: 2px;
 }
 
-/* 首頁底部的說明連結（隱私權政策、原始碼），也提供搜尋引擎可跟隨的內部連結 */
+/* 首頁底部的下載連結 */
 .welcome-links {
   @apply mt-6 flex flex-wrap justify-center gap-x-3 gap-y-1 text-[12px];
   color: var(--text-muted);

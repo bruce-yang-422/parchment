@@ -13,7 +13,7 @@ let _onExpansionChange = null;
 /**
  * 渲染資料夾樹
  * @param {TreeEntry[]} entries
- * @param {function(entry: TreeEntry, content: string): Promise<void>} onFileSelect
+ * @param {function(entry: TreeEntry, file: File): Promise<void>} onFileSelect
  */
 export function renderTree(entries, onFileSelect, {
   expandDirectories = false,
@@ -157,8 +157,7 @@ function _makeFileItem(entry) {
 
     try {
       const file = await entry.handle.getFile();
-      const content = await file.text();
-      await _onFileSelect(entry, content);
+      await _onFileSelect(entry, file);
     } catch (err) {
       console.error('Failed to read file:', err);
     }

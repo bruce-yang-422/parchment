@@ -4,7 +4,7 @@
  * （由 index.html 的本機 <script> 標籤載入）
  */
 
-import { noteSyntaxPlugin, parseFrontmatter, frontmatterTags, renderPropertiesHtml } from './noteSyntax.js';
+import { noteSyntaxPlugin, parseFrontmatter, frontmatterTags, renderPropertiesHtml, wikiDisplayText } from './noteSyntax.js';
 import { t } from './i18n.js';
 
 let _ready = false;
@@ -94,7 +94,13 @@ export function setupRenderer() {
     if (language === 'dot' || language === 'graphviz') {
       return `<div class="graphviz" data-source="diagram">${_escapeHtml(token.content)}</div>\n`;
     }
-    return defaultFence(tokens, index, options, env, self);
+    const rendered = defaultFence(tokens, index, options, env, self);
+    if (!token.content) return rendered;
+    const count = token.content.replace(/\n$/, '').split('\n').length;
+    const lineNumbers = Array.from({ length: count }, (_, i) => i + 1).join('\n');
+    // Generated content in a separate gutter keeps the highlighted source intact.
+    const gutter = `<span class="code-line-numbers" aria-hidden="true" data-lines="${lineNumbers}"></span>`;
+    return rendered.replace(/^<pre>/, `<pre class="numberable-code">${gutter}`);
   };
 }
 
@@ -125,6 +131,27 @@ export function renderMarkdown(content, { properties = true } = {}) {
  */
 export function renderText(content) {
   return `<pre class="txt-view">${_escapeHtml(content)}</pre>`;
+}
+
+/** Count prose, treating each CJK character as a word as in the mobile reader. */
+export function countDocumentWords(content, { markdown = false } = {}) {
+  const text = markdown ? _markdown.parse(parseFrontmatter(content).body, {})
+    .map(token => {
+      if (token.type === 'html_block') return token.content.replace(/<[^>]+>/g, ' ');
+      if (token.type !== 'inline') return '';
+      return token.children.map(part => {
+        if (part.type === 'text' || part.type === 'image') return part.content;
+        if (part.type === 'wikilink') return wikiDisplayText(part.meta);
+        return ['softbreak', 'hardbreak', 'code_inline', 'wiki_embed'].includes(part.type) ? ' ' : '';
+      }).join('');
+    }).join('\n').replace(/https?:\/\/\S+/gi, ' ') : content;
+
+  let cjk = 0;
+  const words = text.replace(/[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/gu, () => {
+    cjk += 1;
+    return ' ';
+  });
+  return cjk + (words.match(/[\p{Letter}\p{Number}][\p{Letter}\p{Number}\p{Mark}]*(?:['’][\p{Letter}\p{Mark}]+)*/gu)?.length ?? 0);
 }
 
 /* ──────────────────── Helpers ──────────────────── */

@@ -21,7 +21,7 @@ export function isSupportedFile(name) {
 
 /**
  * 開啟單一檔案
- * @returns {Promise<{ name: string, content: string }>}
+ * @returns {Promise<{ name: string, content: string, size: number, lastModified: number }>}
  */
 export async function openFile() {
   const handle = 'showOpenFilePicker' in window ? await _pickFileHandle() : null;
@@ -29,8 +29,13 @@ export async function openFile() {
   if (!isSupportedFile(file.name)) {
     throw new Error(t('不支援的格式：{name}。請使用 .md 或 .txt 檔案。', { name: file.name }));
   }
-  const document = { name: file.name, content: await file.text(), path: [file.name] };
+  const document = { ...await readFileDocument(file), path: [file.name] };
   return handle ? { ...document, handle, getFileByPath: null } : document;
+}
+
+/** Read content and metadata from the same File snapshot. */
+export async function readFileDocument(file, { lastModified = file.lastModified } = {}) {
+  return { name: file.name, content: await file.text(), size: file.size, lastModified };
 }
 
 async function _pickFileHandle() {
@@ -205,8 +210,7 @@ export async function openFileFromHandle(handle) {
   await _ensureReadPermission(handle);
   const file = await handle.getFile();
   return {
-    name: file.name,
-    content: await file.text(),
+    ...await readFileDocument(file),
     handle,
     path: [file.name],
     getFileByPath: null,

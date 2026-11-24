@@ -10,6 +10,7 @@
 <script type="module">
   import { setupRenderer, renderMarkdown } from '../assets/js/renderer.js';
   import { taskDocumentKey, wireTaskCheckboxes } from '../assets/js/taskState.js';
+  import { initFootnotePreview } from '../assets/js/footnotePreview.js';
 
   const sample = String.raw`---
 status: draft
@@ -25,9 +26,9 @@ Inline math $E=mc^2$.
 
 $$\int_0^1 x^2 dx$$
 
-Footnote.[^one]
+Footnote.[^中文] Repeated footnote.[^中文]
 
-[^one]: Footnote body.
+[^中文]: <span id="preview-sample">Footnote body.</span> [Read more](https://example.com/)
 
 > [!NOTE]
 > Alert body.
@@ -64,6 +65,42 @@ digraph { A -> B }
       '.metadata-properties', 'a.wiki-link[data-wiki-heading="Section"]', 'img.wiki-embed-image[width="200"]',
       '.note-embed-placeholder', '.mermaid', '.graphviz', '.local-task-checkbox'];
     const missing = required.filter(selector => !result.querySelector(selector));
+    const preview = initFootnotePreview(result);
+    preview.prepare();
+    const [firstRef, repeatedRef] = result.querySelectorAll('.footnote-ref a');
+    const renderedNote = result.querySelector('.footnote-item');
+    const noteText = renderedNote.querySelector('#preview-sample');
+    const noteLink = renderedNote.querySelector('a[href^="https:"]');
+    let regularRefClick = false;
+    repeatedRef.addEventListener('click', event => {
+      regularRefClick = true;
+      event.preventDefault();
+    });
+    repeatedRef.click();
+    const dialog = result.querySelector('dialog[open]');
+    if (regularRefClick || !dialog?.contains(noteText)
+      || result.querySelectorAll('#preview-sample').length !== 1
+      || document.activeElement !== dialog.querySelector('.footnote-preview-close')) missing.push('footnote preview');
+    dialog?.dispatchEvent(new Event('cancel', { cancelable: true }));
+    if (dialog?.isConnected || !renderedNote.contains(noteText)
+      || document.activeElement !== repeatedRef) missing.push('footnote Escape focus restoration');
+    repeatedRef.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, ctrlKey: true }));
+    if (!regularRefClick || result.querySelector('dialog[open]')) missing.push('footnote link fallback');
+
+    let restoredBeforeNavigation = false;
+    noteLink.addEventListener('click', event => {
+      restoredBeforeNavigation = renderedNote.contains(noteLink) && !result.querySelector('dialog[open]');
+      event.preventDefault();
+    });
+    firstRef.click();
+    noteLink.click();
+    if (!restoredBeforeNavigation) missing.push('footnote link navigation');
+    firstRef.click();
+    result.querySelector('.footnote-preview-footer button')?.click();
+    if (document.activeElement !== renderedNote) missing.push('footnote endnote navigation');
+    renderedNote.querySelectorAll('.footnote-backref')[1]?.click();
+    if (document.activeElement !== repeatedRef) missing.push('footnote repeated backlink');
+
     if (taskCount !== 2) missing.push('interactive task count');
     if (result.querySelector('.local-task-checkbox')?.disabled) missing.push('interactive task disabled');
     const firstTask = result.querySelector('.local-task-checkbox');

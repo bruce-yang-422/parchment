@@ -11,7 +11,8 @@
 :root[data-reader-cjk-font='kai'] { --reader-cjk-font: var(--font-kai); }
 
 #reader-body {
-  @apply text-[15px] leading-[1.75];
+  font-size: calc(var(--reader-base-size, 15px) * var(--reader-text-scale, 1));
+  line-height: var(--reader-line-height, var(--reader-base-line-height, 1.75));
   color: var(--text);
   font-family: var(--reader-latin-font), var(--reader-cjk-font);
   word-break: break-word;
@@ -120,6 +121,68 @@
   color: var(--text-muted);
 }
 #reader-body .footnote-backref { @apply ml-[0.3em]; }
+
+#reader-body .footnote-ref > a[aria-haspopup='dialog'] {
+  @apply inline-block rounded-full px-1 font-semibold;
+  background: var(--surface);
+}
+
+.footnote-preview {
+  position: fixed;
+  inset: 0;
+  width: min(36rem, calc(100% - 2rem));
+  max-height: min(70dvh, 34rem);
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: max(12px, var(--radius));
+  background: var(--bg);
+  color: var(--text);
+  box-shadow: 0 16px 48px rgb(0 0 0 / 28%);
+  overflow: hidden;
+}
+.footnote-preview[open] {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+.footnote-preview::backdrop { background: rgb(0 0 0 / 26%); }
+.footnote-preview-header,
+.footnote-preview-footer {
+  @apply flex items-center justify-between gap-4 px-4 py-2;
+  background: var(--surface);
+}
+.footnote-preview-header { border-bottom: 1px solid var(--border); }
+.footnote-preview-footer {
+  justify-content: flex-end;
+  border-top: 1px solid var(--border);
+}
+.footnote-preview-footer button {
+  @apply rounded px-2 py-1 text-sm font-medium;
+  color: var(--link);
+}
+.footnote-preview-footer button:hover { background: var(--tree-hover); }
+.footnote-preview-content {
+  @apply px-4 py-3;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.footnote-preview-content:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: -2px;
+}
+#reader-body .footnote-preview-content > :last-child { margin-bottom: 0; }
+#reader-body .footnote-preview .footnote-backref { display: none; }
+
+@screen mobile {
+  .footnote-preview {
+    inset: auto 0 0;
+    width: 100%;
+    max-width: none;
+    max-height: 78dvh;
+    border-radius: max(16px, var(--radius)) max(16px, var(--radius)) 0 0;
+  }
+  .footnote-preview-footer { padding-bottom: max(0.5rem, env(safe-area-inset-bottom)); }
+}
 
 /* Callouts（亦處理 GitHub 的 > [!NOTE] 等提示區塊）。 */
 #reader-body .callout {
@@ -261,10 +324,35 @@
 }
 
 #reader-body pre code {
-  @apply block bg-transparent py-5 px-6 text-[13px] leading-[1.7];
+  @apply block bg-transparent px-6;
   border: none;
-  font-family: var(--font-mono);
 }
+
+#reader-body pre code,
+#reader-body .code-line-numbers {
+  font-family: var(--font-mono);
+  font-size: calc(13px * var(--reader-text-scale, 1));
+  line-height: 1.7;
+  padding-block: var(--reader-code-padding-top, 1.25rem) 1.25rem;
+}
+
+#reader-body .code-line-numbers { display: none; }
+:root[data-reader-code-line-numbers] #reader-body .numberable-code { display: flex; }
+:root[data-reader-code-line-numbers] #reader-body .numberable-code > code { flex: 1 0 auto; }
+:root[data-reader-code-line-numbers] #reader-body .code-line-numbers {
+  display: block;
+  position: sticky;
+  inset-inline-start: 0;
+  flex-shrink: 0;
+  padding-inline: 0.75rem;
+  border-inline-end: 1px solid var(--code-border);
+  background: inherit;
+  color: var(--text-muted);
+  text-align: end;
+  white-space: pre;
+  user-select: none;
+}
+#reader-body .code-line-numbers::before { content: attr(data-lines); }
 
 .copy-btn {
   @apply absolute top-2 right-2 py-1 px-2.5 text-[13px] rounded cursor-pointer opacity-0 leading-[18px];
@@ -378,11 +466,25 @@
 
 #reader-body img.image-zoomable { @apply cursor-zoom-in; }
 
-#reader-body img.local-resource-unavailable {
-  @apply min-w-[220px] min-h-[72px];
+.image-unavailable {
+  @apply my-2 inline-flex max-w-full flex-col items-start rounded-md px-3 py-2 text-[0.9em];
   border: 1px dashed var(--border);
   background: var(--surface);
 }
+
+.image-unavailable-toggle {
+  @apply max-w-full text-left underline underline-offset-2;
+  color: var(--link);
+}
+
+.image-unavailable-alt,
+.image-unavailable-message {
+  @apply block max-w-full [overflow-wrap:anywhere];
+  color: var(--text-muted);
+}
+
+.image-unavailable-message:not([hidden]) { @apply mt-1; }
+.image-unavailable-message[hidden] { display: none; }
 
 #reader-body .mermaid {
   @apply box-border mt-5 mb-8 mx-0 pt-0 px-0 pb-6 overflow-x-auto overflow-y-hidden;
@@ -413,7 +515,9 @@
 #reader-body .katex-display { @apply overflow-x-auto overflow-y-hidden py-2 px-0; }
 
 .txt-view {
-  @apply p-0 text-[13px] leading-[1.6] whitespace-pre-wrap break-all bg-transparent;
+  @apply p-0 whitespace-pre-wrap break-all bg-transparent;
+  font-size: calc(13px * var(--reader-text-scale, 1));
+  line-height: var(--reader-line-height, 1.6);
   font-family: var(--reader-latin-font), var(--reader-cjk-font);
   color: var(--text);
   border: none;

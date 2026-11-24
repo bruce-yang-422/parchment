@@ -64,12 +64,13 @@ The interface supports Traditional Chinese, Simplified Chinese, English, Japanes
 ### Reading
 
 - GitHub-flavored Markdown plus common extensions: tables, task lists, footnotes, emoji, abbreviations, definition lists, subscript and superscript, inserted and marked text.
-- Code blocks highlighted with highlight.js, with one-click copy.
+- Code blocks highlighted with highlight.js, with one-click copy and optional line numbers.
+- Select an inline footnote number to preview it. Closing the preview returns focus to that reference.
 - KaTeX math, and diagrams from `mermaid` and `dot` / `graphviz` code blocks.
-- Images and diagrams scale to the reading column; click one to zoom and pan in a lightbox, or save it as PNG.
+- Images and diagrams scale to the reading column; click one to zoom and pan in a lightbox, or save it as PNG. If an image fails to load, select the placeholder to see why.
 - Remembers your reading position in each document, and reloads automatically when a file changes on disk.
 - Task-list checkboxes can be ticked; their state is stored in the browser and never written back to the file.
-- The mobile toolbar keeps an information shortcut for the version, author, last update, source code and privacy policy.
+- The mobile toolbar's About Parchment shortcut shows the version, author, last update, source code, and privacy policy.
 
 ### Notes
 
@@ -77,7 +78,7 @@ The interface supports Traditional Chinese, Simplified Chinese, English, Japanes
 - **Embeds**: `![[image.png|300]]` for images, and `![[Note]]`, `![[Note#Heading]]`, `![[Note#^block]]` for other notes or sections.
 - **Callouts**: `> [!note]`, `> [!tip]- Foldable title` and more. GitHub's `> [!NOTE]` alerts work too.
 - **YAML front matter**: rendered as a properties block; its `tags` are clickable and filter the file tree.
-- **Side panel**: table of contents, tags, linked notes and backlinks.
+- **Side panel**: table of contents, tags, linked notes, backlinks, and document details such as file name, size, modification time, word count, task progress, and folder-relative path when available.
 
 ### Browsing and search
 
@@ -160,6 +161,7 @@ The settings button in the top-right corner offers the options below. All prefer
 - Interface language: Traditional Chinese, Simplified Chinese, English, Japanese, Korean, French, German, or Spanish
 - Color palette and light/dark mode (follow system, light, dark)
 - CJK font and Latin / numeral font
+- Text size, line spacing, and code line numbers
 - Reading width: switch between standard and full width with the button at the right of the file name row
 
 ## Browser support

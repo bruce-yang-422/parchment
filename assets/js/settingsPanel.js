@@ -12,6 +12,7 @@ export function initSettingsPanel() {
   if (!settingsDialog || !aboutDialog || !settingsButton || !aboutButton || !themeSelect) return;
 
   const paletteSelect = document.getElementById('setting-palette');
+  initReadingControls(document.documentElement);
 
   settingsButton.addEventListener('click', () => {
     themeSelect.value = document.documentElement.dataset.theme || 'system';
@@ -32,4 +33,52 @@ export function initSettingsPanel() {
       if (event.target === dialog) dialog.close();
     });
   });
+}
+
+function initReadingControls(root) {
+  initSelectSetting('setting-text-size', 'parchment-reader-text-size', value => {
+    root.style.setProperty('--reader-text-scale', Number(value) / 100);
+  });
+  initSelectSetting('setting-line-spacing', 'parchment-reader-line-spacing', value => {
+    if (value === 'default') root.style.removeProperty('--reader-line-height');
+    else root.style.setProperty('--reader-line-height', value);
+  });
+
+  const lineNumbers = document.getElementById('setting-code-line-numbers');
+  if (!lineNumbers) return;
+  const key = 'parchment-reader-code-line-numbers';
+  lineNumbers.checked = loadSetting(key) === 'true';
+  root.toggleAttribute('data-reader-code-line-numbers', lineNumbers.checked);
+  lineNumbers.addEventListener('change', () => {
+    root.toggleAttribute('data-reader-code-line-numbers', lineNumbers.checked);
+    saveSetting(key, String(lineNumbers.checked));
+  });
+}
+
+function initSelectSetting(id, key, apply) {
+  const select = document.getElementById(id);
+  if (!select) return;
+  const saved = loadSetting(key);
+  if (Array.from(select.options).some(option => option.value === saved)) select.value = saved;
+  apply(select.value);
+  select.addEventListener('change', () => {
+    apply(select.value);
+    saveSetting(key, select.value);
+  });
+}
+
+function loadSetting(key) {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function saveSetting(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // The current page still uses the selected setting.
+  }
 }

@@ -11,7 +11,7 @@ for (const id of ['btn-mobile-tree', 'btn-mobile-info', 'mobile-pane-backdrop'])
 assert.doesNotMatch(index, /no-toc:hidden/);
 assert.match(index, /<dl class="about-meta">/);
 assert.match(index, /<dt>作者<\/dt><dd>Bruce Yang<\/dd>/);
-assert.match(index, /<dt>最後更新<\/dt><dd><time datetime="2026-11-19">2026-11-19<\/time><\/dd>/);
+assert.match(index, /<dt>最後更新<\/dt><dd><time datetime="(\d{4}-\d{2}-\d{2})">\1<\/time><\/dd>/);
 
 const css = await readFile('src/styles/shell.css', 'utf8');
 assert.match(css, /#main\.mobile-tree-open #sidebar/);

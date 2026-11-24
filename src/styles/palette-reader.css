@@ -23,7 +23,7 @@
 
 /* ════════════════ 紫晶：知識庫筆記風格 ════════════════ */
 :root[data-palette='amethyst'] #reader { max-width: 760px; }
-:root[data-palette='amethyst'] #reader-body { font-size: 16px; line-height: 1.6; }
+:root[data-palette='amethyst'] #reader-body { --reader-base-size: 16px; --reader-base-line-height: 1.6; }
 
 :root[data-palette='amethyst'] #reader-body :is(h1, h2, h3, h4, h5, h6) {
   margin: 1.6em 0 0.5em;
@@ -69,7 +69,11 @@
 
 /* ════════════════ 墨白：極簡文件風格 ════════════════ */
 :root[data-palette='ink'] #reader { max-width: 720px; }
-:root[data-palette='ink'] #reader-body { font-size: 16px; line-height: 1.5; }
+:root[data-palette='ink'] #reader-body {
+  --reader-base-size: 16px;
+  --reader-base-line-height: 1.5;
+  --reader-code-padding-top: 2rem;
+}
 :root[data-palette='ink'] #reader-body p { margin-bottom: 0.65em; }
 
 :root[data-palette='ink'] #reader-body :is(h1, h2, h3, h4, h5, h6) {
@@ -103,7 +107,7 @@
   background: color-mix(in srgb, var(--text-muted) 15%, transparent);
 }
 :root[data-palette='ink'] #reader-body pre { border: 0; border-radius: 4px; }
-:root[data-palette='ink'] #reader-body pre code { padding: 2rem 1.25rem 1.25rem; }
+:root[data-palette='ink'] #reader-body pre code { padding-inline: 1.25rem; }
 :root[data-palette='ink'] #reader-body blockquote {
   border-left: 3px solid currentColor;
   border-radius: 0;
@@ -147,7 +151,7 @@
 
 /* ════════════════ 湖藍：卡片式系統文件風格 ════════════════ */
 :root[data-palette='lake'] #reader { max-width: 820px; }
-:root[data-palette='lake'] #reader-body { font-size: 15px; line-height: 1.6; }
+:root[data-palette='lake'] #reader-body { --reader-base-line-height: 1.6; }
 
 :root[data-palette='lake'] #reader-body :is(h1, h2, h3, h4, h5, h6) {
   padding-bottom: 0;
@@ -203,8 +207,8 @@
 /* ════════════════ 鋁銀：桌面系統說明文件風格 ════════════════ */
 :root[data-palette='aluminum'] #reader { max-width: 740px; }
 :root[data-palette='aluminum'] #reader-body {
-  font-size: 16px;
-  line-height: 1.6;
+  --reader-base-size: 16px;
+  --reader-base-line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
