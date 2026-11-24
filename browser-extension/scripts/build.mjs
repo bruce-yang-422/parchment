@@ -31,11 +31,7 @@ await cp(srcDir, distDir, { recursive: true });
 
 // 2. 網站
 for (const entry of ['assets', 'icons', 'image', 'samples']) {
-  await cp(path.join(projectRoot, entry), path.join(appDir, entry), {
-    recursive: true,
-    // 官網宣傳與分享用的圖片不放進外掛，避免套件變大
-    filter: source => !/[\\/]image[\\/](android|social|screenshots)([\\/]|$)/.test(source),
-  });
+  await cp(path.join(projectRoot, entry), path.join(appDir, entry), { recursive: true });
 }
 let indexHtml = await readFile(path.join(projectRoot, 'index.html'), 'utf8');
 indexHtml = indexHtml.replace(/^\s*<link rel="manifest"[^>]*>\r?\n/m, '');
