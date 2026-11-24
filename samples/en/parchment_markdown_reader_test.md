@@ -175,7 +175,14 @@ Needs an internet connection:
 ### Wikipedia image
 *Travelers Among Mountains and Streams* by Fan Kuan, Northern Song dynasty (National Palace Museum, Taipei; public domain; source: [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg)). A tall image; tap it to zoom in:
 
-![Fan Kuan, Travelers Among Mountains and Streams](https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg/1280px-Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg)
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg/1280px-Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg" alt="Fan Kuan, Travelers Among Mountains and Streams" width="240" height="481">
+
+### Linked image (Flickr)
+An image wrapped in a link, as produced by Flickr’s Share button, to test linked images:
+
+[![IMG\_2247](https://live.staticflickr.com/7296/14064898932_a630653218_b.jpg)](https://flic.kr/p/nqShrs "IMG_2247")
+
+*Taken in spring 2014 at the Laomei Algae Reef in Shimen, New Taipei. Bright green algae cover the wave-carved volcanic grooves, and a long exposure turns the surf into mist.*
 
 ### Width set with HTML
 <img src="https://raw.githubusercontent.com/bruce-yang-422/parchment/main/image/parchment-logo-transparent.png" alt="Small Parchment logo" width="120">

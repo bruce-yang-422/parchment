@@ -175,7 +175,14 @@ Necesita conexión a internet:
 ### Imagen de Wikipedia
 *Viajeros entre montañas y arroyos*, de Fan Kuan, dinastía Song del Norte (Museo del Palacio Nacional, Taipéi; dominio público; fuente: [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg)). Es una imagen alargada; tócala para ampliarla:
 
-![Fan Kuan, Viajeros entre montañas y arroyos](https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg/1280px-Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg)
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg/1280px-Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg" alt="Fan Kuan, Viajeros entre montañas y arroyos" width="240" height="481">
+
+### Imagen con enlace (Flickr)
+Una imagen dentro de un enlace, como la que genera el botón Compartir de Flickr, para probar imágenes con enlace:
+
+[![IMG\_2247](https://live.staticflickr.com/7296/14064898932_a630653218_b.jpg)](https://flic.kr/p/nqShrs "IMG_2247")
+
+*Tomada en la primavera de 2014 en el arrecife de algas de Laomei, en Shimen (Nuevo Taipéi). Algas de un verde intenso cubren los surcos de roca volcánica tallados por las olas, y la exposición larga convierte el oleaje en niebla.*
 
 ### Ancho definido con HTML
 <img src="https://raw.githubusercontent.com/bruce-yang-422/parchment/main/image/parchment-logo-transparent.png" alt="Logotipo pequeño de Parchment" width="120">

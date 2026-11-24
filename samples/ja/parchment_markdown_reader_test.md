@@ -175,7 +175,14 @@ Tiếng Việt có dấu: ă â đ ê ô ơ ư — Trăm năm trong cõi ngườ
 ### ウィキペディアの画像
 北宋・范寛「谿山行旅図」（台北・国立故宮博物院所蔵、パブリックドメイン、出典：[Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg)）。縦長の画像です。タップすると拡大表示できます：
 
-![范寛「谿山行旅図」](https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg/1280px-Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg)
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg/1280px-Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg" alt="范寛「谿山行旅図」" width="240" height="481">
+
+### リンク付き画像（Flickr）
+画像をリンクで囲んだ、Flickr の「共有」で作られる埋め込み形式です。リンク付き画像の表示を確認します：
+
+[![IMG\_2247](https://live.staticflickr.com/7296/14064898932_a630653218_b.jpg)](https://flic.kr/p/nqShrs "IMG_2247")
+
+*2014 年春、新北市石門の老梅石槽で撮影。波に削られた火山岩の溝が鮮やかな緑藻に覆われ、長時間露光で波しぶきが白い霧のように写っています。*
 
 ### HTML で幅を指定
 <img src="https://raw.githubusercontent.com/bruce-yang-422/parchment/main/image/parchment-logo-transparent.png" alt="Parchment ロゴ（小）" width="120">

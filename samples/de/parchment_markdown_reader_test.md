@@ -175,7 +175,14 @@ Benötigt eine Internetverbindung:
 ### Bild aus Wikipedia
 *Reisende zwischen Bergen und Bächen* von Fan Kuan, Nördliche Song-Dynastie (Nationales Palastmuseum, Taipeh; gemeinfrei; Quelle: [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg)). Ein hohes Bild; tippen Sie darauf, um es zu vergrößern:
 
-![Fan Kuan, Reisende zwischen Bergen und Bächen](https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg/1280px-Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg)
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg/1280px-Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg" alt="Fan Kuan, Reisende zwischen Bergen und Bächen" width="240" height="481">
+
+### Verlinktes Bild (Flickr)
+Ein Bild in einem Link, wie es die Teilen-Funktion von Flickr erzeugt, um verlinkte Bilder zu testen:
+
+[![IMG\_2247](https://live.staticflickr.com/7296/14064898932_a630653218_b.jpg)](https://flic.kr/p/nqShrs "IMG_2247")
+
+*Aufgenommen im Frühling 2014 am Algenriff Laomei in Shimen, Neu-Taipeh. Leuchtend grüne Algen bedecken die von Wellen ausgewaschenen Vulkangesteinsrinnen; die Langzeitbelichtung lässt die Brandung wie Nebel wirken.*
 
 ### Breite per HTML festgelegt
 <img src="https://raw.githubusercontent.com/bruce-yang-422/parchment/main/image/parchment-logo-transparent.png" alt="Kleines Parchment-Logo" width="120">

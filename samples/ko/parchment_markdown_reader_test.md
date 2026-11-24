@@ -175,7 +175,14 @@ Tiếng Việt có dấu: ă â đ ê ô ơ ư — Trăm năm trong cõi ngườ
 ### 위키백과 이미지
 북송 범관의 「계산행려도」(타이베이 국립고궁박물원 소장, 퍼블릭 도메인, 출처: [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg)). 세로로 긴 이미지로, 누르면 크게 볼 수 있습니다:
 
-![범관 「계산행려도」](https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg/1280px-Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg)
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg/1280px-Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg" alt="범관 「계산행려도」" width="240" height="481">
+
+### 링크가 있는 이미지(Flickr)
+이미지를 링크로 감싼 형태로, Flickr의 「공유」에서 만들어지는 삽입 코드입니다. 링크가 있는 이미지를 확인합니다:
+
+[![IMG\_2247](https://live.staticflickr.com/7296/14064898932_a630653218_b.jpg)](https://flic.kr/p/nqShrs "IMG_2247")
+
+*2014년 봄, 신베이 스먼의 라오메이 석조(老梅石槽)에서 촬영. 파도가 깎아 낸 화산암 홈을 초록 해조류가 덮고 있으며, 장노출로 파도가 하얀 안개처럼 보입니다.*
 
 ### HTML로 너비 지정
 <img src="https://raw.githubusercontent.com/bruce-yang-422/parchment/main/image/parchment-logo-transparent.png" alt="작은 Parchment 로고" width="120">

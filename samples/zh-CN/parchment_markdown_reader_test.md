@@ -175,7 +175,14 @@ Tiếng Việt có dấu: ă â đ ê ô ơ ư — Trăm năm trong cõi ngườ
 ### 维基百科图片
 北宋 范宽《溪山行旅图》（台北故宫博物院藏，公有领域，图片来源：[Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg)）。竖长图，可点一下放大查看：
 
-![范宽《溪山行旅图》](https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg/1280px-Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg)
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg/1280px-Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg" alt="范宽《溪山行旅图》" width="240" height="481">
+
+### 带链接的图片（Flickr）
+图片外面再包一层链接，是 Flickr「分享」生成的嵌入写法，用来测试带链接的图片：
+
+[![IMG\_2247](https://live.staticflickr.com/7296/14064898932_a630653218_b.jpg)](https://flic.kr/p/nqShrs "IMG_2247")
+
+*2014 年春天摄于新北石门老梅石槽。海浪侵蚀出的火山岩沟槽长满翠绿海藻，长时间曝光让浪花化成一片白雾。*
 
 ### 用 HTML 指定宽度
 <img src="https://raw.githubusercontent.com/bruce-yang-422/parchment/main/image/parchment-logo-transparent.png" alt="Parchment Logo 小图" width="120">

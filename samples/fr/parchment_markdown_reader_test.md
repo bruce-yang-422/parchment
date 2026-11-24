@@ -175,7 +175,14 @@ Nécessite une connexion Internet :
 ### Image de Wikipédia
 *Voyageurs parmi les montagnes et les ruisseaux* de Fan Kuan, dynastie des Song du Nord (Musée national du palais, Taipei ; domaine public ; source : [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg)). Une image tout en hauteur ; touchez-la pour l’agrandir :
 
-![Fan Kuan, Voyageurs parmi les montagnes et les ruisseaux](https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg/1280px-Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg)
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg/1280px-Fan_Kuan_-_Travelers_Among_Mountains_and_Streams_-_Google_Art_Project.jpg" alt="Fan Kuan, Voyageurs parmi les montagnes et les ruisseaux" width="240" height="481">
+
+### Image avec lien (Flickr)
+Une image entourée d’un lien, telle que la produit le bouton Partager de Flickr, pour tester les images avec lien :
+
+[![IMG\_2247](https://live.staticflickr.com/7296/14064898932_a630653218_b.jpg)](https://flic.kr/p/nqShrs "IMG_2247")
+
+*Photo prise au printemps 2014 au récif d’algues de Laomei, à Shimen (Nouveau Taipei). Des algues vert vif couvrent les sillons de roche volcanique creusés par les vagues, et la pose longue change l’écume en brume.*
 
 ### Largeur définie en HTML
 <img src="https://raw.githubusercontent.com/bruce-yang-422/parchment/main/image/parchment-logo-transparent.png" alt="Petit logo Parchment" width="120">
