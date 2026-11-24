@@ -881,6 +881,24 @@ button {
 .promo-nav-link:focus-visible,
 .promo-nav-cta:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
+/* 平台限制提醒（僅限 Android） */
+.promo-notice {
+  @apply mt-10 flex items-start gap-3 rounded-xl px-5 py-4;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+}
+.promo-notice svg {
+  @apply mt-0.5 h-6 w-6 shrink-0;
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.promo-notice strong { @apply mb-1 block text-[16px]; color: var(--heading-h2); }
+.promo-notice p { @apply mb-0; }
+
 /* 各語系測試文件下載 */
 .promo-downloads {
   @apply m-0 mb-3 grid list-none gap-2.5 p-0;
@@ -898,6 +916,72 @@ button {
 .promo-download.is-primary { border-color: var(--accent); background: var(--code-bg); }
 @media (max-width: 720px) {
   .promo-downloads { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* === Markdown 範本下載庫（templates.html） === */
+.tpl-library { @apply mt-8; }
+.tpl-radio { position: absolute; opacity: 0; pointer-events: none; }
+.tpl-tablist { @apply mb-5 flex flex-wrap items-center gap-2; }
+.tpl-tablist-title { @apply mr-1 text-[13px] font-semibold; color: var(--text-muted); }
+.tpl-tablist label {
+  @apply inline-flex h-9 cursor-pointer items-center rounded-full px-3.5 text-[14px];
+  border: 1px solid var(--border);
+  color: var(--text);
+  transition: border-color 0.15s, background 0.15s;
+}
+.tpl-tablist label:hover { border-color: var(--accent); }
+#tpl-zh-TW:checked ~ .tpl-tablist label[for="tpl-zh-TW"],
+#tpl-zh-CN:checked ~ .tpl-tablist label[for="tpl-zh-CN"],
+#tpl-en:checked ~ .tpl-tablist label[for="tpl-en"],
+#tpl-ja:checked ~ .tpl-tablist label[for="tpl-ja"],
+#tpl-ko:checked ~ .tpl-tablist label[for="tpl-ko"],
+#tpl-fr:checked ~ .tpl-tablist label[for="tpl-fr"],
+#tpl-de:checked ~ .tpl-tablist label[for="tpl-de"],
+#tpl-es:checked ~ .tpl-tablist label[for="tpl-es"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 600;
+}
+#tpl-zh-TW:focus-visible ~ .tpl-tablist label[for="tpl-zh-TW"],
+#tpl-zh-CN:focus-visible ~ .tpl-tablist label[for="tpl-zh-CN"],
+#tpl-en:focus-visible ~ .tpl-tablist label[for="tpl-en"],
+#tpl-ja:focus-visible ~ .tpl-tablist label[for="tpl-ja"],
+#tpl-ko:focus-visible ~ .tpl-tablist label[for="tpl-ko"],
+#tpl-fr:focus-visible ~ .tpl-tablist label[for="tpl-fr"],
+#tpl-de:focus-visible ~ .tpl-tablist label[for="tpl-de"],
+#tpl-es:focus-visible ~ .tpl-tablist label[for="tpl-es"] { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tpl-panel {
+  @apply m-0 list-none gap-4 p-0;
+  display: none;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+#tpl-zh-TW:checked ~ .tpl-panels .tpl-panel[data-lang="zh-TW"],
+#tpl-zh-CN:checked ~ .tpl-panels .tpl-panel[data-lang="zh-CN"],
+#tpl-en:checked ~ .tpl-panels .tpl-panel[data-lang="en"],
+#tpl-ja:checked ~ .tpl-panels .tpl-panel[data-lang="ja"],
+#tpl-ko:checked ~ .tpl-panels .tpl-panel[data-lang="ko"],
+#tpl-fr:checked ~ .tpl-panels .tpl-panel[data-lang="fr"],
+#tpl-de:checked ~ .tpl-panels .tpl-panel[data-lang="de"],
+#tpl-es:checked ~ .tpl-panels .tpl-panel[data-lang="es"] { display: grid; }
+.tpl-card {
+  @apply flex flex-col rounded-2xl px-5 py-4;
+  border: 1px solid var(--border);
+}
+.tpl-card.is-featured { background: var(--code-bg); border-color: var(--accent); }
+.tpl-icon { @apply mb-2 text-[28px] leading-none; }
+.promo-page .tpl-card h3 { @apply mb-1; }
+.tpl-card p { @apply flex-1 text-[14px]; color: var(--text-muted); }
+.tpl-actions { @apply mt-1 flex flex-wrap items-center gap-2; }
+.tpl-download {
+  @apply inline-flex min-h-[40px] items-center rounded-full px-4 text-[14px] font-semibold no-underline;
+  background: var(--accent);
+  color: var(--accent-contrast) !important;
+}
+.tpl-download:hover { background: var(--accent-hover); }
+.tpl-preview { @apply inline-flex min-h-[40px] items-center px-2 text-[14px]; }
+@media (max-width: 720px) {
+  .tpl-panel { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* 手機版：固定在畫面底部的報名按鈕 */
@@ -922,7 +1006,7 @@ button {
 
 /* 首頁：Android 封閉測試邀請 */
 .welcome-invite {
-  @apply mt-4 flex w-full max-w-[320px] items-center gap-3 rounded-xl px-3.5 py-2.5 text-left no-underline;
+  @apply mt-4 flex w-full max-w-[380px] items-center gap-3 rounded-xl px-3.5 py-2.5 text-left no-underline;
   border: 1px solid var(--border);
   color: var(--text);
   transition: border-color 0.15s, background 0.15s;

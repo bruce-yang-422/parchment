@@ -57,6 +57,17 @@ assert.equal(sampleLinks.length, 8, 'Android 頁需提供 8 個語系的測試�
 for (const file of sampleLinks) await readFile(file);
 assert.match(sitemap, new RegExp(`<loc>${SITE}android\\.html</loc>`));
 
+/* Markdown 範本下載庫：8 個語系 × 7 份文件，下載連結都要存在 */
+const library = await readFile('templates.html', 'utf8');
+assert.match(library, new RegExp(`<link rel="canonical" href="${SITE}templates\\.html">`));
+assert.ok(meta(library, 'name', 'description'));
+assert.doesNotMatch(library, /<script(?![^>]*\bsrc=)[^>]*>/, '範本頁不得有內嵌腳本');
+const libraryLinks = [...library.matchAll(/class="tpl-download" href="([^"]+\.md)"/g)].map(match => match[1]);
+assert.equal(libraryLinks.length, 56, '範本頁需提供 8 個語系 × 7 份文件');
+for (const file of libraryLinks) await readFile(file);
+assert.ok(android.includes('href="templates.html"'), 'Android 頁需連到範本庫');
+assert.match(sitemap, new RegExp(`<loc>${SITE}templates\\.html</loc>`));
+
 /* 離線快取與網站地圖 */
 assert.match(serviceWorker, /"\.\/privacy\.html"/);
 assert.match(sitemap, new RegExp(`<loc>${SITE}</loc>`));
