@@ -855,6 +855,38 @@ button {
 .promo-cta { @apply mt-14 rounded-2xl px-6 py-8 text-center; background: var(--code-bg); }
 .promo-cta h2 { @apply mt-0; }
 .promo-cta .promo-actions { @apply justify-center; }
+/* 各語系測試文件下載 */
+.promo-downloads {
+  @apply m-0 mb-3 grid list-none gap-2.5 p-0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.promo-download {
+  @apply flex min-h-[56px] flex-col justify-center rounded-xl px-3.5 py-2 no-underline;
+  border: 1px solid var(--border);
+  color: var(--text) !important;
+  transition: border-color 0.15s, background 0.15s;
+}
+.promo-download:hover { border-color: var(--accent); background: var(--code-bg); }
+.promo-download strong { @apply text-[15px] font-semibold; }
+.promo-download span { @apply text-[12px]; color: var(--text-muted); }
+.promo-download.is-primary { border-color: var(--accent); background: var(--code-bg); }
+@media (max-width: 720px) {
+  .promo-downloads { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* 手機版：固定在畫面底部的報名按鈕 */
+.promo-sticky { display: none; }
+@media (max-width: 720px) {
+  .promo-body { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .promo-sticky {
+    @apply fixed inset-x-0 bottom-0 z-50 block px-4 pt-3;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -4px 16px rgb(0 0 0 / 0.08);
+  }
+  .promo-sticky .promo-button { @apply flex w-full; }
+}
 @media (max-width: 720px) {
   .promo-page h1 { @apply text-[25px]; }
   .promo-hero,
