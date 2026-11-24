@@ -855,6 +855,32 @@ button {
 .promo-cta { @apply mt-14 rounded-2xl px-6 py-8 text-center; background: var(--code-bg); }
 .promo-cta h2 { @apply mt-0; }
 .promo-cta .promo-actions { @apply justify-center; }
+/* Android 頁頂部導覽：文字按鈕＋膠囊按鈕 */
+.promo-nav { @apply flex items-center gap-1.5; }
+.promo-nav-link,
+.promo-nav-cta {
+  @apply inline-flex h-9 items-center gap-1.5 rounded-full px-3.5 text-[13.5px] font-medium no-underline;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.promo-nav-link { color: var(--text-muted); }
+.promo-nav-link:hover { background: var(--code-bg); color: var(--text); }
+.promo-nav-link svg {
+  @apply h-4 w-4;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.promo-nav-cta {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 600;
+}
+.promo-nav-cta:hover { background: var(--accent-hover); }
+.promo-nav-link:focus-visible,
+.promo-nav-cta:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
 /* 各語系測試文件下載 */
 .promo-downloads {
   @apply m-0 mb-3 grid list-none gap-2.5 p-0;
