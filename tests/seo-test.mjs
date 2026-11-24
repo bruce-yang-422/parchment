@@ -57,6 +57,20 @@ assert.equal(sampleLinks.length, 9, 'Android 頁需提供 9 個語系的測試�
 for (const file of sampleLinks) await readFile(file);
 assert.match(sitemap, new RegExp(`<loc>${SITE}android\\.html</loc>`));
 
+/* Android 頁多語版本：互相標註 hreflang，各自提供 9 個語系的測試文件 */
+for (const [file, lang] of [['android.html', 'zh-TW'], ['android-en.html', 'en'], ['android-ja.html', 'ja'], ['android-ko.html', 'ko'], ['android-es.html', 'es']]) {
+  const page = await readFile(file, 'utf8');
+  assert.match(page, new RegExp(`<html lang="${lang}"`), `${file} 語言標記錯誤`);
+  assert.ok(page.includes(`<link rel="canonical" href="${SITE}${file}">`), `${file} canonical 錯誤`);
+  for (const other of ['android.html', 'android-en.html', 'android-ja.html', 'android-ko.html', 'android-es.html']) {
+    assert.ok(page.includes(`href="${SITE}${other}"`), `${file} 缺少 ${other} 的 hreflang`);
+  }
+  assert.equal([...page.matchAll(/href="samples\/[^"]+\.md"/g)].length, 9, `${file} 需提供 9 個語系的測試文件`);
+  assert.ok(page.includes('https://forms.gle/x7bz1HXKfJ64gUbg6'), `${file} 缺少報名表連結`);
+  assert.doesNotMatch(page, /<script(?![^>]*\bsrc=)[^>]*>/, `${file} 不得有內嵌腳本`);
+  if (file !== 'android.html') assert.ok(sitemap.includes(`<loc>${SITE}${file}</loc>`), `${file} 未加入 sitemap`);
+}
+
 /* Markdown 範本下載庫：9 個語系 × 7 份文件，下載連結都要存在 */
 const library = await readFile('templates.html', 'utf8');
 assert.match(library, new RegExp(`<link rel="canonical" href="${SITE}templates\\.html">`));

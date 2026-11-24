@@ -881,6 +881,21 @@ button {
 .promo-nav-link:focus-visible,
 .promo-nav-cta:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
+/* Android 頁語言切換 */
+.promo-lang { @apply mb-6 flex flex-wrap items-center gap-1.5 text-[13px]; }
+.promo-page .promo-lang a {
+  @apply inline-flex h-8 items-center rounded-full px-3 no-underline;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+.promo-page .promo-lang a:hover { border-color: var(--accent); color: var(--text); }
+.promo-page .promo-lang a[aria-current="page"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 600;
+}
+
 /* 平台限制提醒（僅限 Android） */
 .promo-notice {
   @apply mt-10 flex items-start gap-3 rounded-xl px-5 py-4;
