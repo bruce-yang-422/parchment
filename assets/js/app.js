@@ -967,6 +967,7 @@ function _prepareMermaidDiagram(wrapper) {
   svg.style.width = '100%';
   svg.style.height = 'auto';
   svg.style.maxWidth = intrinsicWidth ? `${intrinsicWidth}px` : '100%';
+  _followTextColor(svg);
 
   // 點擊以原始尺寸在燈箱中檢視。
   wrapper.classList.add('diagram-zoomable');
@@ -974,6 +975,8 @@ function _prepareMermaidDiagram(wrapper) {
   wrapper.addEventListener('click', () => {
     const clone = svg.cloneNode(true);
     clone.removeAttribute('style');
+    // 燈箱以 <img> 顯示，不會繼承頁面文字色；寫入目前的顏色，深色模式下才看得清楚。
+    clone.setAttribute('color', getComputedStyle(wrapper).color);
     if (intrinsicWidth) clone.setAttribute('width', intrinsicWidth);
     if (intrinsicHeight) clone.setAttribute('height', intrinsicHeight);
     const markup = new XMLSerializer().serializeToString(clone);
@@ -986,6 +989,28 @@ function _prepareMermaidDiagram(wrapper) {
       { downloadName: `${base}-diagram-${index || 1}.png` },
     );
   });
+}
+
+/**
+ * Mermaid 的 neutral 主題把沒有底框的文字（甘特圖標題、階段名稱、日期刻度、
+ * 時序圖訊息、圓餅圖標題與圖例）固定為深灰色，在深色模式下會和背景混在一起。
+ * 改用 currentColor，讓這些文字跟隨閱讀區的文字色，切換明暗模式時也不必重新渲染。
+ */
+const MERMAID_FREE_TEXT = [
+  '.titleText', '.sectionTitle', '.tick text', '.taskTextOutsideLeft', '.taskTextOutsideRight',
+  '.messageText', '.loopText', '.pieTitleText', '.legend text',
+];
+/** 同樣固定為深灰色的連線：時序圖訊息線、流程圖連線（箭頭另以 marker 處理）。 */
+const MERMAID_LINES = ['.messageLine0', '.messageLine1', '.flowchart-link'];
+
+function _followTextColor(svg) {
+  if (!svg.id) return;
+  const scope = `#${CSS.escape(svg.id)}`;
+  const style = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+  style.textContent = `${MERMAID_FREE_TEXT.map(selector => `${scope} ${selector}`).join(',')}{fill:currentColor !important;}`
+    + `${MERMAID_LINES.map(selector => `${scope} ${selector}`).join(',')}{stroke:currentColor !important;}`
+    + `${scope} marker path{fill:currentColor !important;stroke:currentColor !important;}`;
+  svg.append(style);
 }
 
 function _enhanceImages(container) {
