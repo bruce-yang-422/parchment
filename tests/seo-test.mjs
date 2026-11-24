@@ -51,19 +51,19 @@ assert.match(android, /https:\/\/forms\.gle\/x7bz1HXKfJ64gUbg6/);
 assert.ok(index.includes('android.html"'), '首頁需連到 Android 頁');
 assert.doesNotMatch(android, /<script(?![^>]*\bsrc=)[^>]*>/, 'Android 頁不得有內嵌腳本');
 for (const src of android.matchAll(/src="(image\/android\/[^"]+)"/g)) await readFile(src[1]);
-/* 8 個語系的測試文件下載連結都要存在 */
+/* 9 個語系的測試文件下載連結都要存在 */
 const sampleLinks = [...android.matchAll(/href="(samples\/[^"]+\.md)"/g)].map(match => match[1]);
-assert.equal(sampleLinks.length, 8, 'Android 頁需提供 8 個語系的測試文件');
+assert.equal(sampleLinks.length, 9, 'Android 頁需提供 9 個語系的測試文件');
 for (const file of sampleLinks) await readFile(file);
 assert.match(sitemap, new RegExp(`<loc>${SITE}android\\.html</loc>`));
 
-/* Markdown 範本下載庫：8 個語系 × 7 份文件，下載連結都要存在 */
+/* Markdown 範本下載庫：9 個語系 × 7 份文件，下載連結都要存在 */
 const library = await readFile('templates.html', 'utf8');
 assert.match(library, new RegExp(`<link rel="canonical" href="${SITE}templates\\.html">`));
 assert.ok(meta(library, 'name', 'description'));
 assert.doesNotMatch(library, /<script(?![^>]*\bsrc=)[^>]*>/, '範本頁不得有內嵌腳本');
 const libraryLinks = [...library.matchAll(/class="tpl-download" href="([^"]+\.md)"/g)].map(match => match[1]);
-assert.equal(libraryLinks.length, 56, '範本頁需提供 8 個語系 × 7 份文件');
+assert.equal(libraryLinks.length, 63, '範本頁需提供 9 個語系 × 7 份文件');
 for (const file of libraryLinks) await readFile(file);
 assert.ok(android.includes('href="templates.html"'), 'Android 頁需連到範本庫');
 assert.match(sitemap, new RegExp(`<loc>${SITE}templates\\.html</loc>`));

@@ -5,7 +5,7 @@ import {
   noteSyntaxPlugin, parseFrontmatter, parseWikiTarget, resolveWikiPath, extractNoteSection,
 } from '../assets/js/noteSyntax.js';
 
-const locales = ['zh-TW', 'zh-CN', 'en', 'ja', 'ko', 'fr', 'de', 'es'];
+const locales = ['zh-TW', 'zh-CN', 'en', 'ja', 'ko', 'fr', 'de', 'es', 'ru'];
 const noteSets = locales.map(locale => {
   const directory = locale === 'zh-TW' ? 'samples' : `samples/${locale}`;
   return {

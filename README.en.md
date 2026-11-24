@@ -25,7 +25,7 @@
 
 Parchment is a local-first static web app for safely reading `.md` and `.txt` files. It opens files with read-only access and renders them entirely in the browser — no server, no account, no uploads. Open a whole notes folder to browse it as a file tree, search across every note, and follow Wiki Links from one note to another.
 
-The interface supports Traditional Chinese, Simplified Chinese, English, Japanese, Korean, French, German, and Spanish. Parchment detects the browser language on first use, falls back to English when it cannot find a match, and lets the user override the language in Settings.
+The interface supports Traditional Chinese, Simplified Chinese, English, Japanese, Korean, French, German, Spanish, and Russian. Parchment detects the browser language on first use, falls back to English when it cannot find a match, and lets the user override the language in Settings.
 
 **[Try it online →](https://parchment.stack-base.com/)**
 
@@ -56,7 +56,7 @@ The interface supports Traditional Chinese, Simplified Chinese, English, Japanes
 - **Comfortable reading**: five color palettes with light and dark variants, separate CJK and Latin font settings, and a switchable reading width.
 - **Responsive mobile layout**: documents use the full width on narrow screens, with the file tree and document information available as touch-friendly side drawers and wide tables contained without shifting the page.
 - The **Back to top** shortcut appears automatically in the reading pane's lower-right corner after scrolling down 160 px on desktop. On mobile, it appears after two screenfuls in documents longer than four screens.
-- **Eight interface languages**: Traditional Chinese, Simplified Chinese, English, Japanese, Korean, French, German and Spanish, with automatic browser-language detection and a manual selector.
+- **Nine interface languages**: Traditional Chinese, Simplified Chinese, English, Japanese, Korean, French, German, Spanish and Russian, with automatic browser-language detection and a manual selector.
 - **Browser extension**: a Chrome and Edge extension opens Parchment from the toolbar and renders local `.md` files you open in the browser.
 - **Installable and offline**: install it as a PWA to open and read local files without a network connection.
 - **Native mobile app**: `mobile-app/` contains the shared Flutter Android/iOS core. Android can open a whole notes folder, receive documents shared by other apps, and safely write back confirmed TODO checkbox changes.
@@ -164,7 +164,7 @@ python -m http.server 8080
 
 The settings button in the top-right corner offers the options below. All preferences are stored in the current browser only.
 
-- Interface language: Traditional Chinese, Simplified Chinese, English, Japanese, Korean, French, German, or Spanish
+- Interface language: Traditional Chinese, Simplified Chinese, English, Japanese, Korean, French, German, Spanish, or Russian
 - Color palette and light/dark mode (follow system, light, dark)
 - CJK font and Latin / numeral font
 - Text size (50%–200%), line spacing, and code line numbers

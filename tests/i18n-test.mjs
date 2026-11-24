@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile, readdir } from 'node:fs/promises';
 import { SUPPORTED_LOCALES, LOCALE_NAMES, FALLBACK_LOCALE, normalizeLocale, resolveLocale, catalogEntries } from '../assets/js/i18n.js';
 
-const expected = ['zh-TW', 'zh-CN', 'en', 'ja', 'ko', 'fr', 'de', 'es'];
+const expected = ['zh-TW', 'zh-CN', 'en', 'ja', 'ko', 'fr', 'de', 'es', 'ru'];
 assert.deepEqual(SUPPORTED_LOCALES, expected);
 assert.deepEqual(Object.keys(LOCALE_NAMES), expected);
 assert.equal(FALLBACK_LOCALE, 'en');
@@ -15,6 +15,7 @@ assert.equal(normalizeLocale('ko-KR'), 'ko');
 assert.equal(normalizeLocale('fr-CA'), 'fr');
 assert.equal(normalizeLocale('de-AT'), 'de');
 assert.equal(normalizeLocale('es-MX'), 'es');
+assert.equal(normalizeLocale('ru-RU'), 'ru');
 assert.equal(normalizeLocale('it-IT'), null);
 assert.equal(resolveLocale({ languages: ['ja-JP'] }), 'ja');
 assert.equal(resolveLocale({ saved: 'de-DE', languages: ['ja-JP'] }), 'de');
@@ -30,7 +31,7 @@ for (const [source, translations] of catalogEntries()) {
 }
 
 const catalog = new Set(catalogEntries().map(([source]) => source));
-const nativeNames = new Set(['繁體中文', '简体中文', '日本語', '한국어', 'Français', 'Deutsch', 'Español']);
+const nativeNames = new Set(['繁體中文', '简体中文', '日本語', '한국어', 'Français', 'Deutsch', 'Español', 'Русский']);
 const fontNames = new Set(['微軟正黑體', '新細明體', '標楷體']);
 const html = (await readFile('index.html', 'utf8'))
   .replace(/<noscript[\s\S]*?<\/noscript>/gi, '')

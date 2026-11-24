@@ -9,7 +9,7 @@
 | 名稱 | 由 `_locales` 提供：`Parchment – 本機 Markdown 閱讀器`／`Parchment – Local Markdown Reader` |
 | 簡短描述 | 由 `_locales` 提供（上限 132 字元，建置時會檢查） |
 | 類別 | 建議選擇「工具」類別（Productivity → Tools） |
-| 語言 | 中文（台灣）、中文（簡體）、英文、日文、韓文、法文、德文、西班牙文 |
+| 語言 | 中文（台灣）、中文（簡體）、英文、日文、韓文、法文、德文、西班牙文（下次改版建議加入俄文） |
 | 官方網址 | <https://parchment.stack-base.com/> |
 | 支援網址 | <https://github.com/bruce-yang-422/parchment/issues> |
 
@@ -80,6 +80,29 @@ The interface is available in Traditional Chinese, Simplified Chinese, English, 
 
 Open source (MIT): https://github.com/bruce-yang-422/parchment
 ```
+
+### 各語系關鍵字策略與建議文案
+
+Chrome／Edge 外掛商店的主要讀者是開發者與看 GitHub README 的人，搜尋時常用「viewer」「offline」與圖表、公式引擎的名稱。下表的名稱與簡短描述依各地搜尋習慣調整：
+
+- **共通**：名稱或第一句放 **Local Markdown Viewer／Offline**，簡短描述點名 **Mermaid** 與 **KaTeX**。
+- **日文**：用「Markdown ビューア」，這是日本使用者最常搜尋的說法。
+- **法文、德文**：隱私（Confidentialité／Datenschutz）與離線放在名稱或第一句，這兩地使用者對資料外傳特別在意。
+- **俄文**：外掛介面目前沒有俄文，但商店頁可以先加俄文說明，方便俄語區開發者搜尋到。
+
+> 名稱與簡短描述由 `src/_locales/*/messages.json` 提供，修改後需要重新打包外掛並遞增版本號，請在下次外掛改版時一起套用。俄文需新增 `src/_locales/ru/messages.json`。
+
+| 語系 | 建議名稱（≤ 75 字元） | 建議簡短描述（≤ 132 字元） | 主打關鍵字 |
+| --- | --- | --- | --- |
+| en | Parchment – Local Markdown Viewer (Offline) | Offline Markdown viewer for local .md files: Mermaid diagrams, KaTeX math, Wiki Links and search. Read-only, nothing uploaded. | local markdown viewer, offline, mermaid, katex, md reader |
+| zh-TW | Parchment – 本機 Markdown 檢視器（離線） | 離線開啟本機 .md：支援 Mermaid 圖表、KaTeX 數學公式、Wiki Links 與全文搜尋，唯讀顯示，檔案不上傳。 | Markdown 檢視器、md 閱讀器、離線、Mermaid、KaTeX |
+| zh-CN | Parchment – 本地 Markdown 查看器（离线） | 离线查看本地 .md：支持 Mermaid 图表、KaTeX 公式、Wiki 链接与全文搜索，只读显示，文件不上传。 | Markdown 查看器、md 阅读器、离线、Mermaid、KaTeX |
+| ja | Parchment – ローカル Markdown ビューア | ローカルの .md をオフラインで表示する Markdown ビューア。Mermaid 図・KaTeX 数式・Wiki リンク・全文検索に対応、外部送信なし。 | Markdown ビューア、md 閲覧、オフライン、Mermaid、KaTeX |
+| ko | Parchment – 로컬 Markdown 뷰어(오프라인) | 로컬 .md 파일을 오프라인에서 읽기 전용으로 표시합니다. Mermaid 다이어그램, KaTeX 수식, Wiki 링크, 전체 검색 지원. 업로드 없음. | Markdown 뷰어, md 리더, 오프라인, Mermaid, KaTeX |
+| fr | Parchment – Lecteur Markdown hors ligne et privé | Confidentialité d’abord : lisez vos .md locaux hors ligne, en lecture seule, avec Mermaid, KaTeX, Wiki Links et recherche. | lecteur markdown, hors ligne, confidentialité, mermaid, katex |
+| de | Parchment – Markdown-Viewer offline, Datenschutz | Datenschutz zuerst: lokale .md-Dateien offline und schreibgeschützt lesen – mit Mermaid, KaTeX, Wiki-Links und Suche. | Markdown Viewer, offline, Datenschutz, Mermaid, KaTeX |
+| es | Parchment – Visor Markdown local sin conexión | Visor de archivos .md locales sin conexión y en solo lectura: diagramas Mermaid, fórmulas KaTeX, Wiki Links y búsqueda. | visor markdown, sin conexión, lector md, mermaid, katex |
+| ru | Parchment – просмотр Markdown офлайн | Офлайн-просмотр локальных .md только для чтения: диаграммы Mermaid, формулы KaTeX, вики-ссылки и поиск. Без загрузки файлов. | просмотр markdown, офлайн, md, mermaid, katex |
 
 ### 圖片素材
 
