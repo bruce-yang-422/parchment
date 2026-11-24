@@ -307,8 +307,18 @@
         </button>
       </div>
       <section id="right-panel-outline" class="right-panel-view" role="tabpanel" data-right-panel="outline">
-        <h2 class="right-panel-heading">文章目錄</h2>
-        <nav id="toc-container" class="right-panel-scroll"></nav>
+        <div class="right-panel-heading toc-header">
+          <h2 id="outline-heading">文章目錄</h2>
+          <div class="toc-tools" hidden>
+            <button class="tree-tool" type="button" data-toc-action="expand" aria-label="全部展開" title="全部展開">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 9 5-5 5 5M7 15l5 5 5-5"/></svg>
+            </button>
+            <button class="tree-tool" type="button" data-toc-action="collapse" aria-label="全部折疊" title="全部折疊">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 4 5 5 5-5M7 20l5-5 5 5"/></svg>
+            </button>
+          </div>
+        </div>
+        <nav id="toc-container" class="right-panel-scroll" aria-labelledby="outline-heading"></nav>
       </section>
       <section id="right-panel-tags" class="right-panel-view" role="tabpanel" data-right-panel="tags" hidden>
         <h2 class="right-panel-heading">標籤</h2>

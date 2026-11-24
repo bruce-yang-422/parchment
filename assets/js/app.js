@@ -665,7 +665,7 @@ async function _displayFile(doc, options = {}) {
   welcomeEl.hidden = true;
   readerEl.hidden = false;
 
-  renderTOC(readerBody, tocSidebar, tocContainer, contentArea);
+  renderTOC(readerBody, tocSidebar, tocContainer, contentArea, { preserveExpansion: options.hotReload });
   footnotePreview.prepare();
   rightPanel.render(doc, isMarkdown && doc.folder ? _getFolderDocumentIndex(doc.folder) : null);
   _startHotReload(doc);

@@ -49,6 +49,8 @@ const CATALOG = Object.freeze({
   '依編輯時間（從舊到新）': ['按修改时间（从旧到新）', 'Modified (oldest first)', '更新日時（古い順）', '수정 시간(오래된순)', 'Modification (plus ancien)', 'Geändert (älteste zuerst)', 'Modificación (más antiguos primero)'],
   '全部展開': ['全部展开', 'Expand all', 'すべて展開', '모두 펼치기', 'Tout développer', 'Alle aufklappen', 'Expandir todo'],
   '全部折疊': ['全部折叠', 'Collapse all', 'すべて折りたたむ', '모두 접기', 'Tout réduire', 'Alle zuklappen', 'Contraer todo'],
+  '展開「{title}」': ['展开“{title}”', 'Expand “{title}”', '「{title}」を展開', '“{title}” 펼치기', 'Développer « {title} »', '„{title}“ aufklappen', 'Expandir «{title}»'],
+  '收合「{title}」': ['折叠“{title}”', 'Collapse “{title}”', '「{title}」を折りたたむ', '“{title}” 접기', 'Réduire « {title} »', '„{title}“ zuklappen', 'Contraer «{title}»'],
   '清除標籤篩選': ['清除标签筛选', 'Clear tag filter', 'タグ絞り込みを解除', '태그 필터 지우기', 'Effacer le filtre par étiquette', 'Tag-Filter löschen', 'Borrar filtro de etiquetas'],
   '搜尋筆記…（Ctrl+Shift+F）': ['搜索笔记…（Ctrl+Shift+F）', 'Search notes… (Ctrl+Shift+F)', 'ノートを検索…（Ctrl+Shift+F）', '노트 검색… (Ctrl+Shift+F)', 'Rechercher dans les notes… (Ctrl+Shift+F)', 'Notizen durchsuchen… (Ctrl+Shift+F)', 'Buscar notas… (Ctrl+Shift+F)'],
   '搜尋資料夾內所有筆記': ['搜索文件夹中的所有笔记', 'Search all notes in this folder', 'フォルダー内のすべてのノートを検索', '폴더의 모든 노트 검색', 'Rechercher dans toutes les notes du dossier', 'Alle Notizen im Ordner durchsuchen', 'Buscar en todas las notas de la carpeta'],
