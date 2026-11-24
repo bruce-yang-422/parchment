@@ -804,6 +804,78 @@ button {
   color: var(--text-muted);
 }
 
+/* === Android App 介紹與封閉測試報名頁（android.html） === */
+.promo-page { @apply mx-auto max-w-[960px] px-5 pb-16 pt-8; }
+.promo-page h1 { @apply mb-3 mt-0 text-[30px] font-semibold leading-tight; color: var(--heading-h1); }
+.promo-page h2 { @apply mb-3 mt-14 text-[22px] font-semibold leading-snug; color: var(--heading-h2); }
+.promo-page h3 { @apply mb-1.5 mt-0 text-[18px] font-semibold leading-snug; color: var(--heading-h3, var(--heading-h2)); }
+.promo-page p { @apply mb-3 mt-0; }
+.promo-page a { color: var(--link); }
+.promo-page img { @apply block h-auto w-full rounded-2xl; box-shadow: 0 6px 24px rgb(0 0 0 / 0.12); }
+.promo-hero { @apply grid items-center gap-8; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.promo-hero figure { @apply m-0; }
+.promo-page code {
+  @apply rounded px-1 text-[0.9em];
+  background: var(--code-bg);
+  font-family: var(--font-mono);
+}
+.promo-eyebrow { @apply mb-2 text-[13px] font-semibold tracking-wide; color: var(--accent); }
+.promo-lead { @apply text-[17px]; }
+.promo-actions { @apply my-5 flex flex-wrap items-center gap-3; }
+.promo-button {
+  @apply inline-flex min-h-[44px] items-center justify-center rounded-full px-6 text-[15px] font-semibold no-underline;
+  background: var(--accent);
+  color: var(--accent-contrast) !important;
+}
+.promo-button:hover { background: var(--accent-hover); }
+.promo-button-secondary {
+  @apply inline-flex min-h-[44px] items-center justify-center rounded-full px-5 text-[14px] no-underline;
+  border: 1px solid var(--border);
+  color: var(--text) !important;
+}
+.promo-note { @apply text-[13px]; color: var(--text-muted); }
+.promo-features { @apply grid gap-8; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.promo-feature figure { @apply m-0 mb-3; }
+.promo-steps { @apply m-0 grid list-none gap-3 p-0; counter-reset: step; }
+.promo-steps li {
+  @apply relative rounded-xl py-3 pl-14 pr-4;
+  background: var(--code-bg);
+  counter-increment: step;
+}
+.promo-steps li::before {
+  @apply absolute left-4 top-3 flex h-7 w-7 items-center justify-center rounded-full text-[14px] font-semibold;
+  content: counter(step);
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+.promo-steps strong { @apply block; }
+.promo-panel { @apply mt-6 rounded-xl px-5 py-4; border: 1px solid var(--border); }
+.promo-panel ul { @apply mb-0 mt-1 pl-5; }
+.promo-panel li { @apply mb-1; }
+.promo-cta { @apply mt-14 rounded-2xl px-6 py-8 text-center; background: var(--code-bg); }
+.promo-cta h2 { @apply mt-0; }
+.promo-cta .promo-actions { @apply justify-center; }
+@media (max-width: 720px) {
+  .promo-page h1 { @apply text-[25px]; }
+  .promo-hero,
+  .promo-features { grid-template-columns: minmax(0, 1fr); }
+  .promo-hero figure { @apply order-first; }
+}
+
+/* 首頁：Android 封閉測試邀請 */
+.welcome-invite {
+  @apply mt-4 flex w-full max-w-[320px] items-center gap-3 rounded-xl px-3.5 py-2.5 text-left no-underline;
+  border: 1px solid var(--border);
+  color: var(--text);
+  transition: border-color 0.15s, background 0.15s;
+}
+.welcome-invite:hover { border-color: var(--accent); background: var(--code-bg); }
+.welcome-invite img { @apply shrink-0 rounded-lg; }
+.welcome-invite-copy { @apply flex min-w-0 flex-1 flex-col leading-snug; }
+.welcome-invite-copy strong { @apply text-[13px] font-semibold; color: var(--heading-h2); }
+.welcome-invite-copy span { @apply text-[12px]; color: var(--text-muted); }
+.welcome-invite-more { @apply text-[20px] leading-none; color: var(--text-muted); }
+
 /* 首頁「開啟範例文件」：次要的膠囊按鈕，與上方主要按鈕保持距離 */
 .welcome-sample {
   @apply mt-5 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12.5px] font-normal leading-5;

@@ -43,6 +43,16 @@ assert.match(privacy, /lang="en"/);
 assert.doesNotMatch(privacy, /<script(?![^>]*\bsrc=)[^>]*>/, '隱私權頁不得有內嵌腳本');
 assert.doesNotMatch(privacy, /\son[a-z]+=/);
 
+/* Android 介紹與封閉測試報名頁 */
+const android = await readFile('android.html', 'utf8');
+assert.match(android, new RegExp(`<link rel="canonical" href="${SITE}android\\.html">`));
+assert.ok(meta(android, 'name', 'description'));
+assert.match(android, /https:\/\/forms\.gle\/x7bz1HXKfJ64gUbg6/);
+assert.ok(index.includes('android.html"'), '首頁需連到 Android 頁');
+assert.doesNotMatch(android, /<script(?![^>]*\bsrc=)[^>]*>/, 'Android 頁不得有內嵌腳本');
+for (const src of android.matchAll(/src="(image\/android\/[^"]+)"/g)) await readFile(src[1]);
+assert.match(sitemap, new RegExp(`<loc>${SITE}android\\.html</loc>`));
+
 /* 離線快取與網站地圖 */
 assert.match(serviceWorker, /"\.\/privacy\.html"/);
 assert.match(sitemap, new RegExp(`<loc>${SITE}</loc>`));
