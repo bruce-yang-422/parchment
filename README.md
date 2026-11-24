@@ -12,7 +12,7 @@
   <a href="https://parchment.stack-base.com/"><img alt="線上使用" src="https://img.shields.io/badge/demo-parchment.stack--base.com-2ea44f"></a>
   <a href="LICENSE"><img alt="授權：MIT" src="https://img.shields.io/badge/license-MIT-blue"></a>
   <img alt="PWA：可離線使用" src="https://img.shields.io/badge/PWA-offline%20ready-5a0fc8">
-  <img alt="版本 1.1.1" src="https://img.shields.io/badge/version-1.1.1-lightgrey">
+  <img alt="官網版本 1.2.0" src="https://img.shields.io/badge/web-1.2.0-lightgrey">
   <a href="https://github.com/bruce-yang-422/parchment/releases/download/extension-v1.1.1/parchment-extension-1.1.1.zip"><img alt="下載瀏覽器外掛 v1.1.1" src="https://img.shields.io/badge/extension-download-8b4513"></a>
   <a href="https://github.com/bruce-yang-422/parchment/releases/download/android-v1.1.4/parchment-android-1.1.4.apk"><img alt="下載 Android App v1.1.4" src="https://img.shields.io/badge/android-download-3ddc84"></a>
 </p>
@@ -53,7 +53,7 @@ Parchment 是一個本機優先（local-first）的靜態網頁應用程式，�
 - **筆記資料夾導覽**：檔案樹、Wiki Links、內嵌筆記、標籤篩選、雙向連結與全文搜尋。
 - **舒適的閱讀體驗**：五套各含淺色與深色版本的配色、中英文字型分開設定、可切換的閱讀寬度。
 - **手機版閱讀介面**：窄螢幕使用完整寬度閱讀，檔案樹與文件資訊改以觸控友善的側邊抽屜開啟，並隔離寬表格造成的水平溢位。
-- **智慧回到頂端**：桌面版將滑鼠移到閱讀欄右下角即可顯示快捷按鈕；手機版僅在文章超過四個畫面且已捲動兩個畫面後顯示。
+- **回到頂端**：桌面版向下捲動後，閱讀欄右下角會顯示快捷按鈕；手機版在文章超過四個畫面且已捲動兩個畫面後顯示。
 - **八語介面**：支援繁體中文、簡體中文、英文、日文、韓文、法文、德文與西班牙文；首次使用時自動偵測瀏覽器語言，無法匹配時使用英文，也可在設定中自行切換。
 - **瀏覽器外掛**：Chrome 與 Edge 外掛可從工具列開啟 Parchment，並以 Parchment 顯示你在瀏覽器中開啟的本機 `.md` 檔。
 - **可安裝、可離線**：安裝為 PWA 後，即使沒有網路也能開啟並閱讀本機文件。
@@ -159,7 +159,7 @@ python -m http.server 8080
 - 介面語言：繁體中文、簡體中文、英文、日文、韓文、法文、德文、西班牙文
 - 配色與明暗模式（跟隨系統、淺色、深色）
 - 中文字型與英文／數字字型
-- 文字大小、行距與顯示程式碼行號
+- 文字大小（50%～200%）、行距與顯示程式碼行號
 - 閱讀寬度：可用檔名列右側的按鈕，在標準寬度與滿版之間切換
 
 ## 瀏覽器支援

@@ -44,6 +44,7 @@ Parchment 在同一個儲存庫裡維護多個產品，每個產品各自發版�
 其他規則：
 
 - 各產品的版本號**彼此獨立**。Android 到 1.1.4，不代表外掛也要跟著跳到 1.1.4。
+- 官網也依同一規則獨立升版。版本來源是根目錄 `package.json` 的 `webVersion`，升版時同步更新官網「關於 Parchment」、結構化資料、翻譯字串及兩份根目錄 README 的官網版本徽章。
 - Android 與 iOS 共用同一份 `pubspec.yaml`。同一個 commit 同時發兩個平台時，版本號相同，但仍要分開建立兩個 Release。
 - Android 的 `versionCode`（`pubspec.yaml` 裡 `+` 後面的數字）不出現在標籤裡，但要寫進發行說明。每次上傳 Google Play 都必須遞增，已上傳過的號碼不可重複使用。
 - 已經公開的版本號不可重複使用。發布後才發現問題，就遞增修訂號重新發布，不要改動舊的 Release。

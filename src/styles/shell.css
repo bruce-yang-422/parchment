@@ -190,18 +190,18 @@ button {
   @apply !cursor-col-resize select-none;
 }
 
-/* === DESKTOP BACK TO TOP === */
+/* === BACK TO TOP === */
 .back-to-top-dock {
-  @apply fixed bottom-3 z-40 flex size-[72px] items-end justify-end;
+  @apply fixed bottom-3 z-40;
 }
 
 .back-to-top-button {
-  @apply grid size-10 translate-y-1 place-items-center rounded-full p-0 opacity-0 pointer-events-none;
+  @apply grid size-10 place-items-center rounded-full p-0;
   background: var(--surface);
   border: 1px solid var(--border);
   color: var(--link);
   box-shadow: var(--shadow-sm);
-  transition: opacity 100ms ease, transform 100ms ease, background 100ms ease;
+  transition: background 100ms ease;
 }
 
 .back-to-top-button svg {
@@ -213,25 +213,10 @@ button {
   stroke-width: 2;
 }
 
-.back-to-top-dock:hover .back-to-top-button,
-.back-to-top-button:focus-visible {
-  @apply translate-y-0 opacity-100 pointer-events-auto;
-}
-
 .back-to-top-button:hover { background: var(--tree-hover); }
 .back-to-top-button:focus-visible {
   outline: 2px solid var(--link);
   outline-offset: 2px;
-}
-
-@media (max-width: 640px) {
-  .back-to-top-dock {
-    @apply size-14;
-  }
-
-  .back-to-top-button {
-    @apply translate-y-0 opacity-100 pointer-events-auto;
-  }
 }
 
 /* === DOCUMENT TOC === */

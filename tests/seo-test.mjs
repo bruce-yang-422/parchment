@@ -28,8 +28,10 @@ assert.equal(jsonLd['@type'], 'WebApplication');
 assert.equal(jsonLd.url, SITE);
 assert.equal(jsonLd.offers.priceCurrency, 'USD');
 assert.ok(Array.isArray(jsonLd.featureList) && jsonLd.featureList.length >= 3);
-const { version } = JSON.parse(await readFile('package.json', 'utf8'));
-assert.equal(jsonLd.softwareVersion, version, 'JSON-LD 版本需與 package.json 一致');
+const { webVersion } = JSON.parse(await readFile('package.json', 'utf8'));
+assert.equal(jsonLd.softwareVersion, webVersion, 'JSON-LD 版本需與 package.json 的 webVersion 一致');
+const about = index.match(/<dialog id="about-dialog"[\s\S]*?<\/dialog>/)?.[0] ?? '';
+assert.ok(about.includes(`<span>版本 ${webVersion}</span>`), '關於 Parchment 需顯示官網版本');
 
 /* 隱私權政策頁：首頁連結、可被索引、無內嵌腳本 */
 assert.match(index, /<link rel="privacy-policy" href="privacy\.html">/);

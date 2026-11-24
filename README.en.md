@@ -12,7 +12,7 @@
   <a href="https://parchment.stack-base.com/"><img alt="Live demo" src="https://img.shields.io/badge/demo-parchment.stack--base.com-2ea44f"></a>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue"></a>
   <img alt="PWA: offline ready" src="https://img.shields.io/badge/PWA-offline%20ready-5a0fc8">
-  <img alt="Version 1.1.1" src="https://img.shields.io/badge/version-1.1.1-lightgrey">
+  <img alt="Web version 1.2.0" src="https://img.shields.io/badge/web-1.2.0-lightgrey">
   <a href="https://github.com/bruce-yang-422/parchment/releases/download/extension-v1.1.1/parchment-extension-1.1.1.zip"><img alt="Download browser extension v1.1.1" src="https://img.shields.io/badge/extension-download-8b4513"></a>
   <a href="https://github.com/bruce-yang-422/parchment/releases/download/android-v1.1.4/parchment-android-1.1.4.apk"><img alt="Download Android app v1.1.4" src="https://img.shields.io/badge/android-download-3ddc84"></a>
 </p>
@@ -55,7 +55,7 @@ The interface supports Traditional Chinese, Simplified Chinese, English, Japanes
 - **Notes folder navigation**: file tree, Wiki Links, note embeds, tag filtering, backlinks and full-text search.
 - **Comfortable reading**: five color palettes with light and dark variants, separate CJK and Latin font settings, and a switchable reading width.
 - **Responsive mobile layout**: documents use the full width on narrow screens, with the file tree and document information available as touch-friendly side drawers and wide tables contained without shifting the page.
-- **Smart back to top**: on desktop, move the pointer to the reading pane's lower-right corner to reveal the shortcut; on mobile, it appears only after two screenfuls in documents longer than four screens.
+- **Back to top**: on desktop, the shortcut appears in the reading pane's lower-right corner after scrolling down. On mobile, it appears after two screenfuls in documents longer than four screens.
 - **Eight interface languages**: Traditional Chinese, Simplified Chinese, English, Japanese, Korean, French, German and Spanish, with automatic browser-language detection and a manual selector.
 - **Browser extension**: a Chrome and Edge extension opens Parchment from the toolbar and renders local `.md` files you open in the browser.
 - **Installable and offline**: install it as a PWA to open and read local files without a network connection.
@@ -161,7 +161,7 @@ The settings button in the top-right corner offers the options below. All prefer
 - Interface language: Traditional Chinese, Simplified Chinese, English, Japanese, Korean, French, German, or Spanish
 - Color palette and light/dark mode (follow system, light, dark)
 - CJK font and Latin / numeral font
-- Text size, line spacing, and code line numbers
+- Text size (50%–200%), line spacing, and code line numbers
 - Reading width: switch between standard and full width with the button at the right of the file name row
 
 ## Browser support
