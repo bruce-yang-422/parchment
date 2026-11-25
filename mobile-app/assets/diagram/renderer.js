@@ -13,10 +13,17 @@ const RASTER_SCALE = 3;
 const RASTER_MAX_EDGE = 4096;
 
 let vizInstance = null;
+let mermaidQueue = Promise.resolve();
+
+function queueMermaid(request) {
+  const render = mermaidQueue.then(() => renderMermaid(request));
+  // Keep per-diagram theme initialization and rendering together.
+  mermaidQueue = render.then(() => {}, () => {});
+  return render;
+}
 
 async function renderMermaid(request) {
-  const ink = request.dark ? '#f2e5d3' : '#33251c';
-  const surface = request.dark ? '#241b15' : '#f8f2e8';
+  const { ink, surface } = request;
   mermaid.initialize({
     startOnLoad: false,
     securityLevel: 'strict',
@@ -25,19 +32,21 @@ async function renderMermaid(request) {
     suppressErrorRendering: true,
     theme: request.dark ? 'dark' : 'neutral',
     themeVariables: {
-      pie1: '#93c5fd',
-      pie2: '#fdba74',
-      pie3: '#86efac',
-      pie4: '#d8b4fe',
-      pie5: '#fda4af',
-      pie6: '#67e8f9',
-      pie7: '#fde047',
-      pie8: '#a5b4fc',
-      pie9: '#bef264',
-      pie10: '#f9a8d4',
-      pie11: '#5eead4',
-      pie12: '#cbd5e1',
-      pieSectionTextColor: '#111827',
+      pie1: request.dark ? '#365e9d' : '#93c5fd',
+      pie2: request.dark ? '#8a4a22' : '#fdba74',
+      pie3: request.dark ? '#246549' : '#86efac',
+      pie4: request.dark ? '#654982' : '#d8b4fe',
+      pie5: request.dark ? '#883e53' : '#fda4af',
+      pie6: request.dark ? '#176274' : '#67e8f9',
+      pie7: request.dark ? '#75601e' : '#fde047',
+      pie8: request.dark ? '#4b5190' : '#a5b4fc',
+      pie9: request.dark ? '#4e631f' : '#bef264',
+      pie10: request.dark ? '#813c68' : '#f9a8d4',
+      pie11: request.dark ? '#21665e' : '#5eead4',
+      pie12: request.dark ? '#4d5b6d' : '#cbd5e1',
+      pieSectionTextColor: request.dark ? '#f8fafc' : '#111827',
+      pieStrokeColor: surface,
+      pieOuterStrokeColor: surface,
       pieOpacity: '1',
       pieTitleTextColor: ink,
       pieLegendTextColor: ink,
@@ -70,7 +79,7 @@ async function renderMermaid(request) {
 async function renderGraphviz(request) {
   if (!window.ParchmentViz) throw new Error('Graphviz engine is unavailable');
   vizInstance ||= await window.ParchmentViz.instance();
-  const ink = request.dark ? '#d8d4ce' : '#2b2622';
+  const { ink } = request;
   const svg = vizInstance.renderSVGElement(request.source, {
     graphAttributes: { bgcolor: 'transparent', fontcolor: ink },
     nodeAttributes: { color: ink, fontcolor: ink },
@@ -84,7 +93,7 @@ async function renderDiagram(requestJson) {
   try {
     const raw = request.kind === 'graphviz'
       ? await renderGraphviz(request)
-      : await renderMermaid(request);
+      : await queueMermaid(request);
     const svg = DOMPurify.sanitize(raw, SANITIZE_OPTIONS);
     const { png, width, height } = await rasterizeSvg(svg);
     send({ id: request.id, type: 'rendered', svg, png, width, height });

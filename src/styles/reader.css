@@ -1,4 +1,13 @@
 /* Markdown and TXT elements are generated at runtime. */
+@font-face {
+  font-family: 'Parchment Flag Emoji';
+  src: url('../fonts/TwemojiCountryFlags.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  unicode-range: U+1F1E6-1F1FF;
+}
+
 :root {
   --reader-latin-font: -apple-system, BlinkMacSystemFont, 'Segoe UI';
   --reader-cjk-font: 'Microsoft JhengHei', '微軟正黑體', 'PingFang TC', sans-serif;
@@ -14,7 +23,7 @@
   font-size: calc(var(--reader-base-size, 15px) * var(--reader-text-scale, 1));
   line-height: var(--reader-line-height, var(--reader-base-line-height, 1.75));
   color: var(--text);
-  font-family: var(--reader-latin-font), var(--reader-cjk-font);
+  font-family: 'Parchment Flag Emoji', var(--reader-latin-font), var(--reader-cjk-font);
   word-break: break-word;
 }
 
@@ -495,7 +504,7 @@
 .image-unavailable-message:not([hidden]) { @apply mt-1; }
 .image-unavailable-message[hidden] { display: none; }
 
-#reader-body .mermaid {
+#reader-body :is(.mermaid, .graphviz) {
   @apply box-border mt-5 mb-8 mx-0 pt-0 px-0 pb-6 overflow-x-auto overflow-y-hidden;
 }
 
@@ -530,6 +539,19 @@
   --diagram-purple: #7e22ce;
   --diagram-red: #be123c;
   --diagram-cyan: #0e7490;
+  --diagram-pie-label: #111827;
+  --diagram-pie-1: #93c5fd;
+  --diagram-pie-2: #fdba74;
+  --diagram-pie-3: #86efac;
+  --diagram-pie-4: #d8b4fe;
+  --diagram-pie-5: #fda4af;
+  --diagram-pie-6: #67e8f9;
+  --diagram-pie-7: #fde047;
+  --diagram-pie-8: #a5b4fc;
+  --diagram-pie-9: #bef264;
+  --diagram-pie-10: #f9a8d4;
+  --diagram-pie-11: #5eead4;
+  --diagram-pie-12: #cbd5e1;
 }
 
 :root.dark #reader-body .mermaid {
@@ -539,6 +561,19 @@
   --diagram-purple: #c084fc;
   --diagram-red: #fb7185;
   --diagram-cyan: #22d3ee;
+  --diagram-pie-label: #f8fafc;
+  --diagram-pie-1: #365e9d;
+  --diagram-pie-2: #8a4a22;
+  --diagram-pie-3: #246549;
+  --diagram-pie-4: #654982;
+  --diagram-pie-5: #883e53;
+  --diagram-pie-6: #176274;
+  --diagram-pie-7: #75601e;
+  --diagram-pie-8: #4b5190;
+  --diagram-pie-9: #4e631f;
+  --diagram-pie-10: #813c68;
+  --diagram-pie-11: #21665e;
+  --diagram-pie-12: #4d5b6d;
 }
 
 #reader-body .mermaid svg:has(.pieTitleText, .pieCircle) {
@@ -551,7 +586,7 @@
   @apply p-0 whitespace-pre-wrap break-all bg-transparent;
   font-size: calc(13px * var(--reader-text-scale, 1));
   line-height: var(--reader-line-height, 1.6);
-  font-family: var(--reader-latin-font), var(--reader-cjk-font);
+  font-family: 'Parchment Flag Emoji', var(--reader-latin-font), var(--reader-cjk-font);
   color: var(--text);
   border: none;
 }

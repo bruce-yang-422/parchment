@@ -242,12 +242,18 @@ class NoteMarkdownConfig {
     'html-block': _HtmlBlockBuilder(),
   };
 
+  final tableCellPaddingBuilders = <String, MarkdownPaddingBuilder>{
+    'th': _TableCellHighlightBuilder(),
+    'td': _TableCellHighlightBuilder(),
+  };
+
   /// Non-scrolling Markdown for nested content.
   Widget body(String data) {
     return MarkdownBody(
       data: data,
       styleSheet: styleSheet,
       builders: builders,
+      paddingBuilders: tableCellPaddingBuilders,
       extensionSet: note.extensionSet,
       blockSyntaxes: note.blockSyntaxes,
       inlineSyntaxes: note.inlineSyntaxes,
@@ -280,6 +286,7 @@ class _FootnoteMarkdown extends Markdown {
          data: config.note.markdown,
          styleSheet: config.styleSheet,
          builders: config._documentBuilders,
+         paddingBuilders: config.tableCellPaddingBuilders,
          extensionSet: config.note.extensionSet,
          blockSyntaxes: config.note.blockSyntaxes,
          inlineSyntaxes: config.note.inlineSyntaxes,
@@ -421,8 +428,9 @@ class _MathBlockBuilder extends MarkdownElementBuilder {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: LayoutBuilder(
-        builder: (context, constraints) => SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
+        builder: (context, constraints) => _HorizontalOverflowScroller(
+          scrollbarKey: const ValueKey('formula-horizontal-scrollbar'),
+          padding: const EdgeInsets.only(bottom: 6),
           child: ConstrainedBox(
             constraints: BoxConstraints(minWidth: constraints.maxWidth),
             child: Center(
@@ -756,6 +764,19 @@ class _FootnoteReferenceBuilder extends MarkdownElementBuilder {
   }
 }
 
+class _TableCellHighlightBuilder extends MarkdownPaddingBuilder {
+  static const tableMark = 'parchment-table-mark';
+
+  @override
+  void visitElementBefore(md.Element element) {
+    if (element.tag == 'mark') element.attributes[tableMark] = '';
+    for (final child
+        in (element.children ?? const <md.Node>[]).whereType<md.Element>()) {
+      visitElementBefore(child);
+    }
+  }
+}
+
 class _InlineStyleBuilder extends MarkdownElementBuilder {
   _InlineStyleBuilder(this.style);
 
@@ -771,9 +792,24 @@ class _InlineStyleBuilder extends MarkdownElementBuilder {
     final base = parentStyle ?? DefaultTextStyle.of(context).style;
     final text = element.textContent;
     return Text.rich(switch (style) {
-      _InlineStyle.mark => TextSpan(
-        text: text,
-        style: base.copyWith(backgroundColor: ReaderLook.of(context).mark),
+      // Table cells have a forced line height. A multiline widget placeholder
+      // can paint into the next row; a text span wraps within the cell.
+      _InlineStyle.mark
+          when element.attributes.containsKey(
+            _TableCellHighlightBuilder.tableMark,
+          ) =>
+        TextSpan(
+          text: text,
+          style: base.copyWith(backgroundColor: ReaderLook.of(context).mark),
+        ),
+      _InlineStyle.mark => WidgetSpan(
+        alignment: PlaceholderAlignment.baseline,
+        baseline: TextBaseline.alphabetic,
+        child: DecoratedBox(
+          // Paint one background even when Latin and CJK use different fonts.
+          decoration: BoxDecoration(color: ReaderLook.of(context).mark),
+          child: Text(text, style: base),
+        ),
       ),
       _InlineStyle.ins => TextSpan(
         text: text,
@@ -1857,17 +1893,24 @@ class _PropertyValue extends StatelessWidget {
 
 /* ──────────────────── Code blocks ──────────────────── */
 
-class _OverflowCodeScroller extends StatefulWidget {
-  const _OverflowCodeScroller({required this.padding, required this.child});
+class _HorizontalOverflowScroller extends StatefulWidget {
+  const _HorizontalOverflowScroller({
+    required this.scrollbarKey,
+    required this.padding,
+    required this.child,
+  });
 
+  final Key scrollbarKey;
   final EdgeInsets padding;
   final Widget child;
 
   @override
-  State<_OverflowCodeScroller> createState() => _OverflowCodeScrollerState();
+  State<_HorizontalOverflowScroller> createState() =>
+      _HorizontalOverflowScrollerState();
 }
 
-class _OverflowCodeScrollerState extends State<_OverflowCodeScroller> {
+class _HorizontalOverflowScrollerState
+    extends State<_HorizontalOverflowScroller> {
   final ScrollController _controller = ScrollController();
   bool _overflow = false;
   bool _updateScheduled = false;
@@ -1897,7 +1940,7 @@ class _OverflowCodeScrollerState extends State<_OverflowCodeScroller> {
     return NotificationListener<ScrollMetricsNotification>(
       onNotification: _onMetrics,
       child: RawScrollbar(
-        key: const ValueKey('code-horizontal-scrollbar'),
+        key: widget.scrollbarKey,
         controller: _controller,
         thumbVisibility: _overflow,
         trackVisibility: _overflow,
@@ -1983,7 +2026,8 @@ class CodeBlockView extends StatelessWidget {
     final codeTop = style == CodeLook.framed || style == CodeLook.card
         ? 10.0
         : 0.0;
-    final code = _OverflowCodeScroller(
+    final code = _HorizontalOverflowScroller(
+      scrollbarKey: const ValueKey('code-horizontal-scrollbar'),
       padding: EdgeInsets.fromLTRB(showLineNumbers ? 12 : 16, codeTop, 16, 14),
       child: Text.rich(
         key: const ValueKey('code-source'),

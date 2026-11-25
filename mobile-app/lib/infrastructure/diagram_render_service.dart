@@ -8,6 +8,8 @@ import '../core/l10n/tr.dart';
 
 enum DiagramKind { mermaid, graphviz }
 
+typedef DiagramColors = ({bool dark, String surface, String ink});
+
 class DiagramRenderResult {
   const DiagramRenderResult._({this.svg, this.pngBytes, this.size, this.error});
 
@@ -58,12 +60,12 @@ class DiagramRenderService {
   Future<DiagramRenderResult> render(
     String source, {
     required DiagramKind kind,
-    required bool dark,
+    required DiagramColors colors,
   }) {
-    final key = _key(source, kind: kind, dark: dark);
+    final key = _key(source, kind: kind, colors: colors);
     final cached = _cache[key];
     if (cached != null) return cached;
-    final future = _render(source, kind: kind, dark: dark);
+    final future = _render(source, kind: kind, colors: colors);
     _cache[key] = future;
     // Failed renders are not cached so a later rebuild can retry.
     future.then((result) {
@@ -86,14 +88,14 @@ class DiagramRenderService {
   DiagramRenderResult? completed(
     String source, {
     required DiagramKind kind,
-    required bool dark,
-  }) => _completed[_key(source, kind: kind, dark: dark)];
+    required DiagramColors colors,
+  }) => _completed[_key(source, kind: kind, colors: colors)];
 
   static String _key(
     String source, {
     required DiagramKind kind,
-    required bool dark,
-  }) => '${kind.name}|$dark|$source';
+    required DiagramColors colors,
+  }) => '${kind.name}|${colors.dark}|${colors.surface}|${colors.ink}|$source';
 
   /// Re-rasterizes a rendered diagram at export quality.
   Future<DiagramRenderResult> rasterize(
@@ -111,12 +113,14 @@ class DiagramRenderService {
   Future<DiagramRenderResult> _render(
     String source, {
     required DiagramKind kind,
-    required bool dark,
+    required DiagramColors colors,
   }) {
     return _send('renderDiagram', {
       'kind': kind.name,
       'source': source,
-      'dark': dark,
+      'dark': colors.dark,
+      'surface': colors.surface,
+      'ink': colors.ink,
     });
   }
 

@@ -978,9 +978,10 @@ function _prepareMermaidDiagram(wrapper) {
     // 燈箱以 <img> 顯示，不會繼承頁面文字色；寫入目前的顏色，深色模式下才看得清楚。
     clone.setAttribute('color', getComputedStyle(wrapper).color);
     const chartStyle = getComputedStyle(svg);
-    for (const name of ['surface', 'ink', 'blue', 'orange', 'green', 'purple', 'red', 'cyan']) {
-      const property = `--diagram-${name}`;
-      clone.style.setProperty(property, chartStyle.getPropertyValue(property));
+    for (const property of chartStyle) {
+      if (property.startsWith('--diagram-')) {
+        clone.style.setProperty(property, chartStyle.getPropertyValue(property));
+      }
     }
     clone.style.backgroundColor = chartStyle.backgroundColor;
     if (intrinsicWidth) clone.setAttribute('width', intrinsicWidth);
@@ -1538,10 +1539,26 @@ async function _renderGraphvizDiagrams(container) {
   for (const node of nodes) {
     const source = node.textContent.trim();
     try {
-      const svg = viz.renderSVGElement(source);
+      // Graphviz requires concrete colors. Replace only the defaults we
+      // supplied so author-defined colors continue to win.
+      const surface = '#010203';
+      const ink = '#030201';
+      const svg = viz.renderSVGElement(source, {
+        graphAttributes: { bgcolor: surface, fontcolor: ink, color: ink },
+        nodeAttributes: { fontcolor: ink, color: ink },
+        edgeAttributes: { fontcolor: ink, color: ink },
+      });
       const wrapper = document.createElement('div');
       wrapper.className = 'graphviz diagram-scroll';
-      wrapper.appendChild(_sanitizeDiagramSvg(svg.outerHTML));
+      const sanitized = _sanitizeDiagramSvg(svg.outerHTML);
+      for (const element of sanitized.querySelectorAll('[fill], [stroke]')) {
+        for (const attribute of ['fill', 'stroke']) {
+          const color = element.getAttribute(attribute)?.toLowerCase();
+          if (color === surface) element.setAttribute(attribute, 'var(--diagram-surface)');
+          if (color === ink) element.setAttribute(attribute, 'var(--diagram-ink)');
+        }
+      }
+      wrapper.appendChild(sanitized);
       node.replaceWith(wrapper);
     } catch (err) {
       node.replaceWith(_createDiagramFallback('Graphviz', source, err));
@@ -1767,12 +1784,25 @@ function _esc(s) {
 
 /* ──────────────────── Toast 通知 ──────────────────── */
 
+const toastContainer = document.getElementById('toast-container');
+
+function _positionToast() {
+  const rect = contentArea.getBoundingClientRect();
+  const right = Math.min(window.innerWidth, rect.right);
+  const left = Math.max(0, rect.left);
+  toastContainer.style.setProperty('--toast-right', `${window.innerWidth - right + 12}px`);
+  toastContainer.style.setProperty('--toast-width', `${Math.max(0, right - left - 24)}px`);
+}
+
+new ResizeObserver(_positionToast).observe(contentArea);
+window.addEventListener('resize', _positionToast, { passive: true });
+
 function _showToast(message, type = 'info') {
-  const container = document.getElementById('toast-container');
+  _positionToast();
   const toast = document.createElement('div');
   toast.className = `toast${type === 'error' ? ' toast-error' : ''}`;
   toast.textContent = message;
-  container.appendChild(toast);
+  toastContainer.appendChild(toast);
 
   setTimeout(() => {
     toast.style.transition = 'opacity 0.3s';

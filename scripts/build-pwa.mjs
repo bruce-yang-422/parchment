@@ -17,6 +17,7 @@ const required = [
 
 const discovered = [
   ...await walk('assets/css', file => file.endsWith('.css')),
+  ...await walk('assets/fonts', file => file.endsWith('.woff2')),
   ...await walk('assets/js', file => file.endsWith('.js')),
   ...await walk('samples', file => file.endsWith('.md')),
   ...await walk('assets/vendor', file => {

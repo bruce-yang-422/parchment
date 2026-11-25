@@ -27,35 +27,45 @@ class DiagramView extends StatefulWidget {
 class _DiagramViewState extends State<DiagramView> {
   late Future<DiagramRenderResult> _result;
   DiagramRenderResult? _initial;
+  DiagramColors? _colors;
 
   @override
-  void initState() {
-    super.initState();
-    _render();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final colors = _themeColors();
+    if (colors != _colors) _render(colors);
   }
 
   @override
   void didUpdateWidget(covariant DiagramView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.source != widget.source ||
-        oldWidget.dark != widget.dark ||
+        _themeColors() != _colors ||
         oldWidget.kind != widget.kind) {
-      _render();
+      _render(_themeColors());
     }
   }
 
-  void _render() {
+  DiagramColors _themeColors() {
+    final theme = Theme.of(context).colorScheme;
+    String hex(Color color) =>
+        '#${(color.toARGB32() & 0xffffff).toRadixString(16).padLeft(6, '0')}';
+    return (
+      dark: widget.dark,
+      surface: hex(theme.surfaceContainerLow),
+      ink: hex(theme.onSurface),
+    );
+  }
+
+  void _render(DiagramColors colors) {
+    _colors = colors;
     final service = DiagramRenderService.instance;
     _initial = service.completed(
       widget.source,
       kind: widget.kind,
-      dark: widget.dark,
+      colors: colors,
     );
-    _result = service.render(
-      widget.source,
-      kind: widget.kind,
-      dark: widget.dark,
-    );
+    _result = service.render(widget.source, kind: widget.kind, colors: colors);
   }
 
   String get _name =>
@@ -66,6 +76,7 @@ class _DiagramViewState extends State<DiagramView> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: FutureBuilder<DiagramRenderResult>(
+        key: ObjectKey(_result),
         future: _result,
         initialData: _initial,
         builder: (context, snapshot) {

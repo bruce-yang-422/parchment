@@ -200,6 +200,49 @@ void main() {
     store.dispose();
   });
 
+  testWidgets('表格螢光標記可按列高換行', (tester) async {
+    await pumpNote(
+      tester,
+      '| 效果 | 顯示 |\n| --- | --- |\n'
+      '| 螢光標記 | ==螢光標記 Highlight== |\n'
+      '| 底線 | ++底線 Underline++ |',
+    );
+    final table = find.byType(Table);
+    expect(table, findsOneWidget);
+    final cells = tester.widgetList<RichText>(
+      find.descendant(of: table, matching: find.byType(RichText)),
+    );
+    final highlight = cells.singleWhere(
+      (cell) => cell.text.toPlainText() == '螢光標記 Highlight',
+    );
+    expect(
+      highlight.text.visitChildren(
+        (span) => span is! TextSpan || span.style?.backgroundColor == null,
+      ),
+      isFalse,
+    );
+  });
+
+  testWidgets('公式僅在超出寬度時顯示水平捲動軸', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(320, 640));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final longFormula = List.filled(30, 'x').join('+');
+    await pumpNote(tester, '\$\$\nx=1\n\$\$\n\n\$\$\n$longFormula\n\$\$');
+    await tester.pumpAndSettle();
+    final scrollbars = find.byKey(
+      const ValueKey('formula-horizontal-scrollbar'),
+    );
+    expect(scrollbars, findsNWidgets(2));
+    final short = tester.widget<RawScrollbar>(scrollbars.first);
+    final long = tester.widget<RawScrollbar>(scrollbars.last);
+    expect(short.thumbVisibility, isFalse);
+    expect(long.thumbVisibility, isTrue);
+    expect(long.scrollbarOrientation, ScrollbarOrientation.bottom);
+    await tester.drag(scrollbars.last, const Offset(-120, 0));
+    await tester.pumpAndSettle();
+    expect(long.controller!.offset, greaterThan(0));
+  });
+
   testWidgets('程式碼超出寬度時顯示水平捲動軸', (tester) async {
     Future<void> pumpCode(String source) => tester.pumpWidget(
       MaterialApp(
