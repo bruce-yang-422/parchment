@@ -58,6 +58,28 @@ void main() {
     expect(html, isNot(contains('*[HTML]')));
   });
 
+  test('LaTeX 反斜線公式與獨立等號', () {
+    final source = [
+      r'其中 \(E_a\) 與 $E_b$ 都是行內公式。',
+      '',
+      r'\[',
+      'E_a+E_b',
+      '=',
+      'G',
+      r'\]',
+      '',
+      r'\[x^2\]',
+    ].join('\n');
+    final note = PreparedNote.prepare(source);
+    final nodes = note.parse(note.markdown).whereType<md.Element>().toList();
+    expect(nodes.map((node) => node.tag), ['p', 'math-block', 'math-block']);
+    expect(nodes[1].attributes['tex'], 'E_a+E_b\n=\nG');
+    expect(nodes[2].attributes['tex'], 'x^2');
+    expect(render(source), contains('<math-inline>E_a</math-inline>'));
+    expect(render(source), contains('<math-inline>E_b</math-inline>'));
+    expect(render([r'\[', '', '# 標題'].join('\n')), contains('<h1>'));
+  });
+
   test('註腳不被上標語法吃掉', () {
     final note = PreparedNote.prepare('註腳[^a]，平方 x^2^。\n\n[^a]: 內容\n  第二行');
     final html = md.renderToHtml(note.parse(note.markdown));

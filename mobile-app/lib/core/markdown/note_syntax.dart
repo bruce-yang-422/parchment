@@ -283,13 +283,15 @@ class _SimpleWrapSyntax extends md.InlineSyntax {
 class InlineMathSyntax extends md.InlineSyntax {
   InlineMathSyntax()
     : super(
-        r'\$(?![\s$])((?:\\.|[^$\\\n])+?)(?<!\s)\$(?!\d)',
-        startCharacter: 0x24,
+        r'\$(?![\s$])((?:\\.|[^$\\\n])+?)(?<!\s)\$(?!\d)'
+        r'|\\\(((?:\\[^)\n]|[^\\\n])+?)\\\)',
       );
 
   @override
   bool onMatch(md.InlineParser parser, Match match) {
-    parser.addNode(md.Element.text('math-inline', match.group(1)!));
+    final tex = (match.group(1) ?? match.group(2)!).trim();
+    if (tex.isEmpty) return false;
+    parser.addNode(md.Element.text('math-inline', tex));
     return true;
   }
 }
@@ -358,25 +360,50 @@ class CalloutSyntax extends md.BlockquoteSyntax {
 class MathBlockSyntax extends md.BlockSyntax {
   const MathBlockSyntax();
 
-  static final RegExp _pattern = RegExp(r'^[ ]{0,3}\$\$');
+  static final RegExp _pattern = RegExp(r'^[ ]{0,3}(?:\$\$|\\\[)');
+  static final RegExp _bracketClose = RegExp(r'(?:^|[^\\])(?:\\\\)*\\\]$');
 
   @override
   RegExp get pattern => _pattern;
 
   @override
+  bool canParse(md.BlockParser parser) {
+    if (!super.canParse(parser)) return false;
+    final first = parser.current.content.trimLeft();
+    if (first.startsWith(r'$$')) return true;
+    var hasContent = false;
+    for (var offset = 0; ; offset++) {
+      final line = offset == 0
+          ? first.substring(2)
+          : parser.peek(offset)?.content;
+      if (line == null) return false;
+      final trimmed = line.trimRight();
+      if (_bracketClose.hasMatch(trimmed)) {
+        return hasContent ||
+            trimmed.substring(0, trimmed.length - 2).trim().isNotEmpty;
+      }
+      hasContent = hasContent || trimmed.isNotEmpty;
+    }
+  }
+
+  @override
   md.Node? parse(md.BlockParser parser) {
-    final first = parser.current.content.trim().substring(2);
+    final opening = parser.current.content.trimLeft();
+    final brackets = opening.startsWith(r'\[');
+    bool closes(String line) =>
+        brackets ? _bracketClose.hasMatch(line) : line.endsWith(r'$$');
+    final first = opening.substring(2).trimRight();
     final buffer = <String>[];
     parser.advance();
-    if (first.trimRight().endsWith(r'$$')) {
-      buffer.add(first.trimRight().substring(0, first.trimRight().length - 2));
+    if (closes(first)) {
+      buffer.add(first.substring(0, first.length - 2));
     } else {
       if (first.trim().isNotEmpty) buffer.add(first);
       while (!parser.isDone) {
         final line = parser.current.content;
         parser.advance();
         final trimmed = line.trimRight();
-        if (trimmed.endsWith(r'$$')) {
+        if (closes(trimmed)) {
           buffer.add(trimmed.substring(0, trimmed.length - 2));
           break;
         }

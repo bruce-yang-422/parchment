@@ -22,6 +22,27 @@ async function renderMermaid(request) {
     flowchart: { htmlLabels: false },
     suppressErrorRendering: true,
     theme: request.dark ? 'dark' : 'neutral',
+    themeVariables: {
+      pie1: '#93c5fd',
+      pie2: '#fdba74',
+      pie3: '#86efac',
+      pie4: '#d8b4fe',
+      pie5: '#fda4af',
+      pie6: '#67e8f9',
+      pie7: '#fde047',
+      pie8: '#a5b4fc',
+      pie9: '#bef264',
+      pie10: '#f9a8d4',
+      pie11: '#5eead4',
+      pie12: '#cbd5e1',
+      pieSectionTextColor: '#111827',
+      pieOpacity: '1',
+      xyChart: {
+        plotColorPalette: request.dark
+          ? '#60a5fa,#fbbf24,#34d399,#c084fc,#fb7185,#22d3ee'
+          : '#1d4ed8,#b45309,#047857,#7e22ce,#be123c,#0e7490',
+      },
+    },
   });
   const result = await mermaid.render(`diagram-${request.id}`, request.source);
   return result.svg;
