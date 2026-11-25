@@ -1,5 +1,7 @@
 # Parchment 手機 App
 
+目前版本為 **1.1.5**（Android 版本代碼 **5**）。
+
 Parchment 的 Android／iOS 版本，以 Flutter 開發。畫面、文件模型、選檔流程與閱讀邏輯共用同一套 Dart 程式；平台差異集中在 `lib/platform/`、`lib/infrastructure/` 與 Flutter 生成的 `android/`、`ios/` 工程。Android 與 iOS App ID 皆為 `com.stackbase.parchment`。
 
 ## 產品定位
@@ -14,10 +16,10 @@ Parchment 的 Android／iOS 版本，以 Flutter 開發。畫面、文件模型�
 | 類別 | 內容 | 主要程式 |
 | --- | --- | --- |
 | 閱讀 | Markdown 與純文字閱讀、文字選取（切換文件時清除）、深淺色、五套配色、字型、文字大小、行距、回到頂端按鈕（文件超過四個畫面且已捲動兩個畫面才出現）；Windows 換行（CRLF）文件同樣支援 | `lib/ui/reader/reader_screen.dart` |
-| Markdown 語法 | 與網頁版一致：YAML Frontmatter 屬性、Callouts（可收合）、註腳（點擊預覽）、縮寫、定義清單、`==螢光==`、`++插入++`、`^上標^`、`~下標~`、Emoji、KaTeX、程式碼高亮與複製、Wiki Links、內嵌、`## tags:` 屬性；程式碼超出寬度時固定顯示可拖曳的水平捲動軸。設定中的「顯示行號」（Show line numbers）預設關閉；開啟後使用固定欄位與正文共用行高規則，空白行、多語文字與斜體程式碼仍能逐行對齊 | `lib/core/markdown/note_syntax.dart`、`lib/ui/reader/note_markdown.dart` |
+| Markdown 語法 | 支援YAML Frontmatter 屬性、Callouts（可收合）、註腳（點擊預覽）、縮寫、定義清單、`==螢光==`、`++插入++`、`^上標^`、`~下標~`、Emoji、LaTeX 行內與區塊公式（超寬區塊公式顯示水平捲軸）、程式碼高亮與複製、Wiki Links、內嵌、`## tags:` 屬性；程式碼超出寬度時固定顯示可拖曳的水平捲動軸。設定中的「顯示行號」（Show line numbers）預設關閉；開啟後使用固定欄位與正文共用行高規則，空白行、多語文字與斜體程式碼仍能逐行對齊 | `lib/core/markdown/note_syntax.dart`、`lib/ui/reader/note_markdown.dart` |
 | HTML | 白名單轉成原生排版：`<b>` `<i>` `<u>` `<s>` `<mark>` `<sup>` `<sub>` `<kbd>` `<br>` `<a>`（僅 http(s)、mailto、tel 與相對路徑）、`<img>`、`<details>`／`<summary>`、置中的 `<p>`／`<div>`、`<h1>`–`<h6>`；單獨的 `<img>` 不再遞迴解析。置中的純圖片群組以原生 `Wrap` 依可用寬度排列標誌與徽章，不會被強制拆成直向清單；`<script>`、`<style>`、`<iframe>` 等連同內容移除，註解隱藏，未知標籤（如 `List<String>`）原樣顯示 | `lib/core/markdown/html_syntax.dart` |
-| 圖片 | 支援本機、資料夾相對路徑及遠端的點陣圖、GIF 與 SVG；SVG 以向量方式顯示並在燈箱中保持清晰。遠端圖片設連線／讀取逾時與 20 MiB 上限；Shields.io 徽章優先要求 PNG，避開部分 SVG 文字轉換在 Flutter 中的相容問題。找不到或無權讀取時顯示「缺圖」，點擊可查看「無法存取相對路徑圖片，或圖片不存在」等實際原因，不會宣稱開啟資料夾一定能修復 | `lib/ui/reader/reader_screen.dart`、`lib/ui/reader/note_markdown.dart` |
-| 圖表 | Mermaid 與 Graphviz 在隱藏的本機 WebView 中產生 SVG，以 DOMPurify 清理；點擊開啟向量燈箱，縮放不失真；可另存 4 倍解析度 PNG | `lib/infrastructure/diagram_render_service.dart`、`lib/ui/reader/diagram_view.dart`、`assets/diagram/` |
+| 圖片 | 支援本機、資料夾相對路徑及遠端的點陣圖、GIF 與 SVG。圖片燈箱支援雙指縮放、即時倍率、符合螢幕及儲存 PNG。遠端圖片共用 HTTP 連線，單次下載上限為 20 秒及 20 MiB，失敗可重試；Shields.io 徽章優先要求 PNG | `lib/ui/reader/reader_screen.dart`、`lib/ui/reader/media_lightbox.dart` |
+| 圖表 | Mermaid 與 Graphviz 在本機 WebView 產生 SVG，經 DOMPurify 清理。圖表配色跟隨閱讀主題，支援向量燈箱，以及長邊 1024、2048、4096 px 的 PNG 匯出 | `lib/infrastructure/diagram_render_service.dart`、`lib/ui/reader/diagram_view.dart`、`assets/diagram/` |
 | 表格 | 寬度上下限隨字級（系統字級 × 閱讀字級）放大；字型載入完成後重新量測字寬。每欄先算「合理寬度」：不拆開最長的英文字／網址（超過 220 才斷）、短文字可換成兩行、長文字依資料列數控制每格行數（列多則每格少換行，避免表格過高）、單欄上限 220。一行放得下維持原寬；合理寬度總和放得下則滿版，多餘寬度依平方根分給長欄；放不下才左右滑動，滑動時每欄仍換行。中文字串以自訂方式量測可斷點（Flutter 會把整串中文視為一個字） | `lib/ui/reader/readable_table.dart` |
 | 目錄 | 略過程式碼區塊與 Frontmatter；先依比例跳轉，再依畫面上已建立的標題逐步逼近，最後對齊實際標題 | `extractHeadings`、`_scrollToHeading` |
 | 資料夾模式（Android） | 檔案樹（資料夾在前、自然排序、略過隱藏檔）；Wiki Links 跳轉到指定標題；`![[筆記#標題]]`、`![[筆記#^區塊]]` 內嵌（最多兩層）；`![[圖片.png\|寬度]]` 與相對路徑圖片；相對 `.md` 連結。路徑規則與網頁版 `noteSyntax.js` 相同，相對路徑超出資料夾時改依檔名尋找 | `lib/core/markdown/wiki_paths.dart`、`lib/core/models/note_folder.dart`、`lib/ui/reader/folder_tree.dart` |
@@ -116,7 +118,7 @@ mobile-app/
 
 ## 發布前檢查
 
-1. 同步更新 `pubspec.yaml` 的 `version`（例如 `1.1.4+4`，`+` 後的組建編號每次上傳新的 AAB 都要遞增）與 `lib/app/app_info.dart` 的 `version`、`buildNumber`、`lastUpdated`。`test/app_info_test.dart` 會檢查兩邊一致。
+1. 同步更新 `pubspec.yaml` 的 `version`（目前為 `1.1.5+5`，`+` 後的組建編號每次上傳新的 AAB 都要遞增）與 `lib/app/app_info.dart` 的 `version`、`buildNumber`、`lastUpdated`。`test/app_info_test.dart` 會檢查兩邊一致。
 2. 執行 `flutter analyze` 與 `flutter test`。
 3. 檢查 `privacy.html` 是否涵蓋 App 權限（含網路：網頁圖片與 Google Fonts 下載）、本機偏好、TODO 寫回與第三方商店行為。
 4. 若網站更新了圖表套件或標誌，依「資產同步」重新產生。

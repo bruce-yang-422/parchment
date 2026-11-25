@@ -9,18 +9,18 @@ Universal APK 同時包含 ARM32、ARM64 與 x86_64；最低支援 Android 7.0�
 
 ## Google Play 上傳
 
-在 Google Play Console 上傳 [parchment-v1.1.4-google-play.aab](parchment-v1.1.4-google-play.aab)。這份封裝的版本為 `1.1.4`（`versionCode 4`）。`versionCode 1`～`3` 都已被 Google Play 記錄，不能再使用。目錄內的 `v1.1.3` 封裝（已上傳）留作備份，但它有往上滑會跳動、文件內跳轉連結無效等問題，請勿再發給測試者。
+在 Google Play Console 上傳 [parchment-v1.1.5-google-play.aab](parchment-v1.1.5-google-play.aab)。這份封裝的版本為 `1.1.5`（`versionCode 5`）。每次上傳前，請確認版本代碼高於 Play Console 已使用的版本代碼。
 
 下次上傳新的 AAB 前，請提高 `pubspec.yaml` 中 `version` 的組建編號（`+` 後的數字），同步更新 `lib/app/app_info.dart` 再重新封裝。[Android 版本設定說明](https://developer.android.com/studio/publish/versioning)
 
 ## 目前版本
 
-封裝日期：2026-11-23
+封裝日期：2026-11-25
 
 | 項目 | 內容 |
 | --- | --- |
 | App ID | `com.stackbase.parchment` |
-| 版本 | 1.1.4（versionCode 4） |
+| 版本 | 1.1.5（versionCode 5） |
 | 最低／目標 Android | API 24（7.0）／API 36（16） |
 | 架構 | `arm64-v8a`、`armeabi-v7a`、`x86_64` |
 | 簽署憑證 | `CN=Parchment, OU=Mobile, O=StackBase, L=Taipei, ST=Taiwan, C=TW` |
@@ -28,8 +28,15 @@ Universal APK 同時包含 ARM32、ARM64 與 x86_64；最低支援 Android 7.0�
 
 | 檔案 | 大小 | SHA-256 |
 | --- | --- | --- |
-| `parchment-v1.1.4-android-universal.apk` | 93.0 MiB（97,513,939 bytes） | `56BABF8135566FB6B3B89B0351F05D1A8B766AB9C8E9AA811BC80663A1164712` |
-| `parchment-v1.1.4-google-play.aab` | 90.0 MiB（94,385,940 bytes） | `7E088BEA5DA0714CE6F1E85060D706181C0ACB503116A5B2D8EB6311EA5BCB28` |
+| `parchment-v1.1.5-android-universal.apk` | 93.3 MiB（97,875,083 bytes） | `E9760BF257F2A9A6CB916F38D9C33D669A0AE46B0249438C56365CDABB062BF4` |
+| `parchment-v1.1.5-google-play.aab` | 90.2 MiB（94,631,258 bytes） | `3CF940F2098F4F6EE6FE27F7B27652F026324295A4C67C97E4721EE5744B713C` |
+
+v1.1.5 更新：
+
+- 支援 LaTeX 反斜線公式分隔符，超寬區塊公式會顯示水平捲軸。
+- 圖表跟隨閱讀主題，深色圓餅圖提高標籤對比，圖表放大按鈕移至預覽下方。
+- 改善網路圖片載入與重試。圖片燈箱可儲存 PNG、查看縮放倍率並一鍵符合螢幕；向量圖表可選 S、M、L 匯出尺寸。
+- 修正中英混排螢光底色錯位及表格螢光標記跨列，並統一註腳返回箭頭方向。
 
 v1.1.4 修正：
 
@@ -55,10 +62,10 @@ v1.1.3 修正部分網路圖片不顯示的問題：檔案資訊裡夾帶 SVG �
 ## 驗證
 
 ```powershell
-apksigner verify --print-certs parchment-v1.1.4-android-universal.apk
-jarsigner '-J-Duser.language=en' '-J-Duser.country=US' -verify parchment-v1.1.4-google-play.aab
-keytool '-J-Duser.language=en' '-J-Duser.country=US' -printcert -jarfile parchment-v1.1.4-google-play.aab
-Get-FileHash parchment-v1.1.4-*.* -Algorithm SHA256
+apksigner verify --print-certs parchment-v1.1.5-android-universal.apk
+jarsigner '-J-Duser.language=en' '-J-Duser.country=US' -verify parchment-v1.1.5-google-play.aab
+keytool '-J-Duser.language=en' '-J-Duser.country=US' -printcert -jarfile parchment-v1.1.5-google-play.aab
+Get-FileHash parchment-v1.1.5-*.* -Algorithm SHA256
 ```
 
 請勿把 Flutter 的完整 `build/` 目錄複製到這裡。Release 檔案必須使用 `android/keystore/` 的 Upload Key 簽署；金鑰與 `android/key.properties` 不可提交到 Git，且必須另外安全備份。
