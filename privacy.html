@@ -22,6 +22,7 @@
   <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
   <script src="assets/js/boot.js"></script>
   <link rel="stylesheet" href="assets/css/style.css">
+  <script type="module" src="assets/js/privacy.js"></script>
 </head>
 <body class="legal-body">
   <header class="legal-header">
@@ -29,13 +30,20 @@
       <img src="icons/pwa-icon-192x192.png" alt="" width="28" height="28">
       <span>Parchment</span>
     </a>
-    <nav class="legal-nav" aria-label="語言">
-      <a href="#zh-tw" lang="zh-TW">繁體中文</a>
-      <a href="#en" lang="en">English</a>
-    </nav>
   </header>
 
   <main class="legal-page">
+    <nav class="legal-nav" aria-label="Language">
+      <a href="#zh-tw" lang="zh-TW" hreflang="zh-TW">繁體中文</a>
+      <a href="#zh-cn" lang="zh-CN" hreflang="zh-CN">简体中文</a>
+      <a href="#en" lang="en" hreflang="en">English</a>
+      <a href="#ja" lang="ja" hreflang="ja">日本語</a>
+      <a href="#ko" lang="ko" hreflang="ko">한국어</a>
+      <a href="#fr" lang="fr" hreflang="fr">Français</a>
+      <a href="#de" lang="de" hreflang="de">Deutsch</a>
+      <a href="#es" lang="es" hreflang="es">Español</a>
+      <a href="#ru" lang="ru" hreflang="ru">Русский</a>
+    </nav>
     <article id="zh-tw" lang="zh-TW">
       <h1>隱私權政策</h1>
       <p class="legal-meta">生效日期：2026 年 11 月 24 日</p>
@@ -71,31 +79,38 @@
         手機 App 預設不修改文件。TODO 工作清單的勾選是唯一例外：變更先留在記憶體中，只有你選擇「存回原本的檔案」時才寫入；App 只替換勾選標記，並在寫入前檢查檔案是否已被其他程式修改。你也可以選擇另存新檔，原檔不會改變。
       </p>
 
-      <h2>儲存在你裝置上的資料</h2>
+      <section class="legal-platform">
+      <h2>網站與 PWA 的本機儲存</h2>
       <p>為了提供以下功能，Parchment 會使用瀏覽器提供的本機儲存空間。這些資料只存在你的瀏覽器中，不會傳送到任何地方：</p>
       <ul>
         <li><strong>localStorage</strong>：配色、明暗模式、字型、閱讀寬度、側欄寬度、檔案樹排序方式、各文件的閱讀位置、工作清單勾選狀態，以及安裝提示的提醒時間。</li>
         <li><strong>IndexedDB</strong>：最近開啟的檔案與資料夾的控制代碼、名稱與時間，方便你再次開啟。重新開啟時，瀏覽器會視需要再次請求授權。</li>
         <li><strong>Service Worker 快取</strong>（僅網站與 PWA）：網站本身的程式與樣式，讓你可以離線使用。快取中不包含你的文件。</li>
-        <li><strong>chrome.storage</strong>（僅瀏覽器外掛）：「以 Parchment 開啟本機 Markdown 檔」的設定。</li>
-        <li><strong>手機 App 本機偏好設定</strong>：配色、字型、字級等閱讀設定，以及最近資料夾的名稱、Android 文件 URI、開啟時間與系統授權狀態。文件內容不會保存到偏好設定中。</li>
       </ul>
-      <p>你可以隨時透過瀏覽器的「清除網站資料」功能刪除網站資料，移除瀏覽器外掛以刪除外掛資料，或在手機 App 中移除最近資料夾；解除安裝手機 App 會刪除 App 的本機偏好設定。</p>
+      <p>你可以透過瀏覽器的「清除網站資料」功能刪除網站資料。</p>
 
+      </section>
+      <section class="legal-platform">
       <h2>瀏覽器外掛的權限</h2>
       <ul>
+        <li><strong>chrome.storage</strong>（僅瀏覽器外掛）：「以 Parchment 開啟本機 Markdown 檔」的設定。</li>
         <li><strong>storage</strong>：保存「以 Parchment 開啟本機 Markdown 檔」的設定。</li>
         <li><strong>存取 <code>file:///*</code></strong>：讀取你在瀏覽器中開啟的本機 <code>.md</code> 檔，以及同一資料夾中被引用的圖片與文件，以便顯示。瀏覽器只有在你自行開啟「允許存取檔案網址」後才會授予此權限。</li>
       </ul>
-      <p>外掛不要求任何網站的存取權限，也不會讀取你瀏覽的網頁。</p>
+      <p>外掛不要求任何網站的存取權限，也不會讀取你瀏覽的網頁。移除外掛即可刪除外掛資料。</p>
 
+      </section>
+      <section class="legal-platform">
       <h2>手機 App 的權限與本機處理</h2>
       <ul>
+        <li><strong>手機 App 本機偏好設定</strong>：配色、字型、字級等閱讀設定，以及最近資料夾的名稱、Android 文件 URI、開啟時間與系統授權狀態。文件內容不會保存到偏好設定中。你可以移除最近資料夾；解除安裝會清除本機偏好設定。</li>
         <li><strong>文件與資料夾存取</strong>：只存取你透過系統選檔器主動選擇或由其他 App 分享給 Parchment 的文件。App 不要求傳統的廣泛儲存空間權限。</li>
         <li><strong>讀寫權限</strong>：讀取用於顯示；寫入只發生在你明確儲存 TODO 勾選或另存新檔時。</li>
         <li><strong>離線圖表</strong>：Mermaid、Graphviz 與 DOMPurify 隨 App 封裝，在隱藏的本機 WebView 中執行，不依賴外部 CDN，也不會把圖表原始碼送到網路。</li>
-        <li><strong>網路</strong>：使用系統字型或 App 內建字型時，閱讀本機文件與產生圖表都在手機上完成，不需要連線。以下情況裝置會連線：你開啟隱私權政策或官方網站；你點選文件中的網址並在確認視窗選擇「開啟」（交給瀏覽器或郵件 App 處理）；文件引用遠端圖片；或你在閱讀設定中選用標示下載圖示的 Google Fonts 字型（第一次使用時從 Google 下載並存在手機上，之後可離線使用）。遠端圖片由 App 直接向文件指定的網址請求，設有逾時及 20 MiB 上限；請求會附上 App 名稱、版本、作業系統與官方網站網址（例如 <code>Parchment/1.1.4 (android; +https://parchment.stack-base.com)</code>），這是維基百科等圖庫要求的識別方式，不含任何個人資料。該網站仍可能看到 IP 位址等一般連線資訊，但 Parchment 不會把文件內容一併送出。下載的圖片只暫存在記憶體中，關閉 App 後即清除。下載字型只會送出字型檔的請求，不會傳送文件內容。</li>
+        <li><strong>網路</strong>：使用系統字型或 App 內建字型時，閱讀本機文件與產生圖表都在手機上完成，不需要連線。以下情況裝置會連線：你開啟隱私權政策或官方網站；你點選文件中的網址並在確認視窗選擇「開啟」（交給瀏覽器或郵件 App 處理）；文件引用遠端圖片；或你在閱讀設定中選用標示下載圖示的 Google Fonts 字型（第一次使用時從 Google 下載並存在手機上，之後可離線使用）。遠端圖片由 App 直接向文件指定的網址請求，設有逾時及 20 MiB 上限；請求會附上 App 名稱、版本、作業系統與官方網站網址（例如 <code>Parchment/1.1.5 (android; +https://parchment.stack-base.com)</code>），這是維基百科等圖庫要求的識別方式，不含任何個人資料。該網站仍可能看到 IP 位址等一般連線資訊，但 Parchment 不會把文件內容一併送出。下載的圖片只暫存在記憶體中，關閉 App 後即清除。下載字型只會送出字型檔的請求，不會傳送文件內容。</li>
       </ul>
+
+      </section>
 
       <h2>第三方服務</h2>
       <ul>
@@ -112,8 +127,6 @@
       <h2>聯絡方式</h2>
       <p>如有任何疑問，請在 <a href="https://github.com/bruce-yang-422/parchment/issues" rel="noopener">GitHub Issues</a> 提出。</p>
     </article>
-
-    <hr>
 
     <article id="en" lang="en">
       <h1>Privacy Policy</h1>
@@ -154,31 +167,38 @@
         checkbox markers and first checks whether another app has modified the file. Save As creates a new file and leaves the original unchanged.
       </p>
 
-      <h2>Data stored on your device</h2>
+      <section class="legal-platform">
+      <h2>Website and PWA local storage</h2>
       <p>To provide the features below, Parchment uses your browser's local storage. This data stays in your browser and is never sent anywhere:</p>
       <ul>
         <li><strong>localStorage</strong>: color palette, light/dark mode, fonts, reading width, sidebar widths, file tree sort order, reading position for each document, task-list checkbox states, and the install reminder time.</li>
         <li><strong>IndexedDB</strong>: handles, names and times of recently opened files and folders, so you can reopen them. The browser asks for permission again when needed.</li>
         <li><strong>Service worker cache</strong> (website and PWA only): the site's own code and styles, so it works offline. Your documents are not cached.</li>
-        <li><strong>chrome.storage</strong> (browser extension only): the "open local Markdown files with Parchment" setting.</li>
-        <li><strong>Mobile app local preferences</strong>: reading settings such as theme, font and text size, plus recent-folder names, Android document URIs, open times and grant state. Document contents are not stored in preferences.</li>
       </ul>
-      <p>You can delete website data with your browser's "clear site data" feature, remove the extension to delete extension data, or remove recent folders in the mobile app. Uninstalling the mobile app deletes its local preferences.</p>
+      <p>You can delete website data with your browser's "clear site data" feature.</p>
 
+      </section>
+      <section class="legal-platform">
       <h2>Browser extension permissions</h2>
       <ul>
+        <li><strong>chrome.storage</strong> (browser extension only): the "open local Markdown files with Parchment" setting.</li>
         <li><strong>storage</strong>: saves the "open local Markdown files with Parchment" setting.</li>
         <li><strong>Access to <code>file:///*</code></strong>: reads the local <code>.md</code> file you open in the browser, and the images and documents it references in the same folder, so they can be displayed. The browser grants this only after you turn on "Allow access to file URLs" yourself.</li>
       </ul>
-      <p>The extension requests no access to websites and does not read the web pages you visit.</p>
+      <p>The extension requests no access to websites and does not read the web pages you visit. Removing the extension deletes its stored data.</p>
 
+      </section>
+      <section class="legal-platform">
       <h2>Mobile app permissions and local processing</h2>
       <ul>
+        <li><strong>Mobile app local preferences</strong>: reading settings such as theme, font and text size, plus recent-folder names, Android document URIs, open times and grant state. Document contents are not stored in preferences. You can remove recent folders, and uninstalling deletes local preferences.</li>
         <li><strong>Files and folders</strong>: accesses only documents you select through the system picker or share with Parchment from another app. It does not request legacy broad storage permission.</li>
         <li><strong>Read and write access</strong>: reads files for display; writes only when you explicitly save TODO checkbox changes or use Save As.</li>
         <li><strong>Offline diagrams</strong>: Mermaid, Graphviz and DOMPurify ship with the app and run in a hidden local WebView. No CDN is required, and diagram source is not sent over the network.</li>
-        <li><strong>Network</strong>: with the system font or a font bundled with the app, reading local documents and rendering diagrams happen on the phone without a connection. The device connects only when you open the privacy policy or the official website; when you tap a link in a document and choose Open in the confirmation dialog (it is handed to your browser or e-mail app); when a document references a remote image; or when you choose a Google Fonts typeface marked with a download icon in the reading settings (downloaded from Google the first time and stored on the phone for offline use). The app requests a remote image directly from the URL written in the document, with timeouts and a 20 MiB limit. The request identifies the app name, version, operating system and official website (for example <code>Parchment/1.1.4 (android; +https://parchment.stack-base.com)</code>), as image libraries such as Wikipedia require; it contains no personal data. Downloaded images are kept only in memory and are cleared when the app closes. That host may receive ordinary connection data such as your IP address, but Parchment does not send the document content with the request. A font download requests only the font file; document content is never sent.</li>
+        <li><strong>Network</strong>: with the system font or a font bundled with the app, reading local documents and rendering diagrams happen on the phone without a connection. The device connects only when you open the privacy policy or the official website; when you tap a link in a document and choose Open in the confirmation dialog (it is handed to your browser or e-mail app); when a document references a remote image; or when you choose a Google Fonts typeface marked with a download icon in the reading settings (downloaded from Google the first time and stored on the phone for offline use). The app requests a remote image directly from the URL written in the document, with timeouts and a 20 MiB limit. The request identifies the app name, version, operating system and official website (for example <code>Parchment/1.1.5 (android; +https://parchment.stack-base.com)</code>), as image libraries such as Wikipedia require; it contains no personal data. Downloaded images are kept only in memory and are cleared when the app closes. That host may receive ordinary connection data such as your IP address, but Parchment does not send the document content with the request. A font download requests only the font file; document content is never sent.</li>
       </ul>
+
+      </section>
 
       <h2>Third-party services</h2>
       <ul>
@@ -195,10 +215,191 @@
       <h2>Contact</h2>
       <p>If you have any questions, please open an issue on <a href="https://github.com/bruce-yang-422/parchment/issues" rel="noopener">GitHub Issues</a>.</p>
     </article>
+    <article id="zh-cn" lang="zh-CN" data-home-label="返回 Parchment">
+      <h1>隐私政策</h1>
+      <p class="legal-meta">生效日期：2026 年 11 月 24 日</p>
+      <p>Parchment 适用于网站、PWA、Chrome／Edge 扩展和 Android／iOS App。我们不收集、传送、出售或分享个人数据、浏览历史、文件内容或使用统计。没有账户、广告、分析或追踪代码。文件和 PNG 转换都在设备上处理。</p>
+      <section class="legal-platform">
+        <h2>网站与 PWA</h2>
+        <p>主题、阅读位置、侧栏、排序、任务状态等设置保存在 localStorage；最近文件或文件夹的名称、时间与访问句柄保存在 IndexedDB。离线缓存只保存网站资源，不缓存你的文档。可在浏览器清除网站数据。</p>
+      </section>
+      <section class="legal-platform">
+        <h2>浏览器扩展</h2>
+        <p>chrome.storage 只保存是否由 Parchment 打开本地 Markdown 的设置。只有你授予 file:// 权限后，扩展才读取你打开的 .md 文件和同一文件夹内引用的资源。扩展不读取浏览的网页。卸载即可删除扩展数据。</p>
+      </section>
+      <section class="legal-platform">
+        <h2>手机 App</h2>
+        <p>仅通过系统文件选择器或其他 App 分享读取你授权的 .md、.txt 文件或文件夹。Android 可保留最近文件夹授权，移除记录即可撤销。仅在明确保存待办勾选或另存时写入；覆盖前会检查原文件是否改变。阅读设置与最近文件夹信息保存在设备上，卸载时清除。图表和公式引擎随 App 打包并在设备上运行。</p>
+      </section>
+      <h2>第三方服务</h2>
+      <p>GitHub Pages 托管网站，GitHub Releases 提供下载；GitHub 可能记录 IP 等连接信息。远程图片由设备直接请求，手机 App 限制为 20 MiB，发送 App 名称、版本、系统与官网作为识别信息，图片仅暂存在内存。选择下载型 Google Fonts 时会向 Google 请求字型文件。外部链接在确认后交给浏览器或邮件 App；应用商店按自身政策处理下载、安装、付款或诊断信息。</p>
+      <ul class="legal-references">
+        <li><a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener">GitHub</a></li>
+        <li><a href="https://developers.google.com/fonts/faq/privacy" rel="noopener">Google Fonts</a></li>
+      </ul>
+      <h2>联系与更新</h2>
+      <p>政策变更会公布在本页并更新生效日期。 <a href="https://github.com/bruce-yang-422/parchment/issues" rel="noopener">GitHub Issues</a></p>
+    </article>
+
+    <article id="ja" lang="ja" data-home-label="Parchment に戻る">
+      <h1>プライバシーポリシー</h1>
+      <p class="legal-meta">発効日：2026年11月24日</p>
+      <p>Parchment のウェブサイト、PWA、Chrome／Edge 拡張機能、Android／iOS アプリに適用されます。個人情報、閲覧履歴、ファイル内容、利用統計を収集・送信・販売・共有しません。アカウント、広告、解析、追跡はなく、文書の表示と PNG 変換は端末内で行います。</p>
+      <section class="legal-platform">
+        <h2>ウェブサイトと PWA</h2>
+        <p>表示設定や読書位置などは localStorage、最近開いたファイルの名前、時刻、アクセス情報は IndexedDB に保存されます。オフラインキャッシュにはサイトの素材のみが入り、文書は含まれません。ブラウザーからサイトデータを削除できます。</p>
+      </section>
+      <section class="legal-platform">
+        <h2>ブラウザー拡張機能</h2>
+        <p>chrome.storage はローカル Markdown を開く設定を保持します。file:// の許可を有効にした場合のみ、開いた .md と同じフォルダーの参照資料を読みます。閲覧中のウェブページにはアクセスしません。拡張機能を削除すると保存データも消去されます。</p>
+      </section>
+      <section class="legal-platform">
+        <h2>モバイルアプリ</h2>
+        <p>システムの選択画面や共有操作で指定した .md、.txt、フォルダーのみ読み取ります。Android の最近のフォルダーから削除すると許可を解除できます。チェック状態の保存や別名保存を明示的に行った場合のみ書き込みます。上書き前に外部変更を確認します。表示設定と最近のフォルダー情報は端末内に残り、アンインストールで消去されます。図と数式はオフラインで処理されます。</p>
+      </section>
+      <h2>第三者サービス</h2>
+      <p>GitHub Pages や Releases はアクセス元 IP などを記録することがあります。外部画像は指定先に直接要求し、アプリでは上限 20 MiB、メモリ内のみで保持します。画像要求にはアプリ名、バージョン、OS、公式サイトが含まれます。ダウンロードを選んだ Google Fonts は Google から取得します。外部リンクは確認後にブラウザーやメールアプリへ渡し、アプリストアの処理には各ストアの方針が適用されます。</p>
+      <ul class="legal-references">
+        <li><a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener">GitHub</a></li>
+        <li><a href="https://developers.google.com/fonts/faq/privacy" rel="noopener">Google Fonts</a></li>
+      </ul>
+      <h2>変更とお問い合わせ</h2>
+      <p>変更は発効日を更新して本ページで告知します。 <a href="https://github.com/bruce-yang-422/parchment/issues" rel="noopener">GitHub Issues</a></p>
+    </article>
+
+    <article id="ko" lang="ko" data-home-label="Parchment로 돌아가기">
+      <h1>개인정보 처리방침</h1>
+      <p class="legal-meta">시행일: 2026년 11월 24일</p>
+      <p>Parchment 웹사이트, PWA, Chrome／Edge 확장 프로그램 및 Android／iOS 앱에 적용됩니다. 개인정보, 방문 기록, 파일 내용, 사용 통계를 수집·전송·판매·공유하지 않습니다. 계정, 광고, 분석 및 추적 기능이 없으며 문서 표시와 PNG 변환은 기기에서 처리됩니다.</p>
+      <section class="legal-platform">
+        <h2>웹사이트 및 PWA</h2>
+        <p>보기 설정과 읽기 위치 등은 localStorage에, 최근 파일·폴더의 이름, 시간 및 접근 핸들은 IndexedDB에 보관됩니다. 오프라인 캐시에는 사이트 리소스만 저장됩니다. 브라우저에서 사이트 데이터를 삭제할 수 있습니다.</p>
+      </section>
+      <section class="legal-platform">
+        <h2>브라우저 확장 프로그램</h2>
+        <p>chrome.storage는 로컬 Markdown 열기 설정을 저장합니다. file:// 접근을 허용한 경우에만 직접 연 .md 파일과 같은 폴더에서 참조하는 자료를 읽습니다. 방문한 웹페이지는 읽지 않으며 확장 프로그램을 삭제하면 저장 데이터도 삭제됩니다.</p>
+      </section>
+      <section class="legal-platform">
+        <h2>모바일 앱</h2>
+        <p>시스템 선택기나 공유 기능으로 선택한 .md, .txt 및 폴더만 읽습니다. Android에서 최근 폴더를 삭제하면 접근 권한이 해제됩니다. 할 일 변경을 저장하거나 다른 이름으로 저장할 때만 파일에 쓰며, 덮어쓰기 전에 외부 변경을 확인합니다. 읽기 설정과 최근 폴더 정보는 기기에 저장되며 앱 삭제 시 제거됩니다. 도표와 수식은 오프라인에서 처리합니다.</p>
+      </section>
+      <h2>외부 서비스</h2>
+      <p>GitHub Pages 및 Releases는 IP 등 접속 정보를 기록할 수 있습니다. 원격 이미지는 기기가 원본 주소에 직접 요청하며 모바일 앱은 20 MiB로 제한하고 메모리에만 보관합니다. 요청에는 앱 이름, 버전, OS 및 공식 사이트 주소가 포함됩니다. 다운로드형 Google Fonts를 선택하면 Google에 글꼴을 요청합니다. 확인한 외부 링크는 브라우저나 이메일 앱에서 열고, 앱 스토어에는 각 스토어의 정책이 적용됩니다.</p>
+      <ul class="legal-references">
+        <li><a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener">GitHub</a></li>
+        <li><a href="https://developers.google.com/fonts/faq/privacy" rel="noopener">Google Fonts</a></li>
+      </ul>
+      <h2>변경 및 문의</h2>
+      <p>변경 사항은 시행일을 갱신하여 이 페이지에 게시합니다. <a href="https://github.com/bruce-yang-422/parchment/issues" rel="noopener">GitHub Issues</a></p>
+    </article>
+
+    <article id="fr" lang="fr" data-home-label="Retour à Parchment">
+      <h1>Politique de confidentialité</h1>
+      <p class="legal-meta">Date d’entrée en vigueur : 24 novembre 2026</p>
+      <p>Cette politique couvre le site et la PWA Parchment, l’extension Chrome／Edge et l’application Android／iOS. Parchment ne collecte, ne transmet, ne vend et ne partage ni données personnelles, ni historique, ni contenu de fichiers, ni statistiques. Sans compte, publicité, mesure d’audience ou suivi. Les documents et les conversions PNG sont traités sur l’appareil.</p>
+      <section class="legal-platform">
+        <h2>Site et PWA</h2>
+        <p>Les réglages et positions de lecture sont conservés dans localStorage. IndexedDB conserve les noms, dates et accès aux fichiers ou dossiers récents. Le cache hors ligne contient uniquement les ressources du site. Vous pouvez effacer ces données dans le navigateur.</p>
+      </section>
+      <section class="legal-platform">
+        <h2>Extension de navigateur</h2>
+        <p>chrome.storage conserve le réglage d’ouverture des fichiers Markdown locaux. Une fois l’accès file:// autorisé, l’extension lit les fichiers .md ouverts et les ressources référencées du même dossier. Elle ne lit pas les sites consultés. La désinstallation efface ses données.</p>
+      </section>
+      <section class="legal-platform">
+        <h2>Application mobile</h2>
+        <p>Seuls les fichiers .md ou .txt et dossiers choisis via le sélecteur ou partagés avec l’application sont lus. Retirer un dossier récent révoque son autorisation Android. Seul l’enregistrement explicite des cases ou l’enregistrement sous un autre nom écrit sur le disque. Avant l’écrasement, l’application vérifie les modifications externes. Les préférences et dossiers récents sont stockés localement et supprimés à la désinstallation. Diagrammes et formules fonctionnent hors ligne.</p>
+      </section>
+      <h2>Services tiers</h2>
+      <p>GitHub Pages et Releases peuvent journaliser les accès, dont les adresses IP. Les images distantes sont demandées directement à leur hôte. L’application les garde en mémoire, avec une limite de 20 Mio, et identifie son nom, sa version, le système et son site officiel. Les polices téléchargeables sélectionnées sont demandées à Google Fonts. Les liens confirmés s’ouvrent dans le navigateur ou la messagerie. Les boutiques appliquent leurs propres conditions de confidentialité.</p>
+      <ul class="legal-references">
+        <li><a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener">GitHub</a></li>
+        <li><a href="https://developers.google.com/fonts/faq/privacy" rel="noopener">Google Fonts</a></li>
+      </ul>
+      <h2>Modification et contact</h2>
+      <p>En cas de changement, cette page et sa date d’entrée en vigueur seront mises à jour. <a href="https://github.com/bruce-yang-422/parchment/issues" rel="noopener">GitHub Issues</a></p>
+    </article>
+
+    <article id="de" lang="de" data-home-label="Zurück zu Parchment">
+      <h1>Datenschutzerklärung</h1>
+      <p class="legal-meta">Gültig ab: 24. November 2026</p>
+      <p>Diese Erklärung gilt für die Website und PWA, die Chrome／Edge-Erweiterung und die Android／iOS-App. Parchment erhebt, überträgt, verkauft und teilt keine personenbezogenen Daten, Browserhistorie, Dateiinhalte oder Nutzungsstatistiken. Es gibt keine Konten, Werbung, Analyse oder Nachverfolgung. Dokumente und PNG-Konvertierungen werden lokal verarbeitet.</p>
+      <section class="legal-platform">
+        <h2>Website und PWA</h2>
+        <p>Einstellungen und Lesepositionen liegen in localStorage. IndexedDB speichert Namen, Zeiten und Zugriffsreferenzen kürzlich geöffneter Dateien oder Ordner. Der Offline-Cache enthält nur Website-Ressourcen. Website-Daten lassen sich im Browser löschen.</p>
+      </section>
+      <section class="legal-platform">
+        <h2>Browser-Erweiterung</h2>
+        <p>chrome.storage speichert die Einstellung zum Öffnen lokaler Markdown-Dateien. Nach Freigabe von file:// liest die Erweiterung geöffnete .md-Dateien und referenzierte Ressourcen im selben Ordner. Besuchte Websites werden nicht gelesen. Durch Entfernen der Erweiterung werden ihre Daten gelöscht.</p>
+      </section>
+      <section class="legal-platform">
+        <h2>Mobil-App</h2>
+        <p>Die App liest nur ausgewählte oder geteilte .md- und .txt-Dateien und ausgewählte Ordner. Das Entfernen eines Eintrags aus den letzten Ordnern widerruft die Android-Freigabe. Änderungen an Aufgaben werden nur beim ausdrücklichen Speichern geschrieben. Vor dem Überschreiben wird auf externe Änderungen geprüft. Leseeinstellungen und Ordnerinformationen bleiben lokal und werden bei der Deinstallation gelöscht. Diagramme und Formeln funktionieren offline.</p>
+      </section>
+      <h2>Drittanbieter</h2>
+      <p>GitHub Pages und Releases können Zugriffe und IP-Adressen protokollieren. Externe Bilder werden direkt angefordert und in der App höchstens bis 20 MiB im Arbeitsspeicher gehalten. Anfragen nennen App, Version, Betriebssystem und offizielle Website. Google erhält eine Anfrage beim ausgewählten Download einer Google-Fonts-Schrift. Bestätigte Links werden an Browser oder Mail-App übergeben. Für App-Stores gelten deren eigene Richtlinien.</p>
+      <ul class="legal-references">
+        <li><a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener">GitHub</a></li>
+        <li><a href="https://developers.google.com/fonts/faq/privacy" rel="noopener">Google Fonts</a></li>
+      </ul>
+      <h2>Änderungen und Kontakt</h2>
+      <p>Änderungen werden hier mit neuem Gültigkeitsdatum veröffentlicht. <a href="https://github.com/bruce-yang-422/parchment/issues" rel="noopener">GitHub Issues</a></p>
+    </article>
+
+    <article id="es" lang="es" data-home-label="Volver a Parchment">
+      <h1>Política de privacidad</h1>
+      <p class="legal-meta">Fecha de entrada en vigor: 24 de noviembre de 2026</p>
+      <p>Esta política se aplica al sitio y la PWA, a la extensión de Chrome／Edge y a la aplicación para Android／iOS. Parchment no recopila, transmite, vende ni comparte datos personales, historial, contenido de archivos ni estadísticas de uso. No hay cuentas, anuncios, análisis ni seguimiento. Los documentos y las conversiones a PNG se procesan en el dispositivo.</p>
+      <section class="legal-platform">
+        <h2>Sitio web y PWA</h2>
+        <p>La configuración y la posición de lectura se guardan en localStorage. IndexedDB conserva nombres, fechas y permisos de acceso de archivos o carpetas recientes. La caché sin conexión almacena únicamente recursos del sitio. Puedes borrar estos datos desde el navegador.</p>
+      </section>
+      <section class="legal-platform">
+        <h2>Extensión del navegador</h2>
+        <p>chrome.storage guarda la opción de abrir Markdown local. Si autorizas el acceso file://, la extensión lee los archivos .md que abras y los recursos referenciados de la misma carpeta. No lee las páginas que visitas. Desinstalarla elimina los datos de la extensión.</p>
+      </section>
+      <section class="legal-platform">
+        <h2>Aplicación móvil</h2>
+        <p>Solo lee los archivos .md y .txt y las carpetas que selecciones o compartas. Al quitar una carpeta reciente se revoca su permiso en Android. Solo escribe al guardar explícitamente las casillas de tareas o crear una copia, y comprueba cambios externos antes de sobrescribir. Las preferencias y las carpetas recientes se guardan localmente y se eliminan al desinstalar. Los diagramas y fórmulas funcionan sin conexión.</p>
+      </section>
+      <h2>Servicios de terceros</h2>
+      <p>GitHub Pages y Releases pueden registrar datos de conexión, como la IP. Las imágenes remotas se solicitan al servidor original y se conservan en memoria, con un límite de 20 MiB en la app. Estas solicitudes identifican la app, versión, sistema y sitio oficial. Elegir una fuente descargable solicita el archivo a Google Fonts. Los enlaces confirmados se abren en el navegador o correo. Las tiendas de aplicaciones aplican sus propias políticas.</p>
+      <ul class="legal-references">
+        <li><a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener">GitHub</a></li>
+        <li><a href="https://developers.google.com/fonts/faq/privacy" rel="noopener">Google Fonts</a></li>
+      </ul>
+      <h2>Cambios y contacto</h2>
+      <p>Los cambios se publicarán aquí con la fecha de vigencia actualizada. <a href="https://github.com/bruce-yang-422/parchment/issues" rel="noopener">GitHub Issues</a></p>
+    </article>
+
+    <article id="ru" lang="ru" data-home-label="Вернуться в Parchment">
+      <h1>Политика конфиденциальности</h1>
+      <p class="legal-meta">Вступает в силу 24 ноября 2026 года</p>
+      <p>Политика распространяется на сайт и PWA, расширение Chrome／Edge и приложение для Android／iOS. Parchment не собирает, не передаёт, не продаёт и не раскрывает персональные данные, историю просмотра, содержимое файлов и статистику использования. Аккаунты, реклама, аналитика и отслеживание отсутствуют. Документы и PNG обрабатываются на устройстве.</p>
+      <section class="legal-platform">
+        <h2>Сайт и PWA</h2>
+        <p>Настройки и позиции чтения хранятся в localStorage. В IndexedDB сохраняются имена, время и ссылки доступа к недавним файлам и папкам. Офлайн-кеш содержит только ресурсы сайта. Данные сайта можно удалить в браузере.</p>
+      </section>
+      <section class="legal-platform">
+        <h2>Расширение браузера</h2>
+        <p>В chrome.storage хранится настройка открытия локальных Markdown-файлов. После разрешения file:// расширение читает открытые вами файлы .md и ресурсы из той же папки. Посещаемые страницы оно не читает. При удалении расширения удаляются его данные.</p>
+      </section>
+      <section class="legal-platform">
+        <h2>Мобильное приложение</h2>
+        <p>Читает только выбранные или переданные файлы .md, .txt и папки. Удаление недавней папки отзывает разрешение Android. Запись выполняется при явном сохранении отметок задач или сохранении копии. Перед перезаписью проверяются внешние изменения. Настройки и сведения о недавних папках хранятся на устройстве и удаляются при деинсталляции. Формулы и диаграммы обрабатываются офлайн.</p>
+      </section>
+      <h2>Сторонние службы</h2>
+      <p>GitHub Pages и Releases могут регистрировать IP и другие сведения о подключении. Изображения запрашиваются у их владельцев и хранятся в памяти приложения с лимитом 20 МиБ. Запрос содержит название и версию приложения, ОС и адрес сайта. Выбранные шрифты загружаются из Google Fonts. Внешние ссылки после подтверждения передаются браузеру или почтовому приложению. Магазины приложений применяют собственные правила.</p>
+      <ul class="legal-references">
+        <li><a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener">GitHub</a></li>
+        <li><a href="https://developers.google.com/fonts/faq/privacy" rel="noopener">Google Fonts</a></li>
+      </ul>
+      <h2>Изменения и обратная связь</h2>
+      <p>Изменения публикуются на этой странице с обновлённой датой вступления в силу. <a href="https://github.com/bruce-yang-422/parchment/issues" rel="noopener">GitHub Issues</a></p>
+    </article>
   </main>
 
   <footer class="legal-footer">
-    <a href="./">返回 Parchment</a>
+    <a href="./" data-legal-home>返回 Parchment</a>
     <span aria-hidden="true">·</span>
     <a href="https://github.com/bruce-yang-422/parchment" rel="noopener">GitHub</a>
   </footer>
