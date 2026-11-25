@@ -1554,8 +1554,12 @@ async function _renderGraphvizDiagrams(container) {
       for (const element of sanitized.querySelectorAll('[fill], [stroke]')) {
         for (const attribute of ['fill', 'stroke']) {
           const color = element.getAttribute(attribute)?.toLowerCase();
-          if (color === surface) element.setAttribute(attribute, 'var(--diagram-surface)');
-          if (color === ink) element.setAttribute(attribute, 'var(--diagram-ink)');
+          if (color === surface || color === ink) {
+            element.style.setProperty(
+              attribute,
+              color === surface ? 'var(--diagram-surface)' : 'var(--diagram-ink)',
+            );
+          }
         }
       }
       wrapper.appendChild(sanitized);

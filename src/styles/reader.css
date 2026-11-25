@@ -504,7 +504,7 @@
 .image-unavailable-message:not([hidden]) { @apply mt-1; }
 .image-unavailable-message[hidden] { display: none; }
 
-#reader-body :is(.mermaid, .graphviz) {
+#reader-body .mermaid {
   @apply box-border mt-5 mb-8 mx-0 pt-0 px-0 pb-6 overflow-x-auto overflow-y-hidden;
 }
 
@@ -530,7 +530,7 @@
 
 #reader-body .graphviz svg { @apply inline-block w-auto h-auto max-w-none; }
 
-#reader-body .mermaid {
+#reader-body :is(.mermaid, .graphviz) {
   --diagram-surface: var(--surface);
   --diagram-ink: var(--text);
   --diagram-blue: #1d4ed8;
