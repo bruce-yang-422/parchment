@@ -33,7 +33,7 @@
   </header>
 
   <main class="legal-page">
-    <nav class="legal-nav" aria-label="Language">
+    <nav class="language-switch legal-nav" aria-label="Language">
       <a href="#zh-tw" lang="zh-TW" hreflang="zh-TW">繁體中文</a>
       <a href="#zh-cn" lang="zh-CN" hreflang="zh-CN">简体中文</a>
       <a href="#en" lang="en" hreflang="en">English</a>
@@ -47,6 +47,7 @@
     <article id="zh-tw" lang="zh-TW">
       <h1>隱私權政策</h1>
       <p class="legal-meta">生效日期：2026 年 11 月 24 日</p>
+      <p>Parchment 為使用不同語言的讀者提供本機閱讀服務。無論使用哪一種介面或政策語言，以下共通的隱私原則都適用。</p>
       <p>
         本政策適用於 Parchment 網站（<a href="./">parchment.stack-base.com</a>）、安裝後的 Parchment 應用程式（PWA），以及
         Chrome／Edge 的 Parchment 瀏覽器外掛和 Flutter Android／iOS 手機 App。Parchment 是本機 Markdown 與純文字檔案的唯讀優先閱讀器，設計目標是讓你的文件不離開你的裝置。
@@ -131,6 +132,7 @@
     <article id="en" lang="en">
       <h1>Privacy Policy</h1>
       <p class="legal-meta">Effective date: November 24, 2026</p>
+      <p>Parchment provides local reading for people who use different languages. The same privacy principles apply regardless of your interface or policy language.</p>
       <p>
         This policy applies to the Parchment website (<a href="./">parchment.stack-base.com</a>), the installed Parchment app (PWA), and the
         Parchment browser extension for Chrome and Edge, and the Flutter app for Android and iOS. Parchment is a read-only-first reader for local Markdown and plain-text files, designed so that your
@@ -218,10 +220,12 @@
     <article id="zh-cn" lang="zh-CN" data-home-label="返回 Parchment">
       <h1>隐私政策</h1>
       <p class="legal-meta">生效日期：2026 年 11 月 24 日</p>
+      <p>Parchment 为使用不同语言的读者提供本地阅读服务。无论选择哪种界面或政策语言，均适用相同的隐私原则。</p>
       <p>Parchment 适用于网站、PWA、Chrome／Edge 扩展和 Android／iOS App。我们不收集、传送、出售或分享个人数据、浏览历史、文件内容或使用统计。没有账户、广告、分析或追踪代码。文件和 PNG 转换都在设备上处理。</p>
       <section class="legal-platform">
         <h2>网站与 PWA</h2>
         <p>主题、阅读位置、侧栏、排序、任务状态等设置保存在 localStorage；最近文件或文件夹的名称、时间与访问句柄保存在 IndexedDB。离线缓存只保存网站资源，不缓存你的文档。可在浏览器清除网站数据。</p>
+        <p>浏览器还会记录字体、阅读宽度、侧栏宽度、文件树排序、待办勾选和安装提醒。重新打开最近项目时，浏览器可能再次请求授权。</p>
       </section>
       <section class="legal-platform">
         <h2>浏览器扩展</h2>
@@ -230,9 +234,14 @@
       <section class="legal-platform">
         <h2>手机 App</h2>
         <p>仅通过系统文件选择器或其他 App 分享读取你授权的 .md、.txt 文件或文件夹。Android 可保留最近文件夹授权，移除记录即可撤销。仅在明确保存待办勾选或另存时写入；覆盖前会检查原文件是否改变。阅读设置与最近文件夹信息保存在设备上，卸载时清除。图表和公式引擎随 App 打包并在设备上运行。</p>
+        <p>App 不要求广泛的存储权限。保存到原文件时仅替换待办勾选标记；另存会创建新文件。偏好设置可能包含最近文件夹名称、Android 文档 URI、打开时间和授权状态，不包含文件内容。</p>
       </section>
       <h2>第三方服务</h2>
       <p>GitHub Pages 托管网站，GitHub Releases 提供下载；GitHub 可能记录 IP 等连接信息。远程图片由设备直接请求，手机 App 限制为 20 MiB，发送 App 名称、版本、系统与官网作为识别信息，图片仅暂存在内存。选择下载型 Google Fonts 时会向 Google 请求字型文件。外部链接在确认后交给浏览器或邮件 App；应用商店按自身政策处理下载、安装、付款或诊断信息。</p>
+      <ul>
+        <li>图片服务器和 Google 可能记录 IP 等常规连接信息。字体下载请求仅用于获取字体文件；图片和字体请求均不发送文档内容。</li>
+        <li>应用商店可能按自身政策处理下载、安装、付款或诊断数据。Parchment 不包含分析或追踪 SDK。</li>
+      </ul>
       <ul class="legal-references">
         <li><a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener">GitHub</a></li>
         <li><a href="https://developers.google.com/fonts/faq/privacy" rel="noopener">Google Fonts</a></li>
@@ -244,10 +253,12 @@
     <article id="ja" lang="ja" data-home-label="Parchment に戻る">
       <h1>プライバシーポリシー</h1>
       <p class="legal-meta">発効日：2026年11月24日</p>
+      <p>Parchment はさまざまな言語の読者に端末内での閲覧機能を提供します。表示言語やポリシーの言語にかかわらず、同じプライバシー原則が適用されます。</p>
       <p>Parchment のウェブサイト、PWA、Chrome／Edge 拡張機能、Android／iOS アプリに適用されます。個人情報、閲覧履歴、ファイル内容、利用統計を収集・送信・販売・共有しません。アカウント、広告、解析、追跡はなく、文書の表示と PNG 変換は端末内で行います。</p>
       <section class="legal-platform">
         <h2>ウェブサイトと PWA</h2>
         <p>表示設定や読書位置などは localStorage、最近開いたファイルの名前、時刻、アクセス情報は IndexedDB に保存されます。オフラインキャッシュにはサイトの素材のみが入り、文書は含まれません。ブラウザーからサイトデータを削除できます。</p>
+        <p>フォント、本文とサイドバーの幅、ファイルの並び順、タスクのチェック状態、インストール通知も端末内に保存します。最近の項目を開くとき、ブラウザーが再度許可を求める場合があります。</p>
       </section>
       <section class="legal-platform">
         <h2>ブラウザー拡張機能</h2>
@@ -256,9 +267,14 @@
       <section class="legal-platform">
         <h2>モバイルアプリ</h2>
         <p>システムの選択画面や共有操作で指定した .md、.txt、フォルダーのみ読み取ります。Android の最近のフォルダーから削除すると許可を解除できます。チェック状態の保存や別名保存を明示的に行った場合のみ書き込みます。上書き前に外部変更を確認します。表示設定と最近のフォルダー情報は端末内に残り、アンインストールで消去されます。図と数式はオフラインで処理されます。</p>
+        <p>広範なストレージ権限は要求しません。上書き時はタスクのチェック記号のみ変更し、別名保存では新規ファイルを作成します。設定には最近のフォルダー名、Android の文書 URI、閲覧時刻と許可状態が含まれますが、文書の内容は保存しません。</p>
       </section>
       <h2>第三者サービス</h2>
       <p>GitHub Pages や Releases はアクセス元 IP などを記録することがあります。外部画像は指定先に直接要求し、アプリでは上限 20 MiB、メモリ内のみで保持します。画像要求にはアプリ名、バージョン、OS、公式サイトが含まれます。ダウンロードを選んだ Google Fonts は Google から取得します。外部リンクは確認後にブラウザーやメールアプリへ渡し、アプリストアの処理には各ストアの方針が適用されます。</p>
+      <ul>
+        <li>画像の配信元や Google は IP アドレスなどの接続情報を記録する場合があります。フォント要求はファイルの取得のみを目的とし、画像やフォントの要求で文書を送信しません。</li>
+        <li>アプリストアはダウンロード、インストール、支払い、診断情報を独自の方針で扱う場合があります。Parchment には解析・追跡 SDK はありません。</li>
+      </ul>
       <ul class="legal-references">
         <li><a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener">GitHub</a></li>
         <li><a href="https://developers.google.com/fonts/faq/privacy" rel="noopener">Google Fonts</a></li>
@@ -270,10 +286,12 @@
     <article id="ko" lang="ko" data-home-label="Parchment로 돌아가기">
       <h1>개인정보 처리방침</h1>
       <p class="legal-meta">시행일: 2026년 11월 24일</p>
+      <p>Parchment는 다양한 언어를 사용하는 독자에게 기기 내 읽기 기능을 제공합니다. 인터페이스나 정책 언어에 관계없이 동일한 개인정보 보호 원칙이 적용됩니다.</p>
       <p>Parchment 웹사이트, PWA, Chrome／Edge 확장 프로그램 및 Android／iOS 앱에 적용됩니다. 개인정보, 방문 기록, 파일 내용, 사용 통계를 수집·전송·판매·공유하지 않습니다. 계정, 광고, 분석 및 추적 기능이 없으며 문서 표시와 PNG 변환은 기기에서 처리됩니다.</p>
       <section class="legal-platform">
         <h2>웹사이트 및 PWA</h2>
         <p>보기 설정과 읽기 위치 등은 localStorage에, 최근 파일·폴더의 이름, 시간 및 접근 핸들은 IndexedDB에 보관됩니다. 오프라인 캐시에는 사이트 리소스만 저장됩니다. 브라우저에서 사이트 데이터를 삭제할 수 있습니다.</p>
+        <p>글꼴, 본문과 사이드바 너비, 파일 정렬, 할 일 체크 상태와 설치 알림도 로컬에 저장됩니다. 최근 파일이나 폴더를 다시 열 때 브라우저가 권한을 재요청할 수 있습니다.</p>
       </section>
       <section class="legal-platform">
         <h2>브라우저 확장 프로그램</h2>
@@ -282,9 +300,14 @@
       <section class="legal-platform">
         <h2>모바일 앱</h2>
         <p>시스템 선택기나 공유 기능으로 선택한 .md, .txt 및 폴더만 읽습니다. Android에서 최근 폴더를 삭제하면 접근 권한이 해제됩니다. 할 일 변경을 저장하거나 다른 이름으로 저장할 때만 파일에 쓰며, 덮어쓰기 전에 외부 변경을 확인합니다. 읽기 설정과 최근 폴더 정보는 기기에 저장되며 앱 삭제 시 제거됩니다. 도표와 수식은 오프라인에서 처리합니다.</p>
+        <p>앱은 광범위한 저장소 권한을 요청하지 않습니다. 원본 저장 시 할 일 체크 표시만 바꾸며, 다른 이름으로 저장하면 새 파일을 만듭니다. 설정에는 최근 폴더 이름, Android 문서 URI, 열었던 시간과 권한 상태가 포함되며 문서 내용은 저장되지 않습니다.</p>
       </section>
       <h2>외부 서비스</h2>
       <p>GitHub Pages 및 Releases는 IP 등 접속 정보를 기록할 수 있습니다. 원격 이미지는 기기가 원본 주소에 직접 요청하며 모바일 앱은 20 MiB로 제한하고 메모리에만 보관합니다. 요청에는 앱 이름, 버전, OS 및 공식 사이트 주소가 포함됩니다. 다운로드형 Google Fonts를 선택하면 Google에 글꼴을 요청합니다. 확인한 외부 링크는 브라우저나 이메일 앱에서 열고, 앱 스토어에는 각 스토어의 정책이 적용됩니다.</p>
+      <ul>
+        <li>이미지 제공 사이트와 Google은 IP 등 연결 정보를 기록할 수 있습니다. 글꼴 요청은 파일을 가져오는 데만 사용되며, 이미지나 글꼴 요청에 문서 내용은 전송되지 않습니다.</li>
+        <li>스토어는 다운로드, 설치, 결제 또는 진단 데이터를 자체 정책에 따라 처리할 수 있습니다. Parchment에는 분석 또는 추적 SDK가 없습니다.</li>
+      </ul>
       <ul class="legal-references">
         <li><a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener">GitHub</a></li>
         <li><a href="https://developers.google.com/fonts/faq/privacy" rel="noopener">Google Fonts</a></li>
@@ -296,10 +319,12 @@
     <article id="fr" lang="fr" data-home-label="Retour à Parchment">
       <h1>Politique de confidentialité</h1>
       <p class="legal-meta">Date d’entrée en vigueur : 24 novembre 2026</p>
+      <p>Parchment permet de lire des documents localement dans différentes langues. Les mêmes principes de confidentialité s’appliquent à toutes les langues de l’interface et de cette politique.</p>
       <p>Cette politique couvre le site et la PWA Parchment, l’extension Chrome／Edge et l’application Android／iOS. Parchment ne collecte, ne transmet, ne vend et ne partage ni données personnelles, ni historique, ni contenu de fichiers, ni statistiques. Sans compte, publicité, mesure d’audience ou suivi. Les documents et les conversions PNG sont traités sur l’appareil.</p>
       <section class="legal-platform">
         <h2>Site et PWA</h2>
         <p>Les réglages et positions de lecture sont conservés dans localStorage. IndexedDB conserve les noms, dates et accès aux fichiers ou dossiers récents. Le cache hors ligne contient uniquement les ressources du site. Vous pouvez effacer ces données dans le navigateur.</p>
+        <p>Le navigateur conserve aussi la police, les largeurs de lecture et des panneaux, le tri des fichiers, les cases cochées et le rappel d’installation. Il peut redemander l’autorisation lors de la réouverture d’un élément récent.</p>
       </section>
       <section class="legal-platform">
         <h2>Extension de navigateur</h2>
@@ -308,9 +333,14 @@
       <section class="legal-platform">
         <h2>Application mobile</h2>
         <p>Seuls les fichiers .md ou .txt et dossiers choisis via le sélecteur ou partagés avec l’application sont lus. Retirer un dossier récent révoque son autorisation Android. Seul l’enregistrement explicite des cases ou l’enregistrement sous un autre nom écrit sur le disque. Avant l’écrasement, l’application vérifie les modifications externes. Les préférences et dossiers récents sont stockés localement et supprimés à la désinstallation. Diagrammes et formules fonctionnent hors ligne.</p>
+        <p>L’application ne demande pas d’autorisation d’accès général au stockage. L’enregistrement sur place modifie uniquement les marques des cases, tandis que l’enregistrement sous un autre nom crée un fichier. Les préférences locales peuvent contenir les noms des dossiers, les URI Android, les dates d’ouverture et l’état des autorisations, sans le contenu des documents.</p>
       </section>
       <h2>Services tiers</h2>
       <p>GitHub Pages et Releases peuvent journaliser les accès, dont les adresses IP. Les images distantes sont demandées directement à leur hôte. L’application les garde en mémoire, avec une limite de 20 Mio, et identifie son nom, sa version, le système et son site officiel. Les polices téléchargeables sélectionnées sont demandées à Google Fonts. Les liens confirmés s’ouvrent dans le navigateur ou la messagerie. Les boutiques appliquent leurs propres conditions de confidentialité.</p>
+      <ul>
+        <li>Les hébergeurs d’images et Google peuvent enregistrer des données de connexion comme l’adresse IP. La demande de police sert uniquement à obtenir son fichier. Ni les demandes d’images ni celles de polices ne transmettent le document.</li>
+        <li>Les boutiques peuvent traiter les données de téléchargement, d’installation, de paiement ou de diagnostic selon leurs politiques. Parchment ne contient aucun SDK d’analyse ou de suivi.</li>
+      </ul>
       <ul class="legal-references">
         <li><a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener">GitHub</a></li>
         <li><a href="https://developers.google.com/fonts/faq/privacy" rel="noopener">Google Fonts</a></li>
@@ -322,10 +352,12 @@
     <article id="de" lang="de" data-home-label="Zurück zu Parchment">
       <h1>Datenschutzerklärung</h1>
       <p class="legal-meta">Gültig ab: 24. November 2026</p>
+      <p>Parchment unterstützt lokales Lesen für Menschen mit unterschiedlichen Sprachen. Für jede Sprache der Oberfläche und dieser Erklärung gelten dieselben Datenschutzgrundsätze.</p>
       <p>Diese Erklärung gilt für die Website und PWA, die Chrome／Edge-Erweiterung und die Android／iOS-App. Parchment erhebt, überträgt, verkauft und teilt keine personenbezogenen Daten, Browserhistorie, Dateiinhalte oder Nutzungsstatistiken. Es gibt keine Konten, Werbung, Analyse oder Nachverfolgung. Dokumente und PNG-Konvertierungen werden lokal verarbeitet.</p>
       <section class="legal-platform">
         <h2>Website und PWA</h2>
         <p>Einstellungen und Lesepositionen liegen in localStorage. IndexedDB speichert Namen, Zeiten und Zugriffsreferenzen kürzlich geöffneter Dateien oder Ordner. Der Offline-Cache enthält nur Website-Ressourcen. Website-Daten lassen sich im Browser löschen.</p>
+        <p>Auch Schriftarten, Lese- und Seitenleistenbreiten, Dateisortierung, Aufgabenstatus und Installationshinweise werden lokal gespeichert. Beim erneuten Öffnen kann der Browser erneut um Erlaubnis bitten.</p>
       </section>
       <section class="legal-platform">
         <h2>Browser-Erweiterung</h2>
@@ -334,9 +366,14 @@
       <section class="legal-platform">
         <h2>Mobil-App</h2>
         <p>Die App liest nur ausgewählte oder geteilte .md- und .txt-Dateien und ausgewählte Ordner. Das Entfernen eines Eintrags aus den letzten Ordnern widerruft die Android-Freigabe. Änderungen an Aufgaben werden nur beim ausdrücklichen Speichern geschrieben. Vor dem Überschreiben wird auf externe Änderungen geprüft. Leseeinstellungen und Ordnerinformationen bleiben lokal und werden bei der Deinstallation gelöscht. Diagramme und Formeln funktionieren offline.</p>
+        <p>Die App fordert keinen umfassenden Speicherzugriff. Beim Speichern im Original werden nur Aufgabenmarkierungen ersetzt. „Speichern unter“ erzeugt eine neue Datei. Lokale Einstellungen können Ordnernamen, Android-Dokument-URIs, Öffnungszeiten und Berechtigungsstatus enthalten, aber keine Dokumentinhalte.</p>
       </section>
       <h2>Drittanbieter</h2>
       <p>GitHub Pages und Releases können Zugriffe und IP-Adressen protokollieren. Externe Bilder werden direkt angefordert und in der App höchstens bis 20 MiB im Arbeitsspeicher gehalten. Anfragen nennen App, Version, Betriebssystem und offizielle Website. Google erhält eine Anfrage beim ausgewählten Download einer Google-Fonts-Schrift. Bestätigte Links werden an Browser oder Mail-App übergeben. Für App-Stores gelten deren eigene Richtlinien.</p>
+      <ul>
+        <li>Bildanbieter und Google können Verbindungsdaten wie die IP-Adresse protokollieren. Schriftanfragen dienen nur dem Bezug der Schriftdatei. Bild- und Schriftanfragen übertragen keine Dokumentinhalte.</li>
+        <li>App-Stores können Daten zum Download, zur Installation, Zahlung oder Diagnose nach eigenen Regeln verarbeiten. Parchment enthält keine Analyse- oder Tracking-SDKs.</li>
+      </ul>
       <ul class="legal-references">
         <li><a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener">GitHub</a></li>
         <li><a href="https://developers.google.com/fonts/faq/privacy" rel="noopener">Google Fonts</a></li>
@@ -348,10 +385,12 @@
     <article id="es" lang="es" data-home-label="Volver a Parchment">
       <h1>Política de privacidad</h1>
       <p class="legal-meta">Fecha de entrada en vigor: 24 de noviembre de 2026</p>
+      <p>Parchment ofrece lectura local a personas que usan distintos idiomas. Los mismos principios de privacidad se aplican a todos los idiomas de la interfaz y de esta política.</p>
       <p>Esta política se aplica al sitio y la PWA, a la extensión de Chrome／Edge y a la aplicación para Android／iOS. Parchment no recopila, transmite, vende ni comparte datos personales, historial, contenido de archivos ni estadísticas de uso. No hay cuentas, anuncios, análisis ni seguimiento. Los documentos y las conversiones a PNG se procesan en el dispositivo.</p>
       <section class="legal-platform">
         <h2>Sitio web y PWA</h2>
         <p>La configuración y la posición de lectura se guardan en localStorage. IndexedDB conserva nombres, fechas y permisos de acceso de archivos o carpetas recientes. La caché sin conexión almacena únicamente recursos del sitio. Puedes borrar estos datos desde el navegador.</p>
+        <p>También se guardan la fuente, el ancho de lectura y de los paneles, el orden de archivos, las casillas de tareas y el recordatorio de instalación. El navegador puede volver a pedir permiso al reabrir un elemento reciente.</p>
       </section>
       <section class="legal-platform">
         <h2>Extensión del navegador</h2>
@@ -360,9 +399,14 @@
       <section class="legal-platform">
         <h2>Aplicación móvil</h2>
         <p>Solo lee los archivos .md y .txt y las carpetas que selecciones o compartas. Al quitar una carpeta reciente se revoca su permiso en Android. Solo escribe al guardar explícitamente las casillas de tareas o crear una copia, y comprueba cambios externos antes de sobrescribir. Las preferencias y las carpetas recientes se guardan localmente y se eliminan al desinstalar. Los diagramas y fórmulas funcionan sin conexión.</p>
+        <p>La aplicación no solicita acceso general al almacenamiento. Guardar sobre el original solo cambia las marcas de las casillas, mientras que Guardar como crea un archivo nuevo. Las preferencias pueden incluir nombres de carpetas, URI de Android, fechas de apertura y estado de permisos, sin guardar el contenido del documento.</p>
       </section>
       <h2>Servicios de terceros</h2>
       <p>GitHub Pages y Releases pueden registrar datos de conexión, como la IP. Las imágenes remotas se solicitan al servidor original y se conservan en memoria, con un límite de 20 MiB en la app. Estas solicitudes identifican la app, versión, sistema y sitio oficial. Elegir una fuente descargable solicita el archivo a Google Fonts. Los enlaces confirmados se abren en el navegador o correo. Las tiendas de aplicaciones aplican sus propias políticas.</p>
+      <ul>
+        <li>Los servidores de imágenes y Google pueden registrar datos de conexión, como la IP. La solicitud de fuente sirve solo para obtener su archivo. Las solicitudes de imágenes o fuentes no envían el documento.</li>
+        <li>Las tiendas pueden procesar datos de descarga, instalación, pago o diagnóstico según sus políticas. Parchment no incluye SDK de análisis ni seguimiento.</li>
+      </ul>
       <ul class="legal-references">
         <li><a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener">GitHub</a></li>
         <li><a href="https://developers.google.com/fonts/faq/privacy" rel="noopener">Google Fonts</a></li>
@@ -374,10 +418,12 @@
     <article id="ru" lang="ru" data-home-label="Вернуться в Parchment">
       <h1>Политика конфиденциальности</h1>
       <p class="legal-meta">Вступает в силу 24 ноября 2026 года</p>
+      <p>Parchment позволяет читать документы локально на разных языках. Независимо от языка интерфейса или политики действуют одинаковые принципы конфиденциальности.</p>
       <p>Политика распространяется на сайт и PWA, расширение Chrome／Edge и приложение для Android／iOS. Parchment не собирает, не передаёт, не продаёт и не раскрывает персональные данные, историю просмотра, содержимое файлов и статистику использования. Аккаунты, реклама, аналитика и отслеживание отсутствуют. Документы и PNG обрабатываются на устройстве.</p>
       <section class="legal-platform">
         <h2>Сайт и PWA</h2>
         <p>Настройки и позиции чтения хранятся в localStorage. В IndexedDB сохраняются имена, время и ссылки доступа к недавним файлам и папкам. Офлайн-кеш содержит только ресурсы сайта. Данные сайта можно удалить в браузере.</p>
+        <p>Локально сохраняются также шрифты, ширина области чтения и боковых панелей, сортировка файлов, отметки задач и напоминания об установке. При повторном открытии браузер может снова запросить разрешение.</p>
       </section>
       <section class="legal-platform">
         <h2>Расширение браузера</h2>
@@ -386,9 +432,14 @@
       <section class="legal-platform">
         <h2>Мобильное приложение</h2>
         <p>Читает только выбранные или переданные файлы .md, .txt и папки. Удаление недавней папки отзывает разрешение Android. Запись выполняется при явном сохранении отметок задач или сохранении копии. Перед перезаписью проверяются внешние изменения. Настройки и сведения о недавних папках хранятся на устройстве и удаляются при деинсталляции. Формулы и диаграммы обрабатываются офлайн.</p>
+        <p>Приложение не запрашивает общий доступ к хранилищу. При сохранении в исходный файл меняются только отметки задач. Сохранение копии создаёт новый файл. Настройки могут содержать имена папок, URI документов Android, время открытия и состояние разрешений, но не содержимое документов.</p>
       </section>
       <h2>Сторонние службы</h2>
       <p>GitHub Pages и Releases могут регистрировать IP и другие сведения о подключении. Изображения запрашиваются у их владельцев и хранятся в памяти приложения с лимитом 20 МиБ. Запрос содержит название и версию приложения, ОС и адрес сайта. Выбранные шрифты загружаются из Google Fonts. Внешние ссылки после подтверждения передаются браузеру или почтовому приложению. Магазины приложений применяют собственные правила.</p>
+      <ul>
+        <li>Серверы изображений и Google могут регистрировать IP-адрес и другие данные подключения. Запрос шрифта предназначен только для получения файла шрифта. Запросы изображений и шрифтов не передают содержимое документов.</li>
+        <li>Магазины могут обрабатывать данные загрузки, установки, оплаты или диагностики по собственным правилам. В Parchment нет SDK аналитики или отслеживания.</li>
+      </ul>
       <ul class="legal-references">
         <li><a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener">GitHub</a></li>
         <li><a href="https://developers.google.com/fonts/faq/privacy" rel="noopener">Google Fonts</a></li>

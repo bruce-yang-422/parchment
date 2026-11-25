@@ -53,23 +53,25 @@ assert.doesNotMatch(android, /<script(?![^>]*\bsrc=)[^>]*>/, 'Android 頁不得�
 for (const src of android.matchAll(/src="(image\/android\/[^"]+)"/g)) await readFile(src[1]);
 /* 9 個語系的測試文件下載連結都要存在 */
 const sampleLinks = [...android.matchAll(/href="(samples\/[^"]+\.md)"/g)].map(match => match[1]);
-assert.equal(sampleLinks.length, 9, 'Android 頁需提供 9 個語系的測試文件');
-for (const file of sampleLinks) await readFile(file);
+assert.equal(new Set(sampleLinks).size, 9, 'Android 頁需提供 9 個語系的測試文件');
+for (const file of new Set(sampleLinks)) await readFile(file);
 assert.match(sitemap, new RegExp(`<loc>${SITE}android\\.html</loc>`));
 
-/* Android 頁多語版本：互相標註 hreflang，各自提供 9 個語系的測試文件 */
-for (const [file, lang] of [['android.html', 'zh-TW'], ['android-en.html', 'en'], ['android-ja.html', 'ja'], ['android-ko.html', 'ko'], ['android-es.html', 'es']]) {
-  const page = await readFile(file, 'utf8');
-  assert.match(page, new RegExp(`<html lang="${lang}"`), `${file} 語言標記錯誤`);
-  assert.ok(page.includes(`<link rel="canonical" href="${SITE}${file}">`), `${file} canonical 錯誤`);
-  for (const other of ['android.html', 'android-en.html', 'android-ja.html', 'android-ko.html', 'android-es.html']) {
-    assert.ok(page.includes(`href="${SITE}${other}"`), `${file} 缺少 ${other} 的 hreflang`);
-  }
-  assert.equal([...page.matchAll(/href="samples\/[^"]+\.md"/g)].length, 9, `${file} 需提供 9 個語系的測試文件`);
-  assert.ok(page.includes('https://forms.gle/x7bz1HXKfJ64gUbg6'), `${file} 缺少報名表連結`);
-  assert.doesNotMatch(page, /<script(?![^>]*\bsrc=)[^>]*>/, `${file} 不得有內嵌腳本`);
-  if (file !== 'android.html') assert.ok(sitemap.includes(`<loc>${SITE}${file}</loc>`), `${file} 未加入 sitemap`);
+/* Android 頁以單一網址提供五種語言。 */
+for (const lang of ['zh-TW', 'en', 'ja', 'ko', 'es']) {
+  const id = lang.toLowerCase();
+  const marker = `<article id="${id}" lang="${lang}"`;
+  const start = android.indexOf(marker);
+  assert.ok(start >= 0, `缺少 ${lang} 介紹內容`);
+  const panel = android.slice(start, android.indexOf('</article>', start));
+  assert.ok(android.includes(`href="#${id}" lang="${lang}"`));
+  assert.equal([...panel.matchAll(/href="samples\/[^"]+\.md"/g)].length, 9);
+  assert.ok(panel.includes('https://forms.gle/x7bz1HXKfJ64gUbg6'));
 }
+const androidIds = [...android.matchAll(/\sid="([^"]+)"/g)].map(match => match[1]);
+assert.equal(new Set(androidIds).size, androidIds.length, 'Android 頁 ID 必須唯一');
+for (const [, id] of android.matchAll(/href="#([^"]+)"/g)) assert.ok(androidIds.includes(id));
+assert.doesNotMatch(sitemap, /android-(en|ja|ko|es)\.html/);
 
 /* Markdown 範本下載庫：9 個語系 × 7 份文件，下載連結都要存在 */
 const library = await readFile('templates.html', 'utf8');
