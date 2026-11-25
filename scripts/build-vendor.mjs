@@ -11,6 +11,8 @@ await mkdir(out, { recursive: true });
 await build({
   entryPoints: [path.join(root, 'scripts', 'vendor-entry.js')],
   outfile: path.join(out, 'markdown-engine.min.js'),
+  // Use the same KaTeX release for generated markup and bundled CSS/fonts.
+  alias: { katex: path.join(root, 'node_modules', 'katex', 'dist', 'katex.mjs') },
   bundle: true,
   minify: true,
   format: 'iife',

@@ -618,7 +618,7 @@ class _FootnoteSectionBuilder extends MarkdownElementBuilder {
   }
 }
 
-/// Round "back to text" button: a drawn arrow that rises and turns left,
+/// Round "back to text" button: a drawn arrow that curves down and left,
 /// in the same capsule as the footnote numbers in the text.
 class FootnoteBackButton extends StatelessWidget {
   const FootnoteBackButton({required this.onTap, super.key});
@@ -662,28 +662,21 @@ class _BackArrowPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final s = size.shortestSide;
-    Offset at(double x, double y) => Offset(x * s, y * s);
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
       ..strokeWidth = s * 0.085
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round;
-    // Stem rising from the bottom right, curving into a leftward head.
+    // Match the web footnote's return arrow (↩).
     final stem = Path()
-      ..moveTo(at(0.66, 0.74).dx, at(0.66, 0.74).dy)
-      ..lineTo(at(0.66, 0.5).dx, at(0.66, 0.5).dy)
-      ..quadraticBezierTo(
-        at(0.66, 0.34).dx,
-        at(0.66, 0.34).dy,
-        at(0.5, 0.34).dx,
-        at(0.5, 0.34).dy,
-      )
-      ..lineTo(at(0.32, 0.34).dx, at(0.32, 0.34).dy);
+      ..moveTo(s * 0.64, s * 0.27)
+      ..cubicTo(s * 0.84, s * 0.32, s * 0.83, s * 0.63, s * 0.57, s * 0.63)
+      ..lineTo(s * 0.24, s * 0.63);
     final head = Path()
-      ..moveTo(at(0.43, 0.23).dx, at(0.43, 0.23).dy)
-      ..lineTo(at(0.31, 0.34).dx, at(0.31, 0.34).dy)
-      ..lineTo(at(0.43, 0.45).dx, at(0.43, 0.45).dy);
+      ..moveTo(s * 0.37, s * 0.50)
+      ..lineTo(s * 0.24, s * 0.63)
+      ..lineTo(s * 0.37, s * 0.76);
     canvas
       ..drawPath(stem, paint)
       ..drawPath(head, paint);

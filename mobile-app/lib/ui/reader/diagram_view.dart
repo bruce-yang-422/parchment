@@ -6,6 +6,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import '../../infrastructure/diagram_render_service.dart';
 import '../../infrastructure/image_exporter.dart';
 import '../../core/l10n/tr.dart';
+import 'media_lightbox.dart';
 
 class DiagramView extends StatefulWidget {
   const DiagramView({
@@ -131,10 +132,11 @@ class _DiagramPreview extends StatelessWidget {
                 width *= _maxHeight / height;
                 height = _maxHeight;
               }
-              return Stack(
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
                     child: Center(
                       child: Image.memory(
                         result.pngBytes!,
@@ -146,13 +148,15 @@ class _DiagramPreview extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Positioned(
-                    right: 6,
-                    bottom: 6,
-                    child: Icon(
-                      Icons.zoom_out_map,
-                      size: 18,
-                      color: colors.onSurfaceVariant.withValues(alpha: 0.7),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 4, 8, 6),
+                    child: Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: Icon(
+                        Icons.zoom_out_map,
+                        size: 18,
+                        color: colors.onSurfaceVariant.withValues(alpha: 0.7),
+                      ),
                     ),
                   ),
                 ],
@@ -176,11 +180,10 @@ void showDiagramLightbox(
   showDialog<void>(
     context: context,
     barrierColor: Colors.black.withValues(alpha: 0.9),
-    builder: (dialogContext) => _VectorDiagramLightbox(
+    builder: (_) => _VectorDiagramLightbox(
       result: result,
       name: name,
       background: background,
-      onClose: () => Navigator.pop(dialogContext),
     ),
   );
 }
@@ -190,13 +193,11 @@ class _VectorDiagramLightbox extends StatefulWidget {
     required this.result,
     required this.name,
     required this.background,
-    required this.onClose,
   });
 
   final DiagramRenderResult result;
   final String name;
   final Color background;
-  final VoidCallback onClose;
 
   @override
   State<_VectorDiagramLightbox> createState() => _VectorDiagramLightboxState();
@@ -204,39 +205,94 @@ class _VectorDiagramLightbox extends StatefulWidget {
 
 class _VectorDiagramLightboxState extends State<_VectorDiagramLightbox> {
   late final WebViewController _controller;
-  final _messengerKey = GlobalKey<ScaffoldMessengerState>();
-  bool _saving = false;
-
-  Future<void> _savePng() async {
-    if (_saving) return;
-    setState(() => _saving = true);
-    final messenger = _messengerKey.currentState!;
-    try {
-      final raster = await DiagramRenderService.instance.rasterize(
-        widget.result.svg!,
-      );
-      if (!raster.isSuccess) throw StateError(raster.error ?? tr('圖片產生失敗'));
-      final png = await ImageExporter.flattenPng(
-        raster.pngBytes!,
-        background: widget.background,
-        padding: 96,
-      );
-      final stamp = DateTime.now()
-          .toIso8601String()
-          .replaceAll(RegExp(r'[^0-9]'), '')
-          .substring(0, 14);
-      final saved = await ImageExporter.savePng(
-        png,
-        fileName: '${widget.name.toLowerCase()}-$stamp.png',
-      );
-      if (saved) {
-        messenger.showSnackBar(SnackBar(content: Text(tr('已儲存圖片'))));
-      }
-    } catch (error) {
-      messenger.showSnackBar(SnackBar(content: Text(tr('圖片儲存失敗，請再試一次'))));
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
+  Future<bool> _savePng(VoidCallback beginSaving) async {
+    final natural = widget.result.size!;
+    var selection = _DiagramExportSize.m;
+    final resolution = await showDialog<_DiagramExportSize>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, update) {
+          final colors = Theme.of(context).colorScheme;
+          return AlertDialog(
+            icon: const Icon(Icons.image_outlined),
+            title: Text(tr('選擇下載尺寸')),
+            scrollable: true,
+            content: SizedBox(
+              width: 320,
+              child: RadioGroup<_DiagramExportSize>(
+                groupValue: selection,
+                onChanged: (size) {
+                  if (size != null) update(() => selection = size);
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (final size in _DiagramExportSize.values)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: RadioListTile<_DiagramExportSize>(
+                          value: size,
+                          selected: selection == size,
+                          selectedTileColor: colors.secondaryContainer,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(
+                              color: selection == size
+                                  ? colors.primary
+                                  : colors.outlineVariant,
+                            ),
+                          ),
+                          controlAffinity: ListTileControlAffinity.trailing,
+                          title: Text(
+                            size.name.toUpperCase(),
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                          subtitle: Text(
+                            '${size.outputPixels(natural.width, natural)} × '
+                            '${size.outputPixels(natural.height, natural)} px',
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: Text(tr('取消')),
+              ),
+              FilledButton.icon(
+                onPressed: () => Navigator.pop(dialogContext, selection),
+                icon: const Icon(Icons.download_rounded),
+                label: Text(tr('儲存')),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+    if (resolution == null || !mounted) return false;
+    beginSaving();
+    final raster = await DiagramRenderService.instance.rasterize(
+      widget.result.svg!,
+      scale: resolution.scaleFor(natural),
+      maxEdge: resolution.diagramEdge,
+    );
+    if (!raster.isSuccess) throw StateError(raster.error ?? tr('圖片產生失敗'));
+    final png = await ImageExporter.flattenPng(
+      raster.pngBytes!,
+      background: widget.background,
+      padding: resolution.padding.toDouble(),
+    );
+    final stamp = DateTime.now()
+        .toIso8601String()
+        .replaceAll(RegExp(r'[^0-9]'), '')
+        .substring(0, 14);
+    return ImageExporter.savePng(
+      png,
+      fileName: '${widget.name.toLowerCase()}-$stamp-${resolution.name}.png',
+    );
   }
 
   @override
@@ -252,7 +308,7 @@ class _VectorDiagramLightboxState extends State<_VectorDiagramLightbox> {
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'">
 <style>
 html,body{margin:0;min-height:100%;background:$background}
-body{display:flex;align-items:center;justify-content:center;min-height:100vh;box-sizing:border-box;padding:64px 12px 24px}
+body{display:flex;align-items:center;justify-content:center;min-height:100vh;box-sizing:border-box;padding:12px}
 .diagram{width:100%}
 .diagram svg{display:block;width:100%!important;max-width:none!important;height:auto!important;margin:0 auto}
 </style></head><body><div class="diagram">${widget.result.svg}</div></body></html>''';
@@ -278,48 +334,30 @@ body{display:flex;align-items:center;justify-content:center;min-height:100vh;box
 
   @override
   Widget build(BuildContext context) {
-    return Dialog.fullscreen(
-      backgroundColor: widget.background,
-      child: ScaffoldMessenger(
-        key: _messengerKey,
-        child: Scaffold(backgroundColor: widget.background, body: _buildBody()),
-      ),
+    return MediaLightbox(
+      background: widget.background,
+      content: WebViewWidget(controller: _controller),
+      onSave: _savePng,
     );
   }
+}
 
-  Widget _buildBody() {
-    return Stack(
-      children: [
-        Positioned.fill(child: WebViewWidget(controller: _controller)),
-        Positioned(
-          top: 8,
-          right: 8,
-          child: SafeArea(
-            child: Row(
-              children: [
-                IconButton.filledTonal(
-                  tooltip: tr('儲存成圖片'),
-                  onPressed: _saving ? null : _savePng,
-                  icon: _saving
-                      ? const SizedBox.square(
-                          dimension: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.download_rounded),
-                ),
-                const SizedBox(width: 8),
-                IconButton.filled(
-                  tooltip: tr('關閉'),
-                  onPressed: widget.onClose,
-                  icon: const Icon(Icons.close),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+enum _DiagramExportSize {
+  s(1024),
+  m(2048),
+  l(4096);
+
+  const _DiagramExportSize(this.longestEdge);
+
+  final int longestEdge;
+
+  int get padding => longestEdge ~/ 32;
+  int get diagramEdge => longestEdge - 2 * padding;
+
+  double scaleFor(Size natural) => diagramEdge / natural.longestSide;
+
+  int outputPixels(double axis, Size natural) =>
+      math.max(1, (axis * scaleFor(natural)).round()) + 2 * padding;
 }
 
 class _DiagramError extends StatelessWidget {

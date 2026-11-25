@@ -15,6 +15,8 @@ const RASTER_MAX_EDGE = 4096;
 let vizInstance = null;
 
 async function renderMermaid(request) {
+  const ink = request.dark ? '#f2e5d3' : '#33251c';
+  const surface = request.dark ? '#241b15' : '#f8f2e8';
   mermaid.initialize({
     startOnLoad: false,
     securityLevel: 'strict',
@@ -37,7 +39,21 @@ async function renderMermaid(request) {
       pie12: '#cbd5e1',
       pieSectionTextColor: '#111827',
       pieOpacity: '1',
+      pieTitleTextColor: ink,
+      pieLegendTextColor: ink,
       xyChart: {
+        backgroundColor: surface,
+        titleColor: ink,
+        dataLabelColor: ink,
+        legendTextColor: ink,
+        xAxisTitleColor: ink,
+        xAxisLabelColor: ink,
+        xAxisTickColor: ink,
+        xAxisLineColor: ink,
+        yAxisTitleColor: ink,
+        yAxisLabelColor: ink,
+        yAxisTickColor: ink,
+        yAxisLineColor: ink,
         plotColorPalette: request.dark
           ? '#60a5fa,#fbbf24,#34d399,#c084fc,#fb7185,#22d3ee'
           : '#1d4ed8,#b45309,#047857,#7e22ce,#be123c,#0e7490',
@@ -45,7 +61,10 @@ async function renderMermaid(request) {
     },
   });
   const result = await mermaid.render(`diagram-${request.id}`, request.source);
-  return result.svg;
+  const svg = new DOMParser().parseFromString(result.svg, 'image/svg+xml').documentElement;
+  if (!svg.querySelector('.pieTitleText, .pieCircle')) return result.svg;
+  svg.style.backgroundColor = surface;
+  return new XMLSerializer().serializeToString(svg);
 }
 
 async function renderGraphviz(request) {

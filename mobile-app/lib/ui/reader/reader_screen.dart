@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -23,12 +24,14 @@ import '../../core/services/incoming_documents.dart';
 import '../../core/services/large_document_policy.dart';
 import '../../features/reader/reader_controller.dart';
 import '../../infrastructure/diagram_render_service.dart';
+import '../../infrastructure/image_exporter.dart';
 import '../../platform/platform_profile.dart';
 import '../localization/reader_strings.dart';
 import '../theme/parchment_theme.dart';
 import '../theme/reader_fonts.dart';
 import 'about_section.dart';
 import 'document_info_sheet.dart';
+import 'media_lightbox.dart';
 import 'notes_sheet.dart';
 import 'readable_table.dart';
 import 'note_markdown.dart';
@@ -2405,6 +2408,16 @@ class _ZoomableMarkdownImageState extends State<_ZoomableMarkdownImage> {
   static final Map<Uri, Future<Uint8List>> _networkLoads = {};
   static int _networkCacheBytes = 0;
   static const _networkCacheLimit = 64 * 1024 * 1024;
+  static const _networkDeadline = Duration(seconds: 20);
+  static final _imageClient = HttpClient()
+    ..connectionTimeout = const Duration(seconds: 8)
+    ..userAgent = imageUserAgent;
+
+  void _retryNetworkImage() {
+    setState(() {
+      _networkBytes = _networkImage(widget.uri);
+    });
+  }
 
   static Future<Uint8List> _networkImage(Uri uri) {
     final cached = _networkCache.remove(uri);
@@ -2423,7 +2436,9 @@ class _ZoomableMarkdownImageState extends State<_ZoomableMarkdownImage> {
           }
           return bytes;
         })
-        .whenComplete(() => _networkLoads.remove(uri));
+        .whenComplete(() {
+          _networkLoads.remove(uri);
+        });
   }
 
   double? _dimension(String name) =>
@@ -2450,8 +2465,12 @@ class _ZoomableMarkdownImageState extends State<_ZoomableMarkdownImage> {
               message: tr('找不到圖片「{name}」', {'name': missing.name}),
             );
           }
-          if (snapshot.hasError) {
-            return _ImageUnavailable(message: tr('圖片無法顯示'));
+          if (snapshot.hasError &&
+              snapshot.connectionState == ConnectionState.done) {
+            return _ImageUnavailable(
+              message: tr('圖片無法顯示'),
+              onRetry: _isFolderImage ? null : _retryNetworkImage,
+            );
           }
           final data = snapshot.data;
           if (data == null) {
@@ -2484,12 +2503,17 @@ class _ZoomableMarkdownImageState extends State<_ZoomableMarkdownImage> {
         context,
         picture,
         SvgPicture.memory(data, fit: BoxFit.contain),
+        data,
       );
     }
-    return _zoomable(context, MemoryImage(data));
+    return _zoomable(context, MemoryImage(data), data);
   }
 
-  Widget _zoomable(BuildContext context, ImageProvider<Object> provider) {
+  Widget _zoomable(
+    BuildContext context,
+    ImageProvider<Object> provider,
+    Uint8List data,
+  ) {
     final width = _dimension('width');
     final height = _dimension('height');
     final image = Image(
@@ -2505,6 +2529,7 @@ class _ZoomableMarkdownImageState extends State<_ZoomableMarkdownImage> {
       context,
       image,
       Image(image: provider, fit: BoxFit.contain),
+      data,
     );
   }
 
@@ -2512,13 +2537,14 @@ class _ZoomableMarkdownImageState extends State<_ZoomableMarkdownImage> {
     BuildContext context,
     Widget image,
     Widget lightboxImage,
+    Uint8List data,
   ) {
     final label = widget.semanticLabel;
     return Semantics(
       button: true,
       label: label == null ? tr('開啟圖片') : tr('開啟圖片：{label}', {'label': label}),
       child: GestureDetector(
-        onTap: () => _showImageLightbox(context, lightboxImage),
+        onTap: () => _showImageLightbox(context, lightboxImage, data),
         child: Align(
           alignment: Alignment.centerLeft,
           widthFactor: 1,
@@ -2532,36 +2558,67 @@ class _ZoomableMarkdownImageState extends State<_ZoomableMarkdownImage> {
     );
   }
 
-  void _showImageLightbox(BuildContext context, Widget image) {
+  void _showImageLightbox(BuildContext context, Widget image, Uint8List data) {
+    final background = Theme.of(context).colorScheme.surface;
+    final segments = widget.uri.pathSegments;
+    final sourceName = widget.uri.scheme == 'data' || segments.isEmpty
+        ? 'image'
+        : segments.last;
+    final name = sourceName
+        .replaceFirst(RegExp(r'\.[^.]+$'), '')
+        .replaceAll(RegExp(r'[<>:"/\\|?*\x00-\x1f]'), '_')
+        .trim();
+    final fileName = '${name.isEmpty ? 'image' : name}.png';
+
     showDialog<void>(
       context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.94),
-      builder: (dialogContext) => Dialog.fullscreen(
-        backgroundColor: Colors.black,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: InteractiveViewer(
-                minScale: 0.8,
-                maxScale: 8,
-                child: Center(child: image),
-              ),
-            ),
-            Positioned(
-              top: 8,
-              right: 8,
-              child: SafeArea(
-                child: IconButton.filled(
-                  tooltip: tr('關閉'),
-                  onPressed: () => Navigator.pop(dialogContext),
-                  icon: const Icon(Icons.close),
-                ),
-              ),
-            ),
-          ],
-        ),
+      barrierColor: Colors.black.withValues(alpha: 0.9),
+      builder: (_) => MediaLightbox(
+        background: background,
+        content: ZoomableLightboxImage(image: image),
+        onSave: (beginSaving) async {
+          beginSaving();
+          return ImageExporter.savePng(
+            await _imageAsPng(data),
+            fileName: fileName,
+          );
+        },
       ),
     );
+  }
+
+  static Future<Uint8List> _imageAsPng(Uint8List data) async {
+    final ui.Image image;
+    if (looksLikeSvg(data)) {
+      final info = await vg.loadPicture(SvgBytesLoader(data), null);
+      final recorder = ui.PictureRecorder();
+      final scale = math.min(1.0, 4096 / info.size.longestSide);
+      final canvas = Canvas(recorder)..scale(scale);
+      canvas.drawPicture(info.picture);
+      final picture = recorder.endRecording();
+      try {
+        image = await picture.toImage(
+          math.max(1, (info.size.width * scale).ceil()),
+          math.max(1, (info.size.height * scale).ceil()),
+        );
+      } finally {
+        picture.dispose();
+        info.picture.dispose();
+      }
+    } else {
+      final codec = await ui.instantiateImageCodec(data);
+      try {
+        image = (await codec.getNextFrame()).image;
+      } finally {
+        codec.dispose();
+      }
+    }
+    try {
+      final png = await image.toByteData(format: ui.ImageByteFormat.png);
+      return png!.buffer.asUint8List(png.offsetInBytes, png.lengthInBytes);
+    } finally {
+      image.dispose();
+    }
   }
 
   static Future<Uint8List> _loadNetworkImage(Uri uri) async {
@@ -2573,41 +2630,53 @@ class _ZoomableMarkdownImageState extends State<_ZoomableMarkdownImage> {
             !uri.path.toLowerCase().endsWith('.png')
         ? uri.replace(path: '${uri.path}.png')
         : uri;
-    // Image hosts such as Wikimedia throttle or reject the generic Dart
-    // User-Agent; identify the app as their policies ask.
-    final client = HttpClient()
-      ..connectionTimeout = const Duration(seconds: 12)
-      ..userAgent = imageUserAgent;
+    final elapsed = Stopwatch()..start();
+    final timeout = TimeoutException(
+      'Image download timed out',
+      _networkDeadline,
+    );
+    Duration remaining() => _networkDeadline - elapsed.elapsed;
+    HttpClientRequest? request;
+    StreamIterator<List<int>>? chunks;
     try {
-      final request = await client
-          .getUrl(requestUri)
-          .timeout(const Duration(seconds: 15));
-      request.headers.set(HttpHeaders.acceptHeader, 'image/*');
-      final response = await request.close().timeout(
-        const Duration(seconds: 15),
-      );
+      final pending = _imageClient.getUrl(requestUri).then((opened) {
+        if (remaining() <= Duration.zero) {
+          opened.abort(timeout);
+          throw timeout;
+        }
+        return opened;
+      });
+      final opened = request = await pending.timeout(remaining());
+      opened.headers.set(HttpHeaders.acceptHeader, 'image/*');
+      final response = await opened.close().timeout(remaining());
+      final stream = chunks = StreamIterator(response);
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw HttpException('HTTP ${response.statusCode}', uri: requestUri);
       }
       const maximumBytes = 20 * 1024 * 1024;
       final builder = BytesBuilder(copy: false);
-      await for (final chunk in response.timeout(const Duration(seconds: 20))) {
+      while (await stream.moveNext().timeout(remaining())) {
+        final chunk = stream.current;
         builder.add(chunk);
         if (builder.length > maximumBytes) {
           throw const FormatException('Image is larger than 20 MB');
         }
       }
       return builder.takeBytes();
+    } on TimeoutException {
+      request?.abort(timeout);
+      rethrow;
     } finally {
-      client.close(force: true);
+      await chunks?.cancel();
     }
   }
 }
 
 class _ImageUnavailable extends StatelessWidget {
-  const _ImageUnavailable({required this.message});
+  const _ImageUnavailable({required this.message, this.onRetry});
 
   final String message;
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -2618,13 +2687,15 @@ class _ImageUnavailable extends StatelessWidget {
         return Tooltip(
           message: message,
           child: GestureDetector(
-            onTap: compact
-                ? () {
-                    ScaffoldMessenger.maybeOf(context)
-                      ?..hideCurrentSnackBar()
-                      ..showSnackBar(SnackBar(content: Text(message)));
-                  }
-                : null,
+            onTap:
+                onRetry ??
+                (compact
+                    ? () {
+                        ScaffoldMessenger.maybeOf(context)
+                          ?..hideCurrentSnackBar()
+                          ..showSnackBar(SnackBar(content: Text(message)));
+                      }
+                    : null),
             child: Container(
               width: compact ? constraints.maxWidth : double.infinity,
               height: compact ? 80 : null,
@@ -2640,7 +2711,7 @@ class _ImageUnavailable extends StatelessWidget {
                         const Icon(Icons.broken_image_outlined),
                         const SizedBox(height: 4),
                         Text(
-                          tr('缺圖'),
+                          tr(onRetry == null ? '缺圖' : '重試'),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: Theme.of(context).textTheme.labelSmall,
@@ -2652,6 +2723,8 @@ class _ImageUnavailable extends StatelessWidget {
                         const Icon(Icons.broken_image_outlined),
                         const SizedBox(width: 10),
                         Expanded(child: Text(message)),
+                        if (onRetry != null)
+                          TextButton(onPressed: onRetry, child: Text(tr('重試'))),
                       ],
                     ),
             ),

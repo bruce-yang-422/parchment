@@ -158,9 +158,18 @@
 }
 .footnote-preview-footer button {
   @apply rounded px-2 py-1 text-sm font-medium;
-  color: var(--link);
+  background: var(--btn-secondary-bg);
+  border-color: var(--btn-secondary-border);
+  color: var(--btn-secondary-text);
 }
-.footnote-preview-footer button:hover { background: var(--tree-hover); }
+.footnote-preview-footer button:is(:hover, :focus-visible) {
+  background: var(--tree-hover);
+  color: var(--text);
+}
+.footnote-preview-footer button:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
 .footnote-preview-content {
   @apply px-4 py-3;
   overflow: auto;
@@ -511,6 +520,30 @@
 }
 
 #reader-body .graphviz svg { @apply inline-block w-auto h-auto max-w-none; }
+
+#reader-body .mermaid {
+  --diagram-surface: var(--surface);
+  --diagram-ink: var(--text);
+  --diagram-blue: #1d4ed8;
+  --diagram-orange: #b45309;
+  --diagram-green: #047857;
+  --diagram-purple: #7e22ce;
+  --diagram-red: #be123c;
+  --diagram-cyan: #0e7490;
+}
+
+:root.dark #reader-body .mermaid {
+  --diagram-blue: #60a5fa;
+  --diagram-orange: #fbbf24;
+  --diagram-green: #34d399;
+  --diagram-purple: #c084fc;
+  --diagram-red: #fb7185;
+  --diagram-cyan: #22d3ee;
+}
+
+#reader-body .mermaid svg:has(.pieTitleText, .pieCircle) {
+  background-color: var(--diagram-surface);
+}
 
 #reader-body .katex-display { @apply overflow-x-auto overflow-y-hidden py-2 px-0; }
 

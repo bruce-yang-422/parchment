@@ -977,6 +977,12 @@ function _prepareMermaidDiagram(wrapper) {
     clone.removeAttribute('style');
     // 燈箱以 <img> 顯示，不會繼承頁面文字色；寫入目前的顏色，深色模式下才看得清楚。
     clone.setAttribute('color', getComputedStyle(wrapper).color);
+    const chartStyle = getComputedStyle(svg);
+    for (const name of ['surface', 'ink', 'blue', 'orange', 'green', 'purple', 'red', 'cyan']) {
+      const property = `--diagram-${name}`;
+      clone.style.setProperty(property, chartStyle.getPropertyValue(property));
+    }
+    clone.style.backgroundColor = chartStyle.backgroundColor;
     if (intrinsicWidth) clone.setAttribute('width', intrinsicWidth);
     if (intrinsicHeight) clone.setAttribute('height', intrinsicHeight);
     const markup = new XMLSerializer().serializeToString(clone);
@@ -998,7 +1004,7 @@ function _prepareMermaidDiagram(wrapper) {
  */
 const MERMAID_FREE_TEXT = [
   '.titleText', '.sectionTitle', '.tick text', '.taskTextOutsideLeft', '.taskTextOutsideRight',
-  '.messageText', '.loopText', '.pieTitleText', '.legend text',
+  '.messageText', '.loopText',
 ];
 /** 同樣固定為深灰色的連線：時序圖訊息線、流程圖連線（箭頭另以 marker 處理）。 */
 const MERMAID_LINES = ['.messageLine0', '.messageLine1', '.flowchart-link'];
