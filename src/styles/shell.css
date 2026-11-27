@@ -559,11 +559,9 @@ button {
 
 .workspace-current-name { @apply truncate; }
 
-/* 標題列的「安裝 App」：連結色外框；手機版只顯示圖示 */
+/* 標題列的「安裝 App」：沿用其他次要功能按鈕配色；手機版只顯示圖示 */
 .header-install {
   @apply flex h-8 items-center justify-center gap-1.5 px-2.5;
-  border-color: var(--link);
-  color: var(--link);
 }
 @screen mobile {
   html,

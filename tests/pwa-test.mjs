@@ -15,6 +15,7 @@ assert.match(index, /rel="manifest" href="manifest\.webmanifest"/);
 assert.match(index, /id="btn-install-pwa"/);
 assert.match(index, /id="btn-install-pwa"[\s\S]*?<span>安裝 App<\/span>/);
 assert.match(shellStyles, /\.header-install\s*\{\s*@apply[^;]*\bjustify-center\b/);
+assert.doesNotMatch(shellStyles, /\.header-install\s*\{[^}]*\b(?:border-color|color)\s*:/);
 assert.match(index, /id="workspace-toggle"/);
 assert.match(index, /id="settings-dialog"/);
 assert.match(index, /id="setting-cjk-font"/);
